@@ -1,0 +1,16 @@
+﻿@{
+    ViewData["Title"] = "View Reports";
+    Layout = "_AdminLayout";
+
+}
+
+<div class="container">
+    <h2>System Reports</h2>
+    <p>Here you can access reports on system usage, user activity, and performance.</p>
+
+    <div class="list-group mt-4">
+        <a href="@Url.Action("UserActivityReport", "Admin")" class="list-group-item list-group-item-action">User Activity Report</a>
+        <a href="@Url.Action("SystemUsageReport", "Admin")" class="list-group-item list-group-item-action">System Usage Report</a>
+        <a href="@Url.Action("PerformanceReport", "Admin")" class="list-group-item list-group-item-action">Performance Report</a>
+    </div>
+</div>

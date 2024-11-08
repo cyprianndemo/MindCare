@@ -1,0 +1,31 @@
+﻿@model IEnumerable<MentalHealthResource>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mental Health Resources</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+    <div class="container my-5">
+        <h1 class="text-center text-primary">Mental Health Resources</h1>
+        <div class="row mt-4">
+            @foreach (var resource in Model)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">@resource.Title</h5>
+                            <p class="card-text">@resource.Description</p>
+                            <a href="#" class="btn btn-outline-primary">Read More</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+</body>
+</html>

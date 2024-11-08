@@ -1,0 +1,183 @@
+﻿@page
+@model RegisterModel
+@{
+    ViewData["Title"] = "Register";
+}
+
+<div class="container mt-5 animate__animated animate__fadeIn">
+    <h1 class="text-center mb-4">@ViewData["Title"]</h1>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-body p-4">
+                    <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="needs-validation">
+                        <h2 class="card-title text-center mb-4">Create a new account</h2>
+                        <hr />
+                        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+                        <!-- Basic Information -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="Input.FirstName" class="form-control" aria-required="true" />
+                                    <label asp-for="Input.FirstName"></label>
+                                    <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="Input.LastName" class="form-control" aria-required="true" />
+                                    <label asp-for="Input.LastName"></label>
+                                    <span asp-validation-for="Input.LastName" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" />
+                            <label asp-for="Input.Email"></label>
+                            <span asp-validation-for="Input.Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" />
+                                    <label asp-for="Input.Password"></label>
+                                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" />
+                                    <label asp-for="Input.ConfirmPassword"></label>
+                                    <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <select asp-for="Input.Role" class="form-select" aria-required="true">
+                                <option value="">Select a role...</option>
+                                <option value="Student">Student</option>
+                                <option value="Therapist">Therapist</option>
+                                <option value="Psychiatrist">Psychiatrist</option>
+                            </select>
+                            <label asp-for="Input.Role"></label>
+                            <span asp-validation-for="Input.Role" class="text-danger"></span>
+                        </div>
+
+                        <!-- Student Fields -->
+                        <div id="studentFields" class="animate__animated animate__fadeIn" style="display: none;">
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <div class="form-floating">
+                                        <input asp-for="Input.University" class="form-control" />
+                                        <label asp-for="Input.University"></label>
+                                        <span asp-validation-for="Input.University" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-floating">
+                                        <input asp-for="Input.Course" class="form-control" />
+                                        <label asp-for="Input.Course"></label>
+                                        <span asp-validation-for="Input.Course" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-floating">
+                                        <input asp-for="Input.YearOfStudy" class="form-control" />
+                                        <label asp-for="Input.YearOfStudy"></label>
+                                        <span asp-validation-for="Input.YearOfStudy" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Medical Professional Fields -->
+                        <div id="medicalFields" class="animate__animated animate__fadeIn" style="display: none;">
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <div class="form-floating">
+                                        <input asp-for="Input.NationalId" class="form-control" />
+                                        <label asp-for="Input.NationalId"></label>
+                                        <span asp-validation-for="Input.NationalId" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-floating">
+                                        <input asp-for="Input.LicenceNumber" class="form-control" />
+                                        <label asp-for="Input.LicenceNumber"></label>
+                                        <span asp-validation-for="Input.LicenceNumber" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-floating">
+                                        <input asp-for="Input.Hospital" class="form-control" />
+                                        <label asp-for="Input.Hospital"></label>
+                                        <span asp-validation-for="Input.Hospital" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary mb-3">Register</button>
+
+                        <div class="text-center">
+                            <p>Or register with:</p>
+                            <div class="d-flex justify-content-center gap-2">
+                                @foreach (var provider in Model.ExternalLogins!)
+                                {
+                                    <button type="submit" class="btn btn-outline-dark"
+                                            name="provider" value="@provider.Name"
+                                            title="Register using your @provider.DisplayName account">
+                                        @if (provider.Name.ToLower() == "google")
+                                        {
+                                            <i class="fab fa-google"></i>
+                                        }
+                                        else if (provider.Name.ToLower() == "github")
+                                        {
+                                            <i class="fab fa-github"></i>
+                                        }
+                                        @provider.DisplayName
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://kit.fontawesome.com/your-font-awesome-kit.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+    <script>
+        $(document).ready(function () {
+            function toggleFields() {
+                const role = $("#Input_Role").val();
+                if (role === "Student") {
+                    $("#studentFields").show();
+                    $("#medicalFields").hide();
+                    $("#Input_University, #Input_Course, #Input_YearOfStudy").prop("required", true);
+                    $("#Input_NationalId, #Input_LicenceNumber").prop("required", false);
+                } else if (role === "Therapist" || role === "Psychiatrist") {
+                    $("#studentFields").hide();
+                    $("#medicalFields").show();
+                    $("#Input_University, #Input_Course, #Input_YearOfStudy").prop("required", false);
+                    $("#Input_NationalId, #Input_LicenceNumber").prop("required", true);
+                } else {
+                    $("#studentFields").hide();
+                    $("#medicalFields").hide();
+                }
+            }
+
+            $("#Input_Role").change(toggleFields);
+            toggleFields(); // Initial state
+        });
+    </script>
+}

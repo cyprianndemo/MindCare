@@ -1,0 +1,129 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - Admin Dashboard</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* General Styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f8fa; /* Background color from the email screenshot */
+            color: #333;
+        }
+
+        /* Top Navigation Bar */
+        .app-bar {
+            background-color: #004085; /* Dark blue from the email's toolbar */
+            color: white;
+        }
+
+        /* Sidebar Styling */
+        .side-nav {
+            min-height: 100vh;
+            background-color: #004085; /* Dark blue color for sidebar */
+            color: white;
+            padding-top: 20px;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+            .side-nav .nav-link {
+                color: white;
+                font-size: 1.1rem;
+                display: block;
+                padding: 10px 20px;
+                text-decoration: none;
+            }
+
+                .side-nav .nav-link:hover {
+                    background-color: #003060; /* Slightly darker blue for hover effect */
+                    border-radius: 5px;
+                }
+
+        /* Main Content Styling */
+        .main-content {
+            padding: 20px;
+            background-color: #ffffff; /* White background for main content area */
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for card-like effect */
+        }
+
+        /* Icons for Navigation Items */
+        .nav-item-icon {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Navigation Bar -->
+    <nav class="navbar navbar-expand-lg app-bar">
+        <div class="container-fluid">
+            <a class="navbar-brand text-white" href="#">MindCare Admin Dashboard</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#">Notifications</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="@Url.Action("Logout", "Account")">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar Navigation -->
+            <nav class="col-md-3 col-lg-2 side-nav d-none d-md-block">
+                <div class="position-sticky">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="@Url.Action("Dashboard", "Admin")">
+                                <span class="nav-item-icon">🏠</span> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="@Url.Action("ManageUsers", "Admin")">
+                                <span class="nav-item-icon">👥</span> Manage Users
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="@Url.Action("ViewReports", "Admin")">
+                                <span class="nav-item-icon">📊</span> View Reports
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="@Url.Action("SystemSettings", "Admin")">
+                                <span class="nav-item-icon">⚙️</span> System Settings
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main Content Area -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2024 - MindCare - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

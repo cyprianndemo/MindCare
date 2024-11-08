@@ -1,0 +1,48 @@
+﻿@model IEnumerable<CartItem>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cart</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+    <div class="container my-5">
+        <h1 class="text-center text-primary">Your Cart</h1>
+        <table class="table mt-4">
+            <thead>
+                <tr>
+                    <th>Medication</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Subtotal</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.Medication.Name</td>
+                        <td>@item.Quantity</td>
+                        <td>@item.Medication.Price</td>
+                        <td>@(item.Quantity * item.Medication.Price)</td>
+                        <td><a href="@Url.Action("RemoveFromCart", "Cart", new { id = item.CartItemId })" class="btn btn-danger btn-sm">Remove</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <div class="text-right">
+            <a href="@Url.Action("Pay", "Checkout")" class="btn btn-primary">Proceed to Checkout</a>
+        </div>
+    </div>
+
+</body>
+</html>
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}

@@ -1,0 +1,44 @@
+﻿@{
+    ViewData["Title"] = "Admin Dashboard";
+    Layout = "_AdminLayout";
+}
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h2>Welcome, @User.Identity.Name</h2>
+</div>
+
+<div class="container">
+    <h3 class="mb-4">Admin Services Overview</h3>
+    <p>Access tools to manage users, monitor system reports, and configure settings.</p>
+
+    <!-- Service Buttons Section -->
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Manage Users</h5>
+                    <p class="card-text">Create, update, or delete user accounts and assign roles.</p>
+                    <a href="@Url.Action("ManageUsers", "Admin")" class="btn btn-primary">Go to User Management</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">View Reports</h5>
+                    <p class="card-text">Access system usage and performance reports.</p>
+                    <a href="@Url.Action("ViewReports", "Admin")" class="btn btn-primary">View Reports</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">System Settings</h5>
+                    <p class="card-text">Adjust system configurations and settings.</p>
+                    <a href="@Url.Action("SystemSettings", "Admin")" class="btn btn-primary">System Settings</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

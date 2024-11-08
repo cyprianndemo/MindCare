@@ -1,0 +1,84 @@
+﻿@model dynamic
+@{
+    ViewData["Title"] = "Chat";
+}
+
+<div class="chat-container">
+    <div class="chat-messages" id="messagesList"></div>
+    <div class="chat-input">
+        <input type="text" id="messageInput" placeholder="Type your message..." />
+        <button onclick="sendMessage()" btn-btn="primary">Send</button>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.js"></script>
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/chatHub")
+            .build();
+
+        connection.start().catch(err => console.error(err));
+
+        connection.on("ReceiveMessage", function (message) {
+            const messagesDiv = document.getElementById("messagesList");
+            const messageElement = document.createElement("div");
+            messageElement.classList.add(message.isFromBot ? "bot-message" : "user-message");
+            messageElement.textContent = message.content;
+            messagesDiv.appendChild(messageElement);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to the bottom
+        });
+
+        function sendMessage() {
+            const input = document.getElementById("messageInput");
+            const userMessage = {
+                content: input.value,
+                senderId: "user123", // Replace with actual user ID
+                timestamp: new Date(),
+                isFromBot: false
+            };
+
+            // Display the user's message in the chat
+            const messagesDiv = document.getElementById("messagesList");
+            const userMessageElement = document.createElement("div");
+            userMessageElement.classList.add("user-message");
+            userMessageElement.textContent = userMessage.content;
+            messagesDiv.appendChild(userMessageElement);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to the bottom
+
+            fetch('/Chat/SendMessage', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(userMessage)
+            }).then(response => {
+                if (!response.ok) {
+                    console.error("Failed to send message.");
+                }
+                return response.json();
+            }).then(data => {
+                console.log(data); // Check the success message
+
+                // Receive the bot's response
+                if (data && data.message) {
+                    const botResponse = {
+                        content: data.message,
+                        senderId: "bot",
+                        timestamp: new Date(),
+                        isFromBot: true
+                    };
+
+                    // Display the bot's response in the chat
+                    const botMessageElement = document.createElement("div");
+                    botMessageElement.classList.add("bot-message");
+                    botMessageElement.textContent = botResponse.content;
+                    messagesDiv.appendChild(botMessageElement);
+                    messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to the bottom
+                }
+            }).catch(error => console.error("Error:", error));
+
+            input.value = ''; // Clear the input field
+        }
+    </script>
+}

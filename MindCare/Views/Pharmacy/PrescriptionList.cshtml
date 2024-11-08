@@ -1,0 +1,26 @@
+﻿@model IEnumerable<Prescription>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Prescriptions</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+    <div class="container my-5">
+        <h1 class="text-center text-primary">Your Prescriptions</h1>
+        <div class="list-group mt-4">
+            @foreach (var prescription in Model)
+            {
+                <a href="@Url.Action("MedicationList", "Pharmacy", new { prescriptionId = prescription.PrescriptionId })" class="list-group-item list-group-item-action">
+                    <h5 class="mb-1">Prescription Date: @prescription.DatePrescribed.ToShortDateString()</h5>
+                    <p class="mb-1">@prescription.Description</p>
+                </a>
+            }
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,126 @@
+﻿@{
+    ViewData["Title"] = "Welcome to MindCare System";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f5f8fa; /* Soft background color */
+            color: #333; /* Gentle, readable text color */
+            font-family: Arial, sans-serif;
+        }
+        .hero-section {
+            background-color: #004085;
+            color: #fff;
+            padding: 60px 20px;
+            text-align: center;
+            border-radius: 8px;
+        }
+        .nav-link, .section-title {
+            color: #004085;
+        }
+        .card {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: 0.3s;
+            border: none;
+            border-radius: 10px;
+        }
+        .card:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        .btn-primary {
+            background-color: #004085;
+            border-color: #004085;
+        }
+        .btn-primary:hover {
+            background-color: #002752;
+            border-color: #002752;
+        }
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .text-muted {
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container my-5">
+        <!-- Hero Section -->
+        <div class="hero-section rounded">
+            <h1>Welcome to MindCare</h1>
+            <p>Your safe space for mental wellness and support. Here, you can connect with professionals, access helpful resources, and take positive steps towards well-being.</p>
+            <a href="@Url.Action("AboutUs", "Home")" class="btn btn-primary mt-3">Learn More About Us</a>
+        </div>
+
+        <!-- Navigation Cards -->
+        <div class="row my-5">
+            <!-- Therapy Sessions -->
+            <div class="col-md-4">
+                <div class="card p-4">
+                    <h2 class="section-title">Therapy Sessions</h2>
+                    <p>Book appointments with our experienced therapists to get support and talk through anything on your mind.</p>
+                    <a href="@Url.Action("TherapySessions", "Therapy")" class="btn btn-primary">Book Now</a>
+                </div>
+            </div>
+            
+            <!-- Resources -->
+            <div class="col-md-4">
+                <div class="card p-4">
+                    <h2 class="section-title">Mental Health Resources</h2>
+                    <p>Explore articles, videos, and exercises to learn about mental health, self-care practices, and mindfulness.</p>
+                    <a href="@Url.Action("Index", "Resources")" class="btn btn-primary">Explore Resources</a>
+                </div>
+            </div>
+            
+            <!-- Pharmacy -->
+            <div class="col-md-4">
+                <div class="card p-4">
+                    <h2 class="section-title">Pharmacy</h2>
+                    <p>View prescribed medication from your psychiatrist and add items to your cart for easy checkout.</p>
+                    <a href="@Url.Action("PrescriptionList", "Pharmacy")" class="btn btn-primary">Visit Pharmacy</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Support Section -->
+        <div class="row">
+            <!-- Chat with Us -->
+            <div class="col-md-6">
+                <div class="card p-4">
+                    <h2 class="section-title">Chat with Us</h2>
+                    <p>Need someone to talk to? Our chatbot and live support are here to listen and help you find solutions.</p>
+                    <a href="@Url.Action("Index", "Chat")" class="btn btn-primary">Start Chat</a>
+                </div>
+            </div>
+            
+            <!-- Feedback and Satisfaction -->
+            <div class="col-md-6">
+                <div class="card p-4">
+                    <h2 class="section-title">Feedback</h2>
+                    <p>We value your thoughts. Help us improve by sharing your experiences and feedback on our services.</p>
+                    <a href="@Url.Action("Create", "Feedback")" class="btn btn-primary">Give Feedback</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Section -->
+        <footer class="mt-5 text-center">
+            <p class="text-muted">MindCare System | Supporting mental health, one step at a time. ©2024</p>
+        </footer>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@@popperjs/core@2.0.7/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+﻿@{
+    ViewData["Title"] = "Student Dashboard";
+    Layout = "_StudentLayout";
+}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h2>Welcome, @User.Identity.Name</h2>
+</div>
+
+<div class="container">
+    <h3 class="mb-4">Explore MindCare Services</h3>
+    <p>This dashboard provides access to all essential services tailored to support your mental wellness journey.</p>
+
+    <!-- Cards Section -->
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Therapy Sessions</h5>
+                    <p class="card-text">Schedule or review your therapy sessions with experienced professionals.</p>
+                    <a href="@Url.Action("TherapySessions", "Therapy")" class="btn btn-primary">View Sessions</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Mental Health Resources</h5>
+                    <p class="card-text">Access articles, videos, and other resources for mental well-being.</p>
+                    <a href="@Url.Action("Index", "Resources")" class="btn btn-primary">Explore Resources</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Pharmacy</h5>
+                    <p class="card-text">View and manage your prescribed medications.</p>
+                    <a href="@Url.Action("PrescriptionList", "Pharmacy")" class="btn btn-primary">Go to Pharmacy</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">My Cart</h5>
+                    <p class="card-text">Review medications in your cart before checkout.</p>
+                    <a href="@Url.Action("Index", "Cart")" class="btn btn-primary">View Cart</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Chat with Us</h5>
+                    <p class="card-text">Get support or talk with our team for any assistance.</p>
+                    <a href="@Url.Action("ChatWithUs", "Chat")" class="btn btn-primary">Start Chat</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Feedback</h5>
+                    <p class="card-text">Share your experience and help us improve.</p>
+                    <a href="@Url.Action("Create", "Feedback")" class="btn btn-primary">Give Feedback</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

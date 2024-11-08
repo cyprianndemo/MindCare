@@ -1,0 +1,28 @@
+﻿@model ErrorViewModel
+@{
+    ViewData["Title"] = "Error";
+}
+
+<div class="container mt-5">
+    <h1 class="text-danger">Error.</h1>
+
+    @if (!string.IsNullOrEmpty(Model?.Message))
+    {
+        <h2 class="text-danger">@Model.Message</h2>
+    }
+    else
+    {
+        <h2 class="text-danger">An error occurred while processing your request.</h2>
+    }
+
+    @if (Model?.ShowRequestId ?? false)
+    {
+        <p>
+            <strong>Request ID:</strong> <code>@Model.RequestId</code>
+        </p>
+    }
+
+    <div class="mt-4">
+        <a asp-controller="Home" asp-action="Index" class="btn btn-primary">Return to Home</a>
+    </div>
+</div>

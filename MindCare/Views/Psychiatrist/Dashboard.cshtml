@@ -1,0 +1,56 @@
+﻿@{
+    ViewData["Title"] = "Psychiatrist Dashboard";
+    Layout = "_PsychiatristLayout";
+}
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h2>Welcome, @User.Identity.Name</h2>
+</div>
+
+<div class="container">
+    <h3 class="mb-4">Psychiatrist Services Overview</h3>
+    <p>Access tools to manage your sessions, view patient information, and create or manage prescriptions.</p>
+
+    <!-- Service Buttons Section -->
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Manage Sessions</h5>
+                    <p class="card-text">View and manage your scheduled therapy sessions with patients.</p>
+                    <a href="@Url.Action("ManageSessions", "Psychiatrist")" class="btn btn-primary">Go to Sessions</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">View Patients</h5>
+                    <p class="card-text">Access a list of your assigned patients and their details.</p>
+                    <a href="@Url.Action("PatientList", "Psychiatrist")" class="btn btn-primary">View Patients</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Manage Prescriptions</h5>
+                    <p class="card-text">Create, view, and manage prescriptions for your patients.</p>
+                    <a href="@Url.Action("Prescriptions", "Pharmacy")" class="btn btn-primary">Manage Prescriptions</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Patient Feedback</h5>
+                    <p class="card-text">Read feedback provided by patients on their experience with your care.</p>
+                    <a href="@Url.Action("PatientFeedback", "Feedback")" class="btn btn-primary">View Feedback</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

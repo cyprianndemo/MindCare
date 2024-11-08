@@ -1,0 +1,39 @@
+﻿@model Appointment
+@{
+    ViewBag.Title = "Session Details";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>@ViewBag.Title</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+    <div class="container my-5">
+        <h2 class="text-center text-primary">Therapy Session Details</h2>
+
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">Appointment Information</h5>
+
+                <p class="card-text"><strong>Student:</strong> @Model.Student.FirstName @Model.Student.LastName</p>
+                <p class="card-text"><strong>Therapist:</strong> @Model.Therapist.FirstName @Model.Therapist.LastName</p>
+                <p class="card-text"><strong>Appointment Date:</strong> @Model.Date.ToString("yyyy-MM-dd")</p>
+                <p class="card-text"><strong>Appointment Time:</strong> @Model.Time.ToString(@"hh\:mm")</p>
+                <p class="card-text"><strong>Status:</strong> @Model.Status</p>
+
+                @if (Model.Psychiatrist != null)
+                {
+                    <p class="card-text"><strong>Psychiatrist:</strong> @Model.Psychiatrist.FirstName @Model.Psychiatrist.LastName</p>
+                }
+
+                <a href="@Url.Action("TherapySessions", "Therapy")" class="btn btn-primary mt-3">Back to Sessions</a>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

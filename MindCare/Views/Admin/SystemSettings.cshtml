@@ -1,0 +1,30 @@
+﻿@model MindCare.ViewModels.SystemSettingsViewModel
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "System Settings";
+}
+
+<div class="container">
+    <h2>System Settings</h2>
+    <p>Configure global settings for the application.</p>
+
+    <form asp-action="SystemSettings" method="post">
+        <div class="form-group">
+            <label asp-for="MaintenanceMode"></label>
+            <input type="checkbox" class="form-control" asp-for="MaintenanceMode" />
+        </div>
+
+        <div class="form-group mt-3">
+            <label asp-for="DefaultRole"></label>
+            <select class="form-control" asp-for="DefaultRole">
+                <option value="Student">Student</option>
+                <option value="Therapist">Therapist</option>
+                <option value="Psychiatrist">Psychiatrist</option>
+                <option value="Admin">Admin</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary mt-4">Save Settings</button>
+    </form>
+</div>

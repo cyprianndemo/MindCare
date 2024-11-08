@@ -1,0 +1,43 @@
+﻿@model IEnumerable<Appointment>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Therapy Sessions</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .text-primary {
+            color: #004085;
+        }
+
+        body {
+            background-color: #f5f8fa;
+            color: #333;
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container my-5">
+        <h1 class="text-center text-primary mb-4">Your Therapy Sessions</h1>
+
+        <div class="text-right mb-3">
+            <a href="@Url.Action("BookSession", "Therapy")" class="btn btn-primary">Book a New Session</a>
+        </div>
+
+        <div class="list-group">
+            @foreach (var session in Model)
+            {
+                <a href="@Url.Action("SessionDetails", "Therapy", new { id = session.AppointmentId })" class="list-group-item list-group-item-action">
+                    <h5 class="mb-1">@session.Date.ToShortDateString() @session.Time</h5>
+                    <p class="mb-1">Status: @session.Status</p>
+                    <small>Click for details</small>
+                </a>
+            }
+        </div>
+    </div>
+
+</body>
+</html>

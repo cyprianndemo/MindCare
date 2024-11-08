@@ -1,0 +1,57 @@
+﻿@model MindCare.Models.PaymentViewModel
+@{
+    ViewData["Title"] = "Pay for your Medicine";
+}
+
+<h2>Pay for your Medicine</h2>
+
+<form method="post" asp-action="PayWithMpesa">
+    <h3>M-Pesa Payment</h3>
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="form-group">
+        <label asp-for="Amount" class="control-label">Amount</label>
+        <input asp-for="Amount" class="form-control" />
+        <span asp-validation-for="Amount" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="PhoneNumber" class="control-label">Phone Number</label>
+        <input asp-for="PhoneNumber" class="form-control" placeholder="Enter M-Pesa phone number (2547xxxxx)" />
+        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <input type="submit" value="Pay with M-Pesa" class="btn btn-primary" />
+    </div>
+</form>
+
+<form asp-action="PayWithVisa" method="post" id="visa-form">
+    <h3>Visa Payment</h3>
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="form-group">
+        <label asp-for="Amount" class="control-label">Amount</label>
+        <input asp-for="Amount" class="form-control" />
+        <span asp-validation-for="Amount" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="CardName" class="control-label">Card Name</label>
+        <input asp-for="CardName" class="form-control" placeholder="Cardholder Name" />
+    </div>
+    <div class="form-group">
+        <label asp-for="CardNumber" class="control-label">Card Number</label>
+        <input asp-for="CardNumber" class="form-control" placeholder="1234 5678 9012 3456" />
+    </div>
+    <div class="form-group">
+        <label asp-for="ExpiryDate" class="control-label">Expiry Date (MM/YY)</label>
+        <input asp-for="ExpiryDate" class="form-control" placeholder="MM/YY" />
+    </div>
+    <div class="form-group">
+        <label asp-for="Cvv" class="control-label">CVV</label>
+        <input asp-for="Cvv" class="form-control" placeholder="123" />
+    </div>
+    <div class="form-group">
+        <input type="submit" value="Pay with Visa" class="btn btn-primary" />
+    </div>
+</form>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

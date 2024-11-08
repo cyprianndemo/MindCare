@@ -1,0 +1,12 @@
+﻿@model MindCare.Models.PaymentResultViewModel
+
+<h3>Payment Result</h3>
+<div>
+    <h4>Status: @Model.Status</h4>
+    <p>Payment ID: @Model.PaymentId</p>
+    <!-- Additional information can be displayed here -->
+</div>
+
+<div>
+    <a asp-action="Pay">Make another payment</a>
+</div>
