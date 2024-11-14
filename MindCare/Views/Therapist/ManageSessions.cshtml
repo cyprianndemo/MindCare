@@ -1,0 +1,68 @@
+﻿@model IEnumerable<MindCare.Models.Appointment>
+@{
+    Layout = "_TherapistLayout";
+    ViewData["Title"] = "Manage Appointments";
+}
+
+<div class="container my-5">
+    <h1 class="text-center" style="color: #004085;">Manage Appointments</h1>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            No pending appointments found.
+        </div>
+    }
+    else
+    {
+        <div class="list-group">
+            @foreach (var appointment in Model)
+            {
+                <div class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="mb-1">
+                                <strong>Date:</strong> @appointment.Date.ToShortDateString()<br />
+                                <strong>Time:</strong> @appointment.Time<br />
+                                @*                                 <strong>Student:</strong> @appointment.Student<br />
+                        *@                                <strong>Status:</strong> <span class="badge bg-warning">@appointment.Status</span>
+                            </p>
+                        </div>
+                        <div class="btn-group">
+                            @if (appointment.Status == "Pending")
+                            {
+                                <form asp-action="ApproveAppointment" asp-route-id="@appointment.AppointmentId" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-success me-2">
+                                        <i class="fas fa-check"></i> Approve
+                                    </button>
+                                </form>
+
+                                <form asp-action="CancelAppointment" asp-route-id="@appointment.AppointmentId" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger me-2">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                </form>
+                            }
+
+                            <a asp-action="EditAppointment" asp-route-id="@appointment.AppointmentId" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-warning me-2">
+                                    <i class="fas fa-times"></i> Edit
+                                </button>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <div class="text-center mt-4">
+        <a asp-action="Dashboard" asp-controller="Therapist"
+           class="btn" style="background-color: #004085; color: #fff;">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>

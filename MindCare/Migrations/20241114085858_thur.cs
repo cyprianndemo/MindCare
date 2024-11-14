@@ -5,14 +5,14 @@
 namespace MindCare.Migrations
 {
     /// <inheritdoc />
-    public partial class prof : Migration
+    public partial class thur : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
-                name: "EmailVerificationCode",
-                table: "AspNetUsers",
+                name: "UpdatedBy",
+                table: "Appointments",
                 type: "text",
                 nullable: true);
         }
@@ -21,8 +21,8 @@ namespace MindCare.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "EmailVerificationCode",
-                table: "AspNetUsers");
+                name: "UpdatedBy",
+                table: "Appointments");
         }
     }
 }

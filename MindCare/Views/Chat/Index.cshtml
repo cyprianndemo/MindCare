@@ -1,15 +1,98 @@
 ﻿@model dynamic
 @{
     ViewData["Title"] = "Chat";
+    Layout = "_StudentLayout";
 }
 
-<div class="chat-container">
-    <div class="chat-messages" id="messagesList"></div>
-    <div class="chat-input">
-        <input type="text" id="messageInput" placeholder="Type your message..." />
-        <button onclick="sendMessage()" btn-btn="primary">Send</button>
+<div class="container my-4">
+    <div class="card shadow">
+        <div class="card-header text-white" style="background-color: #004085;">
+            <h3 class="mb-0">Chat with MindCare Assistant</h3>
+        </div>
+        <div class="card-body">
+            <div class="chat-container">
+                <div class="chat-messages" id="messagesList"></div>
+                <div class="input-group mt-3">
+                    <input type="text" id="messageInput" class="form-control" placeholder="Type your message..." />
+                    <div class="input-group-append">
+                        <button onclick="sendMessage()" class="btn text-white" style="background-color: #003060;">
+                            <i class="fas fa-paper-plane"></i> Send
+                        </button>
+
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<style>
+    .chat-container {
+        display: flex;
+        flex-direction: column;
+        height: 70vh;
+    }
+
+    .chat-messages {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .message {
+        max-width: 70%;
+        padding: 10px 15px;
+        border-radius: 15px;
+        margin: 5px 0;
+        word-wrap: break-word;
+    }
+
+    .user-message {
+        align-self: flex-end;
+        background-color: #004085;
+        color: white;
+        border-radius: 15px 15px 0 15px;
+    }
+
+    .bot-message {
+        align-self: flex-start;
+        background-color: #e9ecef;
+        color: #212529;
+        border-radius: 15px 15px 15px 0;
+    }
+
+    #messageInput {
+        border-radius: 20px;
+        padding: 10px 20px;
+    }
+
+    .btn-success {
+        border-radius: 20px;
+        padding: 10px 25px;
+        margin-left: 10px;
+    }
+
+    /* Custom scrollbar */
+    .chat-messages::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .chat-messages::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 3px;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+</style>
 
 @section Scripts {
     <script src="~/lib/microsoft/signalr/dist/browser/signalr.js"></script>
@@ -20,65 +103,85 @@
 
         connection.start().catch(err => console.error(err));
 
+        // Handle Enter key press
+        document.getElementById("messageInput").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                sendMessage();
+            }
+        });
+
         connection.on("ReceiveMessage", function (message) {
+            appendMessage(message.content, message.isFromBot);
+        });
+
+        function appendMessage(content, isFromBot) {
             const messagesDiv = document.getElementById("messagesList");
             const messageElement = document.createElement("div");
-            messageElement.classList.add(message.isFromBot ? "bot-message" : "user-message");
-            messageElement.textContent = message.content;
+            messageElement.classList.add("message", isFromBot ? "bot-message" : "user-message");
+            
+            // Create timestamp
+            const timestamp = document.createElement("div");
+            timestamp.classList.add("message-timestamp");
+            timestamp.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            // Create message content
+            const messageContent = document.createElement("div");
+            messageContent.classList.add("message-content");
+            messageContent.textContent = content;
+
+            messageElement.appendChild(messageContent);
+            messageElement.appendChild(timestamp);
+            
             messagesDiv.appendChild(messageElement);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to the bottom
-        });
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
 
         function sendMessage() {
             const input = document.getElementById("messageInput");
+            const content = input.value.trim();
+            
+            if (!content) return;
+
             const userMessage = {
-                content: input.value,
+                content: content,
                 senderId: "user123", // Replace with actual user ID
                 timestamp: new Date(),
                 isFromBot: false
             };
 
-            // Display the user's message in the chat
-            const messagesDiv = document.getElementById("messagesList");
-            const userMessageElement = document.createElement("div");
-            userMessageElement.classList.add("user-message");
-            userMessageElement.textContent = userMessage.content;
-            messagesDiv.appendChild(userMessageElement);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to the bottom
+            // Display user message
+            appendMessage(content, false);
 
+            // Send to server
             fetch('/Chat/SendMessage', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(userMessage)
-            }).then(response => {
-                if (!response.ok) {
-                    console.error("Failed to send message.");
-                }
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Failed to send message");
                 return response.json();
-            }).then(data => {
-                console.log(data); // Check the success message
-
-                // Receive the bot's response
+            })
+            .then(data => {
                 if (data && data.message) {
-                    const botResponse = {
-                        content: data.message,
-                        senderId: "bot",
-                        timestamp: new Date(),
-                        isFromBot: true
-                    };
-
-                    // Display the bot's response in the chat
-                    const botMessageElement = document.createElement("div");
-                    botMessageElement.classList.add("bot-message");
-                    botMessageElement.textContent = botResponse.content;
-                    messagesDiv.appendChild(botMessageElement);
-                    messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to the bottom
+                    appendMessage(data.message, true);
                 }
-            }).catch(error => console.error("Error:", error));
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                appendMessage("Sorry, there was an error sending your message. Please try again.", true);
+            });
 
-            input.value = ''; // Clear the input field
+            input.value = '';
+        }
+
+        // Scroll to bottom when page loads
+        window.onload = function() {
+            const messagesDiv = document.getElementById("messagesList");
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
     </script>
 }

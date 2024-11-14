@@ -1,5 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
+﻿// The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
 using System;
@@ -32,6 +31,7 @@ namespace MindCare.Areas.Identity.Pages.Account
         private readonly IEmailSender _emailSender;
         private readonly RoleManager<IdentityRole> _roleManager;
 
+
         public RegisterModel(
             UserManager<ApplicationUser> userManager,
             IUserStore<ApplicationUser> userStore,
@@ -49,10 +49,15 @@ namespace MindCare.Areas.Identity.Pages.Account
             _roleManager = roleManager;
         }
 
+        /// <summary>
+        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+        ///     directly from your code. This API may change or be removed in future releases.
+        /// </summary>
         [BindProperty]
         public InputModel Input { get; set; }
 
         public string ReturnUrl { get; set; }
+
 
         public IList<AuthenticationScheme> ExternalLogins { get; set; }
 
@@ -105,11 +110,7 @@ namespace MindCare.Areas.Identity.Pages.Account
 
             [Display(Name = "Hospital")]
             public string Hospital { get; set; }
-
-            [Display(Name = "Verification Code")]
-            public string VerificationCode { get; set; }
         }
-
         public async Task OnGetAsync(string returnUrl = null)
         {
             ReturnUrl = returnUrl;
@@ -126,14 +127,10 @@ namespace MindCare.Areas.Identity.Pages.Account
 
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
-
+                // Set additional properties based on the input
                 user.FirstName = Input.FirstName;
                 user.LastName = Input.LastName;
                 user.Role = Input.Role;
-
-                // Generate a random verification code
-                var verificationCode = new Random().Next(100000, 999999).ToString();
-                user.VerificationCode = verificationCode;
 
                 if (Input.Role == "Student")
                 {
@@ -160,11 +157,26 @@ namespace MindCare.Areas.Identity.Pages.Account
                     }
 
                     var userId = await _userManager.GetUserIdAsync(user);
+                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                    code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+                    var callbackUrl = Url.Page(
+                        "/Account/ConfirmEmail",
+                        pageHandler: null,
+                        values: new { area = "Identity", userId = userId, code = code, returnUrl = returnUrl },
+                        protocol: Request.Scheme);
 
-                    await _emailSender.SendEmailAsync(Input.Email, "Verify Your Account",
-                        $"Your verification code is {verificationCode}. Enter this code to verify your account.");
+                    await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
+                        $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
 
-                    return RedirectToPage("VerifyAccount", new { userId = userId });
+                    if (_userManager.Options.SignIn.RequireConfirmedAccount)
+                    {
+                        return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl = returnUrl });
+                    }
+                    else
+                    {
+                        await _signInManager.SignInAsync(user, isPersistent: false);
+                        return LocalRedirect(returnUrl);
+                    }
                 }
                 foreach (var error in result.Errors)
                 {
@@ -175,6 +187,7 @@ namespace MindCare.Areas.Identity.Pages.Account
             return Page();
         }
 
+
         private ApplicationUser CreateUser()
         {
             try
@@ -184,7 +197,8 @@ namespace MindCare.Areas.Identity.Pages.Account
             catch
             {
                 throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
-                    $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor.");
+                    $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor, or alternatively " +
+                    $"override the register page in /Areas/Identity/Pages/Account/Register.cshtml");
             }
         }
 

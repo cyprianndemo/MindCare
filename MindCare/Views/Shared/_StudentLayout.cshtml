@@ -6,17 +6,21 @@
     <title>@ViewData["Title"] - Student Dashboard</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        /* General Styling */
         body {
             font-family: Arial, sans-serif;
-            background-color: #f5f8fa;
+            background-color: #f5f8fa; /* Same background color as admin layout */
+            color: #333;
         }
 
+        /* Top Navigation Bar */
         .app-bar {
-            background-color: #004085;
+            background-color: #004085; /* Dark blue color for consistency */
             color: white;
         }
 
-         .side-nav {
+        /* Sidebar Styling */
+        .side-nav {
             min-height: 100vh;
             background-color: #004085; /* Dark blue color for sidebar */
             color: white;
@@ -25,23 +29,28 @@
             padding-right: 0;
         }
 
-            .side-nav a {
-                color: green;
+            .side-nav .nav-link {
+                color: white;
                 font-size: 1.1rem;
                 display: block;
                 padding: 10px 20px;
                 text-decoration: none;
             }
 
-                .side-nav a:hover {
-                    background-color: #003060;
+                .side-nav .nav-link:hover {
+                    background-color: #003060; /* Slightly darker blue for hover effect */
                     border-radius: 5px;
                 }
 
+        /* Main Content Styling */
         .main-content {
             padding: 20px;
+            background-color: #ffffff; /* White background for main content area */
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for card-like effect */
         }
 
+        /* Icons for Navigation Items */
         .nav-item-icon {
             margin-right: 10px;
         }
@@ -53,7 +62,7 @@
     <nav class="navbar navbar-expand-lg app-bar">
         <div class="container-fluid">
             <a class="navbar-brand text-white" href="#">Student Dashboard</a>
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="true" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
@@ -62,7 +71,9 @@
                         <a class="nav-link text-white" href="#">Notifications</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="@Url.Action("Logout", "Identity/Account")">Logout</a>
+                        <form id="logoutForm" class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                            <button id="logout" type="submit" class="nav-link btn btn-link text-white border-0">Logout</button>
+                        </form>
                     </li>
                 </ul>
             </div>
@@ -72,12 +83,22 @@
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar Navigation -->
-            <nav class="col-md-3 col-lg-2 side-nav d-none d-md-block bg-light sidebar">
+            <nav class="col-md-3 col-lg-2 side-nav d-none d-md-block">
                 <div class="position-sticky">
                     <ul class="nav flex-column">
                         <li class="nav-item">
+                            <a class="nav-link" href="@Url.Action("Dashboard", "Student")">
+                                <span class="nav-item-icon">🏠</span> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="@Url.Action("TherapySessions", "Therapy")">
                                 <span class="nav-item-icon">💬</span> Therapy Sessions
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="@Url.Action("PsychiatrySessions", "Psychiatry")">
+                                <span class="nav-item-icon">💬</span> Psychiatry Sessions
                             </a>
                         </li>
                         <li class="nav-item">
@@ -96,13 +117,18 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="@Url.Action("ChatWithUs", "Chat")">
+                            <a class="nav-link" href="@Url.Action("Index", "Chat")">
                                 <span class="nav-item-icon">💬</span> Chat with Us
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="@Url.Action("Create", "Feedback")">
                                 <span class="nav-item-icon">📝</span> Feedback
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="@Url.Page("/Account/Manage/Index", new { area = "Identity" })">
+                                <span class="nav-item-icon">👤</span> Profile
                             </a>
                         </li>
                     </ul>
@@ -115,13 +141,15 @@
             </main>
         </div>
     </div>
+
     <footer class="border-top footer text-muted">
         <div class="container">
             &copy; 2024 - MindCare - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

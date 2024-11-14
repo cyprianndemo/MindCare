@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> UserManager
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -71,7 +73,9 @@
                         <a class="nav-link text-white" href="#">Notifications</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="@Url.Action("Logout", "Account")">Logout</a>
+                        <form id="logoutForm" class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                            <button id="logout" type="submit" class="nav-link btn btn-link text-white border-0">Logout</button>
+                        </form>
                     </li>
                 </ul>
             </div>
@@ -100,8 +104,8 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="@Url.Action("SystemSettings", "Admin")">
-                                <span class="nav-item-icon">⚙️</span> System Settings
+                            <a class="nav-link" href="@Url.Page("/Account/Manage/Index", new { area = "Identity" })">
+                                <span class="nav-item-icon">👤</span> Profile
                             </a>
                         </li>
                     </ul>

@@ -21,6 +21,10 @@ namespace MindCare.Controllers
         {
             return View();
         }
+        public IActionResult PatientFeedback()
+        {
+            return View();
+        }
 
         [HttpPost]
         public async Task<IActionResult> Create(Feedback feedback)

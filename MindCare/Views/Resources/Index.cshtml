@@ -6,24 +6,99 @@
     <meta charset="UTF-8">
     <title>Mental Health Resources</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .section-title {
+            font-weight: bold;
+            color: #17a2b8;
+        }
+
+        .card-text {
+            max-height: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .btn-custom {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .content-preview {
+            font-size: 0.9em;
+            color: #555;
+            max-height: 50px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
 </head>
 <body>
 
     <div class="container my-5">
         <h1 class="text-center text-primary">Mental Health Resources</h1>
-        <div class="row mt-4">
-            @foreach (var resource in Model)
-            {
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">@resource.Title</h5>
-                            <p class="card-text">@resource.Description</p>
-                            <a href="#" class="btn btn-outline-primary">Read More</a>
+        <p class="text-center text-muted">Explore resources that support mental wellness, help build awareness, and reduce stigma.</p>
+
+        <!-- Awareness Section -->
+        <div class="section my-5">
+            <h2 class="section-title text-center">Mental Health Awareness</h2>
+            <p class="text-center">Learn about mental health, reduce stigma, and promote well-being.</p>
+            <div class="row mt-4">
+                @foreach (var resource in Model.Where(r => r.Category == "Awareness"))
+                {
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">@resource.Title</h5>
+                                <p class="card-text">@resource.Description</p>
+                                <p class="content-preview">@resource.Content</p>
+                                <a href="@resource.Url" class="btn btn-outline-primary">Learn More</a>
+                            </div>
                         </div>
                     </div>
-                </div>
-            }
+                }
+            </div>
+        </div>
+
+        <!-- Emotional and Physical Support Section -->
+        <div class="section my-5">
+            <h2 class="section-title text-center">Support Resources</h2>
+            <p class="text-center">Find tools and guidance to support emotional and physical well-being.</p>
+            <div class="row mt-4">
+                @foreach (var resource in Model.Where(r => r.Category == "Support"))
+                {
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">@resource.Title</h5>
+                                <p class="card-text">@resource.Description</p>
+                                <p class="content-preview">@resource.Content</p>
+                                <a href="@resource.Url" class="btn btn-outline-primary">Get Support</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Overcoming Stigma Section -->
+        <div class="section my-5">
+            <h2 class="section-title text-center">Overcoming Stigma</h2>
+            <p class="text-center">Resources to understand and overcome mental health stigma.</p>
+            <div class="row mt-4">
+                @foreach (var resource in Model.Where(r => r.Category == "Stigma"))
+                {
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">@resource.Title</h5>
+                                <p class="card-text">@resource.Description</p>
+                                <p class="content-preview">@resource.Content</p>
+                                <a href="@resource.Url" class="btn btn-outline-primary">Read More</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
         </div>
     </div>
 

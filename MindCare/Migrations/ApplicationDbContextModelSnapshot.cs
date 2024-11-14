@@ -300,14 +300,25 @@ namespace MindCare.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AppointmentId"));
 
+                    b.Property<DateTime?>("CancellationTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CancelledById")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime>("Date")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime>("LastModified")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("PsychiatristId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("StartTime")
@@ -323,11 +334,14 @@ namespace MindCare.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("TherapistId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Time")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<TimeSpan>("Time")
-                        .HasColumnType("interval");
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
 
                     b.HasKey("AppointmentId");
 
@@ -476,6 +490,10 @@ namespace MindCare.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ResourceId"));
 
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Content")
                         .HasColumnType("text");
 
@@ -491,6 +509,9 @@ namespace MindCare.Migrations
 
                     b.Property<string>("Type")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Url")
                         .HasColumnType("text");
 
                     b.HasKey("ResourceId");
@@ -549,6 +570,61 @@ namespace MindCare.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("MoodEntries");
+                });
+
+            modelBuilder.Entity("MindCare.Models.Payment", b =>
+                {
+                    b.Property<int>("PaymentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PaymentId"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("CheckoutRequestID")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsSuccessful")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("MerchantRequestID")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Method")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("MpesaReceiptNumber")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("PaymentDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("StudentId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TenantId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("TransactionCode")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("TransactionDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("PaymentId");
+
+                    b.HasIndex("StudentId");
+
+                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("MindCare.Models.Prescription", b =>
@@ -706,23 +782,21 @@ namespace MindCare.Migrations
 
             modelBuilder.Entity("MindCare.Models.Appointment", b =>
                 {
-                    b.HasOne("MindCare.Models.Psychiatrist", "Psychiatrist")
+                    b.HasOne("MindCare.Models.ApplicationUser", "Psychiatrist")
                         .WithMany()
                         .HasForeignKey("PsychiatristId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("MindCare.Models.Student", "Student")
                         .WithMany()
                         .HasForeignKey("StudentId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("MindCare.Models.ApplicationUser", "Therapist")
                         .WithMany()
                         .HasForeignKey("TherapistId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Psychiatrist");
 
@@ -783,6 +857,17 @@ namespace MindCare.Migrations
                         .HasForeignKey("UserId");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("MindCare.Models.Payment", b =>
+                {
+                    b.HasOne("MindCare.Models.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("MindCare.Models.Prescription", b =>

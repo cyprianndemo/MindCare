@@ -1,4 +1,4 @@
-﻿// TherapyController.cs
+﻿// PsychiatryController.cs
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -13,14 +13,14 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 namespace MindCare.Controllers
 {
     [Authorize]
-    public class TherapyController : Controller
+    public class PsychiatryController : Controller
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IConfiguration _configuration;
 
-        public TherapyController(
+        public PsychiatryController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
@@ -32,11 +32,11 @@ namespace MindCare.Controllers
             _configuration = configuration;
         }
 
-        public async Task<IActionResult> TherapySessions()
+        public async Task<IActionResult> PsychiatrySessions()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var appointments = await _context.Appointments
-                .Include(a => a.Therapist)
+                /*.Include(a => a.Therapist)*/
                 .Include(a => a.Psychiatrist)
                 .Where(a => a.StudentId == userId)
                 .OrderByDescending(a => a.StartTime)
@@ -57,9 +57,9 @@ namespace MindCare.Controllers
                 LastModified = DateTime.UtcNow
             };
 
-            var therapistUsers = await _userManager.GetUsersInRoleAsync("Therapist");
+            /*var therapistUsers = await _userManager.GetUsersInRoleAsync("Therapist");
             ViewBag.Therapists = therapistUsers.Select(u => new SelectListItem { Text = $"{u.FirstName} {u.LastName}", Value = u.Id }).ToList();
-
+*/
             var psychiatristUsers = await _userManager.GetUsersInRoleAsync("Psychiatrist");
             ViewBag.Psychiatrists = psychiatristUsers.Select(u => new SelectListItem { Text = $"{u.FirstName} {u.LastName}", Value = u.Id }).ToList();
 
@@ -92,7 +92,7 @@ namespace MindCare.Controllers
 
             await SendAppointmentConfirmationEmail(appointment);
 
-            return RedirectToAction(nameof(TherapySessions));
+            return RedirectToAction(nameof(PsychiatrySessions));
         }
 
 
@@ -169,7 +169,7 @@ namespace MindCare.Controllers
             // Send confirmation email for the update
             await SendAppointmentUpdateEmail(existingAppointment);
 
-            return RedirectToAction(nameof(TherapySessions));
+            return RedirectToAction(nameof(PsychiatrySessions));
         }
 
 
@@ -194,7 +194,7 @@ namespace MindCare.Controllers
                 await SendAppointmentCancellationEmail(appointment);
             }
 
-            return RedirectToAction(nameof(TherapySessions));
+            return RedirectToAction(nameof(PsychiatrySessions));
         }
         public async Task<IActionResult> SessionDetails(int id)
         {
@@ -214,7 +214,7 @@ namespace MindCare.Controllers
         private async Task SendAppointmentConfirmationEmail(Appointment appointment)
         {
             var user = await _userManager.FindByIdAsync(appointment.StudentId);
-            var therapist = await _userManager.FindByIdAsync(appointment.TherapistId);
+            var psychiatrist = await _userManager.FindByIdAsync(appointment.PsychiatristId);
 
             var emailSettings = _configuration.GetSection("EmailSettings");
 
@@ -257,7 +257,7 @@ namespace MindCare.Controllers
                 Details:
                 Date: {localStartTime:dd/MM/yyyy}
                 Time: {localStartTime:HH:mm} - {localEndTime:HH:mm}
-                Therapist: {therapist.FirstName} {therapist.LastName}
+                psychiatrist: {psychiatrist.FirstName} {psychiatrist.LastName}
 
                 Best regards,
                 MindCare Team",
@@ -271,7 +271,7 @@ namespace MindCare.Controllers
         private async Task SendAppointmentUpdateEmail(Appointment appointment)
         {
             var user = await _userManager.FindByIdAsync(appointment.StudentId);
-            var therapist = await _userManager.FindByIdAsync(appointment.TherapistId);
+            var psychiatrist = await _userManager.FindByIdAsync(appointment.PsychiatristId);
 
             var emailSettings = _configuration.GetSection("EmailSettings");
             var smtpClient = new SmtpClient(emailSettings["Host"])
@@ -292,7 +292,7 @@ namespace MindCare.Controllers
                 New Details:
                 Date: {appointment.StartTime.ToLocalTime():dd/MM/yyyy}
                 Time: {appointment.StartTime.ToLocalTime():HH:mm} - {appointment.EndTime.ToLocalTime():HH:mm}
-                Therapist: {therapist.FirstName} {therapist.LastName}
+                psychiatrist: {psychiatrist.FirstName} {psychiatrist.LastName}
 
                 Best regards,
                 MindCare Team",
@@ -306,7 +306,7 @@ namespace MindCare.Controllers
         private async Task SendAppointmentCancellationEmail(Appointment appointment)
         {
             var user = await _userManager.FindByIdAsync(appointment.StudentId);
-            var therapist = await _userManager.FindByIdAsync(appointment.TherapistId);
+            var psychiatrist = await _userManager.FindByIdAsync(appointment.PsychiatristId);
 
             var emailSettings = _configuration.GetSection("EmailSettings");
             var smtpClient = new SmtpClient(emailSettings["Host"])
@@ -327,7 +327,7 @@ namespace MindCare.Controllers
                 Cancelled Appointment Details:
                 Date: {appointment.StartTime.ToLocalTime():dd/MM/yyyy}
                 Time: {appointment.StartTime.ToLocalTime():HH:mm} - {appointment.EndTime.ToLocalTime():HH:mm}
-                Therapist: {therapist.FirstName} {therapist.LastName}
+                Psychiatrist: {psychiatrist.FirstName} {psychiatrist.LastName}
 
                 Best regards,
                 MindCare Team",

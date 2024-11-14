@@ -10,7 +10,7 @@
 <body>
 
     <div class="container my-5">
-        <h1 class="text-center text-primary">Your Feedback</h1>
+        <h1 class="text-center" style="color: #004085;">Your Feedback</h1>
 
         <form asp-action="Create" method="post" class="mt-4">
             <div class="form-group">
@@ -21,7 +21,7 @@
                 <label for="Rating">Rating (1-5)</label>
                 <input type="number" class="form-control" id="Rating" asp-for="Rating" min="1" max="5" required>
             </div>
-            <button type="submit" class="btn btn-primary">Submit Feedback</button>
+            <button type="submit" class="btn" style="background-color: #004085; color: #fff;">Submit Feedback</button>
         </form>
     </div>
 

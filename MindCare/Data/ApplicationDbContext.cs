@@ -11,6 +11,28 @@ namespace MindCare.Data
         {
            
         }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Appointment>()
+                .HasOne(a => a.Student)
+                .WithMany()
+                .HasForeignKey(a => a.StudentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Appointment>()
+                .HasOne(a => a.Therapist)
+                .WithMany()
+                .HasForeignKey(a => a.TherapistId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Appointment>()
+                .HasOne(a => a.Psychiatrist)
+                .WithMany()
+                .HasForeignKey(a => a.PsychiatristId)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
         public DbSet<Feedback> Feedback { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
         public DbSet<Checkout> Checkouts { get; set; }

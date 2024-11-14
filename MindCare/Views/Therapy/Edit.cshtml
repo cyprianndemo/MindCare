@@ -1,0 +1,57 @@
+﻿@model MindCare.Models.Appointment
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Appointment</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f5f8fa;
+            color: #333;
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container my-5">
+        <h1 class="text-center text-primary mb-4">Edit Your Appointment</h1>
+
+        <form asp-action="Edit" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="AppointmentId" />
+
+            <div class="form-group">
+                <label for="TherapistId">Select Therapist</label>
+                <select asp-for="TherapistId" class="form-control" asp-items="ViewBag.Therapists"></select>
+            </div>
+
+            <div class="form-group">
+                <label for="PsychiatristId">Select Psychiatrist</label>
+                <select asp-for="PsychiatristId" class="form-control" asp-items="ViewBag.Psychiatrists"></select>
+            </div>
+
+            <div class="form-group">
+                <label for="Date">Date</label>
+                <input type="date" asp-for="Date" class="form-control" />
+            </div>
+
+            <div class="form-group">
+                <label for="Time">Time</label>
+                <input type="time" asp-for="Time" class="form-control" />
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+
+        <div class="text-center mt-3">
+            <a href="@Url.Action("TherapySessions", "Therapy")" class="btn btn-secondary">Back to Sessions</a>
+        </div>
+    </div>
+
+</body>
+</html>

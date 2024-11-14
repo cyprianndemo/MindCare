@@ -26,5 +26,13 @@ namespace MindCare.Controllers
                 .ToListAsync();
             return View(medications);
         }
+        public IActionResult PrescribeMedication()
+        {
+            return View();
+        }
+        public IActionResult Prescriptions()
+        {
+            return View();
+        }
     }
 }

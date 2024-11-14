@@ -4,7 +4,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Therapy Sessions</title>
+    <title>Psychiatry Sessions</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .text-primary {
@@ -21,16 +21,16 @@
 <body>
 
     <div class="container my-5">
-        <h1 class="text-center" style="color: #004085;">Your Therapy Sessions</h1>
+        <h1 class="text-center" style="color: #004085;">Your Psychiatry Sessions</h1>
 
         <div class="text-right mb-3">
-            <a href="@Url.Action("BookSession", "Therapy")" class="btn" style="background-color: #004085; color: #fff;">Book a New Session</a>
+            <a href="@Url.Action("BookSession", "Psychiatry")" class="btn" style="background-color: #004085; color: #fff;">Book a New Session</a>
         </div>
 
         <div class="list-group">
             @foreach (var session in Model)
             {
-                <a href="@Url.Action("SessionDetails", "Therapy", new { id = session.AppointmentId })" class="list-group-item list-group-item-action">
+                <a href="@Url.Action("SessionDetails", "Psychiatry", new { id = session.AppointmentId })" class="list-group-item list-group-item-action">
                     <h5 class="mb-1">@session.Date.ToShortDateString() @session.Time</h5>
                     <p class="mb-1">Status: @session.Status</p>
                     <small>Click for details</small>

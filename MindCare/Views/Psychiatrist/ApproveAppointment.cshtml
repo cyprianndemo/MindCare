@@ -1,0 +1,74 @@
+﻿@model MindCare.ViewModel.AppointmentApprovalViewModel
+@{
+    ViewData["Title"] = "Approve Appointment";
+    Layout = "_PsychiatristLayout";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header text-white" style="background-color: #004085;">
+                    <h4 class="mb-0">Approve Appointment</h4>
+                </div>
+                <div class="card-body">
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger">
+                            @TempData["Error"]
+                        </div>
+                    }
+
+                    <form asp-action="ApproveAppointment" method="post">
+                        <input type="hidden" asp-for="AppointmentId" />
+                        <input type="hidden" asp-for="Status" />
+
+                        <div class="mb-3">
+                            <label class="form-label">Student Name</label>
+                            <input type="text" class="form-control" value="@Model.StudentName" readonly />
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Start Time</label>
+                                <input type="text" class="form-control"
+                                       value="@Model.StartTime.ToString("dd/MM/yyyy HH:mm")" readonly />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">End Time</label>
+                                <input type="text" class="form-control"
+                                       value="@Model.EndTime.ToString("dd/MM/yyyy HH:mm")" readonly />
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(Model.Notes))
+                        {
+                            <div class="mb-3">
+                                <label class="form-label">Student Notes</label>
+                                <textarea class="form-control" readonly rows="3">@Model.Notes</textarea>
+                            </div>
+                        }
+
+                        <div class="mb-3">
+                            <label asp-for="PsychiatristNotes" class="form-label">Approval Notes</label>
+                            <textarea asp-for="PsychiatristNotes" class="form-control" rows="4"
+                                      placeholder="Enter your notes for this appointment..."></textarea>
+                            <span asp-validation-for="PsychiatristNotes" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="ManageSessions" class="btn btn-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-success">Approve Appointment</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

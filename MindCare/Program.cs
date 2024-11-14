@@ -76,7 +76,7 @@ app.MapGet("/", async context =>
         return;
     }
 
-    context.Response.Redirect("/Home/Index");
+    //context.Response.Redirect("/Home/Index");
 });
 
 

@@ -3,32 +3,72 @@
 @{
     ViewData["Title"] = "User Activity Report";
     Layout = "_AdminLayout";
-
 }
 
 <div class="container">
     <h2>User Activity Report</h2>
-    <p>Monitor all user activities across the system.</p>
+    <p>Monitor recent activities of users across the system, including logging in, session booking, editing, cancellations, and more.</p>
 
-    <table class="table table-bordered mt-4">
-        <thead>
-            <tr>
-                <th>User Name</th>
-                <th>Action</th>
-                <th>Description</th>
-                <th>Timestamp</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var activity in Model)
-            {
-                <tr>
-                    <td>@activity.User.UserName</td>
-                    <td>@activity.Action</td>
-                    <td>@activity.Description</td>
-                    <td>@activity.Timestamp.ToString("g")</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Recent User Activities</h5>
+
+                    <table class="table table-bordered mt-4">
+                        <thead class="table-light">
+                            <tr>
+                                <th>User Name</th>
+                                <th>Action</th>
+                                <th>Description</th>
+                                <th>Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.Any())
+                            {
+                                @foreach (var activity in Model)
+                                {
+                                    <tr>
+                                        <td>@activity.User.UserName</td>
+                                        <td>
+                                            @switch (activity.Action)
+                                            {
+                                                case "Login":
+                                                    <span class="badge bg-success">Login</span>
+                                                    ; break;
+                                                case "Logout":
+                                                    <span class="badge bg-secondary">Logout</span>
+                                                    ; break;
+                                                case "BookSession":
+                                                    <span class="badge bg-primary">Book Session</span>
+                                                    ; break;
+                                                case "EditSession":
+                                                    <span class="badge bg-warning">Edit Session</span>
+                                                    ; break;
+                                                case "CancelAppointment":
+                                                    <span class="badge bg-danger">Cancel Appointment</span>
+                                                    ; break;
+                                                default:
+                                                    <span class="badge bg-info">@activity.Action</span>
+                                                    ; break;
+                                            }
+                                        </td>
+                                        <td>@activity.Description</td>
+                                        <td>@activity.Timestamp.ToString("g")</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center">No recent activity found.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

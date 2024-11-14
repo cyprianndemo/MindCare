@@ -1,0 +1,57 @@
+﻿@model MindCare.ViewModel.SystemUsageReportViewModel
+
+@{
+    ViewData["Title"] = "System Usage Report";
+    Layout = "_AdminLayout";
+}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">System Usage Report</h2>
+
+    <div class="row mb-4">
+        <!-- Total Sessions Card -->
+        <div class="col-md-6 mb-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Total Sessions</h5>
+                    <p class="display-4">@Model.TotalSessions</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Month Sessions Card -->
+        <div class="col-md-6 mb-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">Sessions This Month</h5>
+                    <p class="display-4">@Model.CurrentMonthSessions</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table for Monthly Session Data -->
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Monthly Session Data</h5>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Session Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.MonthlySessionData)
+                        {
+                            <tr>
+                                <td>@item.Month</td>
+                                <td>@item.SessionCount</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

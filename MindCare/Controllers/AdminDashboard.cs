@@ -92,14 +92,20 @@ namespace MindCare.Controllers
         }
         public async Task<IActionResult> UserActivityReport()
         {
-            // Retrieve user activities ordered by latest timestamp
+            // Retrieve all user activities, including user info, ordered by the latest timestamp
             var activities = await _context.UserActivities
                 .Include(a => a.User)
+                .Where(a => a.Action == "Login" ||
+                            a.Action == "Logout" ||
+                            a.Action == "BookSession" ||
+                            a.Action == "EditSession" ||
+                            a.Action == "CancelAppointment")
                 .OrderByDescending(a => a.Timestamp)
                 .ToListAsync();
 
             return View(activities);
         }
+
 
         public IActionResult ViewReports()
         {
@@ -112,6 +118,74 @@ namespace MindCare.Controllers
             // Logic for managing system settings
             return View();
         }
+        public async Task<IActionResult> SystemUsageReport()
+        {
+            // Get monthly session data
+            var monthlySessionData = await _context.Appointments
+                .GroupBy(a => new { a.Date.Year, a.Date.Month })
+                .Select(g => new
+                {
+                    Month = g.Key.Month,
+                    Year = g.Key.Year,
+                    SessionCount = g.Count()
+                })
+                .OrderBy(x => x.Year).ThenBy(x => x.Month)
+                .ToListAsync();
+
+            // Calculate totals for display cards
+            var totalSessions = monthlySessionData.Sum(x => x.SessionCount);
+            var currentMonthSessions = monthlySessionData
+                .Where(x => x.Year == DateTime.Now.Year && x.Month == DateTime.Now.Month)
+                .Sum(x => x.SessionCount);
+
+            // Populate ViewModel
+            var viewModel = new SystemUsageReportViewModel
+            {
+                TotalSessions = totalSessions,
+                CurrentMonthSessions = currentMonthSessions,
+                MonthlySessionData = monthlySessionData.Select(x => new MonthlySession
+                {
+                    Month = $"{x.Year}-{x.Month:D2}",
+                    SessionCount = x.SessionCount
+                }).ToList()
+            };
+
+            return View(viewModel);
+        }
+
+
+        public async Task<IActionResult> PerformanceReport()
+        {
+            // Get users by roles
+            var students = await _userManager.GetUsersInRoleAsync("Student");
+            var therapists = await _userManager.GetUsersInRoleAsync("Therapist");
+            var psychiatrists = await _userManager.GetUsersInRoleAsync("Psychiatrist");
+
+            // Count users by role
+            var studentCount = students.Count;
+            var therapistCount = therapists.Count;
+            var psychiatristCount = psychiatrists.Count;
+
+            // Count appointment sessions and their statuses
+            var totalSessions = await _context.Appointments.CountAsync();
+            var completedSessions = await _context.Appointments.CountAsync(a => a.Status == "Completed");
+            var upcomingSessions = await _context.Appointments.CountAsync(a => a.Status == "Upcoming");
+
+            // Package the data into a view model
+            var viewModel = new PerformanceReportViewModel
+            {
+                StudentCount = studentCount,
+                TherapistCount = therapistCount,
+                PsychiatristCount = psychiatristCount,
+                TotalSessions = totalSessions,
+                CompletedSessions = completedSessions,
+                UpcomingSessions = upcomingSessions
+            };
+
+            return View(viewModel);
+        }
+
+
     }
 
 }

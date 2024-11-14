@@ -9,38 +9,48 @@
         /* General Styling */
         body {
             font-family: Arial, sans-serif;
-            background-color: grey;
+            background-color: #f5f8fa; /* Same background color as student layout */
+            color: #333;
         }
 
+        /* Top Navigation Bar */
         .app-bar {
-            background-color: #004085;
+            background-color: #004085; /* Dark blue color for consistency */
             color: white;
         }
 
+        /* Sidebar Styling */
         .side-nav {
             min-height: 100vh;
-            background-color: #004085;
-            color: orange;
+            background-color: #004085; /* Dark blue color for sidebar */
+            color: white;
             padding-top: 20px;
+            padding-left: 0;
+            padding-right: 0;
         }
 
-            .side-nav a {
-                color: orange;
+            .side-nav .nav-link {
+                color: white;
                 font-size: 1.1rem;
                 display: block;
                 padding: 10px 20px;
                 text-decoration: none;
             }
 
-                .side-nav a:hover {
-                    background-color: #003060;
+                .side-nav .nav-link:hover {
+                    background-color: #003060; /* Slightly darker blue for hover effect */
                     border-radius: 5px;
                 }
 
+        /* Main Content Styling */
         .main-content {
             padding: 20px;
+            background-color: #ffffff; /* White background for main content area */
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for card-like effect */
         }
 
+        /* Icons for Navigation Items */
         .nav-item-icon {
             margin-right: 10px;
         }
@@ -62,7 +72,7 @@
                     </li>
                     <li class="nav-item">
                         <form id="logoutForm" class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
-                            <button id="logout" type="submit" class="nav-link btn btn-link text-dark border-0">Logout</button>
+                            <button id="logout" type="submit" class="nav-link btn btn-link text-white border-0">Logout</button>
                         </form>
                     </li>
                 </ul>
@@ -73,16 +83,16 @@
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar Navigation -->
-            <nav class="col-md-3 col-lg-2 side-nav d-none d-md-block bg-light sidebar">
+            <nav class="col-md-3 col-lg-2 side-nav d-none d-md-block">
                 <div class="position-sticky">
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="nav-link" href="@Url.Action("Dashboard", "Student")">
-                                 Home
+                            <a class="nav-link" href="@Url.Action("Index", "Therapist")">
+                                <span class="nav-item-icon">🏠</span> Home
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="@Url.Action("ManageSessions", "Therapy")">
+                            <a class="nav-link" href="@Url.Action("ManageSessions", "Therapist")">
                                 <span class="nav-item-icon">📅</span> Manage Sessions
                             </a>
                         </li>
@@ -91,14 +101,15 @@
                                 <span class="nav-item-icon">👥</span> View Patients
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="@Url.Action("PrescribeMedication", "Pharmacy")">
-                                <span class="nav-item-icon">💊</span> Prescribe Medication
-                            </a>
-                        </li>
+                        
                         <li class="nav-item">
                             <a class="nav-link" href="@Url.Action("PatientFeedback", "Feedback")">
                                 <span class="nav-item-icon">📝</span> View Feedback
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="@Url.Page("/Account/Manage/Index", new { area = "Identity" })">
+                                <span class="nav-item-icon">👤</span> Profile
                             </a>
                         </li>
                     </ul>
@@ -112,8 +123,15 @@
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@@popperjs/core@2.0.7/dist/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2024 - MindCare - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
