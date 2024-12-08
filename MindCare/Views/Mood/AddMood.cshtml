@@ -1,0 +1,82 @@
+﻿@model MindCare.Models.MoodEntry
+@{
+    ViewData["Title"] = "Add Mood";
+}
+
+<div class="container my-5">
+    <div class="card shadow-sm">
+        <div class="card-header text-white" style="background-color: #004085;">
+            <h2 class="mb-0">Add Mood Entry</h2>
+        </div>
+        <div class="card-body">
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <form asp-action="AddMood" method="post" class="needs-validation" novalidate>
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="mb-4">
+                    <label asp-for="Mood" class="form-label">How are you feeling?</label>
+                    <select asp-for="Mood" class="form-select" required>
+                        <option value="">Select a mood...</option>
+                        @foreach (var mood in ViewBag.PredefinedMoods)
+                        {
+                            <option value="@mood">@mood</option>
+                        }
+                    </select>
+                    <span asp-validation-for="Mood" class="text-danger"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Intensity" class="form-label">How intense is this feeling? (1-10)</label>
+                    <select asp-for="Intensity" class="form-select" required>
+                        <option value="">Select intensity level...</option>
+                        @foreach (var level in ViewBag.IntensityLevels)
+                        {
+                            <option value="@level.Value">@level.Description</option>
+                        }
+                    </select>
+                    <span asp-validation-for="Intensity" class="text-danger"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Notes" class="form-label">Additional Notes (Optional)</label>
+                    <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Add any additional thoughts or context..."></textarea>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn" style="background-color: #004085; color: #fff;">Save Mood Entry</button>
+                    <a asp-action="Index" class="btn" style="background-color: #004085; color: #fff;">Back to Mood History</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Enable Bootstrap form validation
+        (function () {
+            'use strict'
+            var forms = document.querySelectorAll('.needs-validation')
+            Array.prototype.slice.call(forms)
+                .forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault()
+                            event.stopPropagation()
+                        }
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+        })()
+    </script>
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

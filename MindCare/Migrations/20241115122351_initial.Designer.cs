@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MindCare.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241113143528_wen1")]
-    partial class wen1
+    [Migration("20241115122351_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -343,6 +343,9 @@ namespace MindCare.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
                     b.HasKey("AppointmentId");
 
                     b.HasIndex("PsychiatristId");
@@ -558,10 +561,24 @@ namespace MindCare.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime>("EntryDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Intensity")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Mood")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<int>("MoodScore")
                         .HasColumnType("integer");
 
                     b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.Property<string>("StudentId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("UserId")
@@ -570,6 +587,39 @@ namespace MindCare.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("MoodEntries");
+                });
+
+            modelBuilder.Entity("MindCare.Models.Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("MindCare.Models.Payment", b =>
@@ -782,7 +832,7 @@ namespace MindCare.Migrations
 
             modelBuilder.Entity("MindCare.Models.Appointment", b =>
                 {
-                    b.HasOne("MindCare.Models.Psychiatrist", "Psychiatrist")
+                    b.HasOne("MindCare.Models.ApplicationUser", "Psychiatrist")
                         .WithMany()
                         .HasForeignKey("PsychiatristId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -859,6 +909,17 @@ namespace MindCare.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("MindCare.Models.Notification", b =>
+                {
+                    b.HasOne("MindCare.Models.ApplicationUser", "User")
+                        .WithMany("Notifications")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("MindCare.Models.Payment", b =>
                 {
                     b.HasOne("MindCare.Models.Student", "Student")
@@ -894,6 +955,11 @@ namespace MindCare.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("MindCare.Models.ApplicationUser", b =>
+                {
+                    b.Navigation("Notifications");
                 });
 
             modelBuilder.Entity("MindCare.Models.Cart", b =>

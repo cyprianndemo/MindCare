@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+﻿@using System.Security.Claims
+@using MindCare.Services
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> UserManager
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -7,43 +11,234 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/MindCare.styles.css" asp-append-version="true" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <style>
+        /* General Styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f8fa;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* Top Navigation Bar */
+        .app-bar {
+            background-color: #004085;
+            color: white;
+            padding: 0.5rem 1rem;
+            position: fixed;
+            width: 100%;
+            z-index: 1030;
+            top: 0;
+        }
+
+        #sidebarToggle {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            padding: 0.25rem 0.75rem;
+            cursor: pointer;
+        }
+
+        /* Sidebar Styling */
+        .side-nav {
+            position: fixed;
+            top: 56px;
+            bottom: 0;
+            left: 0;
+            width: 250px;
+            background-color: #004085;
+            color: white;
+            transition: transform 0.3s ease-in-out;
+            z-index: 1020;
+            overflow-y: auto;
+        }
+
+        .side-nav.collapsed {
+            transform: translateX(-250px);
+        }
+
+        .side-nav .nav-link {
+            color: white;
+            font-size: 1.1rem;
+            padding: 10px 20px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .side-nav .nav-link:hover {
+            background-color: #003060;
+            border-radius: 5px;
+        }
+
+        /* Main Content Styling */
+        .main-content {
+            margin-left: 250px;
+            margin-top: 56px;
+            padding: 20px;
+            min-height: calc(100vh - 56px);
+            transition: margin-left 0.3s ease-in-out;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .main-content.expanded {
+            margin-left: 0;
+        }
+
+        /* Icons for Navigation Items */
+        .nav-item-icon {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Footer Styling */
+        .footer {
+            margin-left: 250px;
+            transition: margin-left 0.3s ease-in-out;
+            padding: 1rem;
+            background-color: #f8f9fa;
+        }
+
+        .footer.expanded {
+            margin-left: 0;
+        }
+
+        /* Responsive Design */
+        @@media (max-width: 768px) {
+            .side-nav {
+                transform: translateX(-250px);
+            }
+
+            .side-nav.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .footer {
+                margin-left: 0;
+            }
+        }
+
+        /* Overlay for mobile */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1015;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light " style="background-color: #004085;" border-bottom box-shadow mb-3">
-            <div class="container-fluid text-white">
-                <a class="navbar-brand text-white" asp-area="" asp-controller="Home" asp-action="Index">MindCare</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-white" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
+    <!-- Top Navigation Bar -->
+    <nav class="navbar navbar-expand-lg app-bar">
+        <div class="container-fluid">
+            <button id="sidebarToggle" type="button">
+                <i class="fas fa-bars"></i>
+            </button>
+            <a class="navbar-brand text-white ml-2" asp-area="" asp-controller="Home" asp-action="Index">MindCare</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+
+                </ul>
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay"></div>
+
+    <!-- Sidebar Navigation -->
+    <nav class="side-nav">
+        <div class="position-sticky">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Home" asp-action="Index">
+                        <span class="nav-item-icon"><i class="fas fa-home"></i></span> Home
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Home" asp-action="Privacy">
+                        <span class="nav-item-icon"><i class="fas fa-shield-alt"></i></span> Privacy
+                    </a>
+                </li>
+               
+            </ul>
+        </div>
+
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        @RenderBody()
+    </main>
 
     <footer class="border-top footer text-muted">
         <div class="container">
             &copy; 2024 - MindCare - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.js"></script>
+    <script src="~/js/notification.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (document.getElementById('notificationDropdown')) {
+                initializeNotifications();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sideNav = document.querySelector('.side-nav');
+            const mainContent = document.querySelector('.main-content');
+            const footer = document.querySelector('.footer');
+            const overlay = document.querySelector('.sidebar-overlay');
+
+            function toggleSidebar() {
+                sideNav.classList.toggle('collapsed');
+                mainContent.classList.toggle('expanded');
+                footer.classList.toggle('expanded');
+                
+                if (window.innerWidth <= 768) {
+                    sideNav.classList.toggle('show');
+                    overlay.classList.toggle('show');
+                }
+            }
+
+            sidebarToggle.addEventListener('click', toggleSidebar);
+            overlay.addEventListener('click', toggleSidebar);
+
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 768) {
+                    overlay.classList.remove('show');
+                    sideNav.classList.remove('show');
+                }
+            });
+        });
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

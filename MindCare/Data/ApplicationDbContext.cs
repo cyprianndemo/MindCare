@@ -44,5 +44,6 @@ namespace MindCare.Data
         public DbSet<MoodEntry> MoodEntries { get; set; }
         public DbSet<UserActivity> UserActivities { get; set; }
         public DbSet<Payment> Payments { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
     }
 }

@@ -37,5 +37,10 @@ namespace MindCare.Controllers
             }
             return View(feedback);
         }
+
+        public IActionResult Thanks()
+        {
+            return View();
+        }
     }
 }

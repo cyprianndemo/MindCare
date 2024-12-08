@@ -337,6 +337,9 @@ namespace MindCare.Controllers
                 return View(model);
             }
         }
-
+        public IActionResult PatientList()
+        {
+            return View();
+        }
     }
 }

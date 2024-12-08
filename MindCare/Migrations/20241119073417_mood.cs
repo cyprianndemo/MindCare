@@ -5,24 +5,18 @@
 namespace MindCare.Migrations
 {
     /// <inheritdoc />
-    public partial class thur : Migration
+    public partial class mood : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
-                name: "UpdatedBy",
-                table: "Appointments",
-                type: "text",
-                nullable: true);
+
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "UpdatedBy",
-                table: "Appointments");
+
         }
     }
 }

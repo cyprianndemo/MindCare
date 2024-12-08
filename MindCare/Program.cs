@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using MindCare.Data;
 using MindCare.Hubs;
 using MindCare.Models;
@@ -20,6 +21,11 @@ builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
 builder.Services.AddScoped<ChatbotService>();
 builder.Services.AddScoped<UserActivityService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+/*builder.Services.Configure<NotificationConfiguration>(builder.Configuration.GetSection("NotificationConfiguration"));
+builder.Services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<NotificationConfiguration>>().Value);
+builder.Services.AddHostedService<NotificationCleanupService>();*/
+
 builder.Services.AddHttpClient("mpesa", c => {
     c.BaseAddress = new Uri("https://sandbox.safaricom.co.ke");
 }
@@ -44,6 +50,9 @@ app.UseAuthorization();
 
 app.MapRazorPages();
 app.MapHub<ChatHub>("/chatHub");
+app.MapHub<NotificationHub>("/notificationHub");
+
+
 
 
 // Redirect unauthenticated users to the login page

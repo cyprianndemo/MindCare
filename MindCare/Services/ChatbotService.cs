@@ -80,7 +80,17 @@ namespace MindCare.Services
                 }
             }
 
-            return "I can help you with:\n1. System navigation (type 'help')\n2. Mood tracking (type 'track mood')\n3. Speaking with a professional (type 'speak to professional')\n4. Mental health resources (type a topic such as 'depression', 'anxiety', 'stress', or 'self-care').";
+            if (message.Contains("relax") || message.Contains("relaxation"))
+            {
+                return GetRelaxationTechniques();
+            }
+
+            if (message.Contains("chat") || message.Contains("talk"))
+            {
+                return GetInteractiveResponses();
+            }
+
+            return "I can help you with:\n1. System navigation (type 'help')\n2. Mood tracking (type 'track mood')\n3. Speaking with a professional (type 'speak to professional')\n4. Mental health resources (type a topic such as 'depression', 'anxiety', 'stress', or 'self-care')\n5. Relaxation techniques (type 'relax')\n6. Chat or talk (type 'chat' or 'talk').";
         }
 
         private string GetNavigationGuide()
@@ -150,6 +160,20 @@ What would you like to know more about?";
         private string InitiateLiveChat()
         {
             return "I'll connect you with a health professional. Please wait while I check for available professionals...";
+        }
+
+        private string GetRelaxationTechniques()
+        {
+            return "Here are some relaxation techniques you can try:\n" +
+                   "1. Deep Breathing: Inhale slowly through your nose for a count of four, hold for a count of four, and exhale through your mouth for a count of four. Repeat several times.\n" +
+                   "2. Progressive Muscle Relaxation: Tense each muscle group in your body for a few seconds, then relax. Start from your toes and work your way up to your head.\n" +
+                   "3. Visualization: Close your eyes and imagine yourself in a peaceful place, such as a beach or a forest. Focus on the sights, sounds, and smells of your surroundings.\n" +
+                   "4. Mindfulness Meditation: Sit quietly and focus on your breath. Notice the sensation of each inhale and exhale. If your mind wanders, gently bring your attention back to your breath.";
+        }
+
+        private string GetInteractiveResponses()
+        {
+            return "Sure, let's chat! Tell me more about your day. How are you feeling?";
         }
     }
 }

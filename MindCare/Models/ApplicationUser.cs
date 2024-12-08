@@ -25,7 +25,9 @@ namespace MindCare.Models
             public string? LicenceNumber { get; set; }
             public string? Hospital { get; set; }
             public string? Specialization { get; set; }
-            public decimal Rating { get; set; }
+            public virtual ICollection<Notification> Notifications { get; set; }
+
+        public decimal Rating { get; set; }
 
         [Display(Name = "Verification Code")]
         public string? VerificationCode { get; set; }

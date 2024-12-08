@@ -1,6 +1,113 @@
 ﻿@{
     ViewData["Title"] = "Privacy Policy";
 }
-<h1>@ViewData["Title"]</h1>
+<div class="container my-5" style="font-family: Arial, sans-serif;">
+    <h1class ="text-center" style="color: #004085;">
+        @ViewData["Title"]</h1>
+    <p class="lead">Our commitment to protecting your privacy and safeguarding your personal information.</p>
 
-<p>Use this page to detail your site's privacy policy.</p>
+    <hr />
+
+    <!-- Introduction Section -->
+    <section class="mb-4">
+            <h3 class="text-center" style="color: #004085;">Introduction</h3>
+        <p>
+            At MindCare, we are dedicated to protecting your privacy and ensuring that your personal information
+            remains confidential. This Privacy Policy outlines how we collect, use, and protect your data when you use our website
+            and services.
+        </p>
+    </section>
+
+    <!-- Data Collection Section -->
+    <section class="mb-4">
+            <h3 class="text-center" style="color: #004085;">Data Collection</h3>
+        <p>
+            We may collect the following types of personal information from you when you interact with our website or services:
+        </p>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">Personal Identification Information (Name, Email Address, Contact Information)</li>
+            <li class="list-group-item">Usage Data (pages visited, time spent on pages, clicks, and interactions)</li>
+            <li class="list-group-item">Technical Data (IP address, browser type, and device information)</li>
+        </ul>
+    </section>
+
+    <!-- Data Usage Section -->
+    <section class="mb-4">
+            <h3 class="text-center" style="color: #004085;">How We Use Your Information</h3>
+        <p>
+            The information we collect is used for various purposes, including:
+        </p>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">Providing, operating, and maintaining our services</li>
+            <li class="list-group-item">Improving and personalizing your experience on our website</li>
+            <li class="list-group-item">Communicating with you regarding updates, promotional offers, or other information</li>
+            <li class="list-group-item">Analyzing user behavior to improve our website and services</li>
+            <li class="list-group-item">Protecting against fraudulent or malicious activities</li>
+        </ul>
+    </section>
+
+    <!-- Data Protection Section -->
+    <section class="mb-4">
+            <h3 class="text-center" style="color: #004085;">Data Protection</h3>
+        <p>
+            We implement robust security measures to safeguard your personal information. Our website is secured with SSL encryption,
+            and we regularly update our systems to protect your data from unauthorized access, alteration, or disclosure.
+        </p>
+        <p>
+            Only authorized personnel have access to personal data, and they are bound by strict confidentiality obligations.
+        </p>
+    </section>
+
+    <!-- Cookies Section -->
+    <section class="mb-4">
+            <h3 class="text-center" style="color: #004085;">Cookies and Tracking Technologies</h3>
+        <p>
+            Our website uses cookies and similar tracking technologies to enhance your experience and improve our services. Cookies help us
+            remember your preferences and understand how you interact with our website. You can manage your cookie preferences
+            through your browser settings.
+        </p>
+    </section>
+
+    <!-- Third-Party Services Section -->
+    <section class="mb-4">
+            <h3 class="text-center" style="color: #004085;">Third-Party Services</h3>
+        <p>
+            We may share your information with trusted third-party service providers to support our services, such as payment processors,
+            analytics providers, and email marketing platforms. These third parties are obligated to protect your information
+            and are restricted from using your data for purposes other than those specified by us.
+        </p>
+    </section>
+
+    <!-- User Rights Section -->
+    <section class="mb-4">
+            <h3 class="text-center" style="color: #004085;">Your Rights</h3>
+        <p>
+            You have the right to access, update, or delete your personal information at any time. Additionally, you may request
+            restrictions on certain processing activities or object to the use of your data for marketing purposes. To exercise
+            any of these rights, please contact us at [Your Contact Email].
+        </p>
+    </section>
+
+    <!-- Changes to Policy Section -->
+    <section class="mb-4">
+            <h3 class="text-center" style="color: #004085;">Changes to This Privacy Policy</h3>
+        <p>
+            We may update this Privacy Policy periodically to reflect changes in our practices or for legal reasons. Any changes will
+            be posted on this page, and significant updates will be communicated to you directly.
+        </p>
+    </section>
+
+    <!-- Contact Information Section -->
+    <section class="mb-4">
+            <h3 class="text-center" style="color: #004085;">Contact Us</h3>
+        <p>
+            If you have any questions or concerns regarding our Privacy Policy or how we handle your personal information,
+            please reach out to us at <a href="mailto:mindcaresystem@gmail.com">mindcaresystem@gmail.com</a>.
+        </p>
+    </section>
+
+    <!-- Back to Home Button -->
+    <div class="text-center mt-4">
+        <a href="@Url.Action("Index", "Home")" class="btn" style="background-color: #004085; color: #fff;">Back to Home</a>
+    </div>
+</div>
