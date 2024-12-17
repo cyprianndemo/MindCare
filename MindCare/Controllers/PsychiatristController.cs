@@ -101,85 +101,109 @@ namespace MindCare.Controllers
         }
         [HttpGet]
         [Authorize(Roles = "Psychiatrist")]
-        public async Task<IActionResult> ApproveAppointment(int id)
+        [HttpGet]
+[Authorize(Roles = "Psychiatrist")]
+public async Task<IActionResult> ApproveAppointment(int id)
+{
+    try
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var psychiatrist = await _userManager.FindByIdAsync(userId);
+
+        if (psychiatrist == null)
         {
-            try
+            TempData["Error"] = "Psychiatrist not found.";
+            return RedirectToAction("ManageSessions");
+        }
+
+        // Fetch the appointment with student details
+        var appointment = await _context.Appointments
+            .Include(a => a.Student)
+            .FirstOrDefaultAsync(a => a.AppointmentId == id && a.PsychiatristId == userId);
+
+        if (appointment == null)
+        {
+            TempData["Error"] = "Appointment not found or unauthorized access.";
+            return RedirectToAction("ManageSessions");
+        }
+
+        // Create the ViewModel for the appointment
+        var viewModel = new AppointmentApprovalViewModel
+        {
+            AppointmentId = appointment.AppointmentId,
+            StudentName = $"{appointment.Student.FirstName} {appointment.Student.LastName}",
+            StartTime = appointment.StartTime,
+            EndTime = appointment.EndTime,
+            Status = appointment.Status,
+           // Notes = appointment.StudentNotes, // Assuming there's a StudentNotes property
+            PsychiatristNotes = string.Empty
+        };
+
+        return View(viewModel);
+    }
+    catch (Exception ex)
+    {
+        TempData["Error"] = "An error occurred while loading the appointment.";
+        return RedirectToAction("ManageSessions");
+    }
+}
+
+[HttpPost]
+[Authorize(Roles = "Psychiatrist")]
+public async Task<IActionResult> ApproveAppointment(AppointmentApprovalViewModel model)
+{
+    try
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Fetch the appointment with student details
+        var appointment = await _context.Appointments
+            .Include(a => a.Student)
+            .FirstOrDefaultAsync(a => a.AppointmentId == model.AppointmentId && a.PsychiatristId == userId);
+
+        if (appointment == null)
+        {
+            TempData["Error"] = "Appointment not found or unauthorized access.";
+            return RedirectToAction("ManageSessions");
+        }
+
+        // Update appointment details
+        appointment.Status = "Approved";
+        appointment.LastModified = DateTime.UtcNow;
+        //appointment.PsychiatristNotes = model.PsychiatristNotes;
+        appointment.UpdatedBy = userId;
+
+        // Update student's appointment status
+        var student = await _userManager.FindByIdAsync(appointment.StudentId);
+        if (student != null)
+        {
+            var studentAppointment = await _context.Appointments
+                .FirstOrDefaultAsync(a => a.AppointmentId == appointment.AppointmentId && a.StudentId == student.Id);
+
+            if (studentAppointment != null)
             {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var psychiatrist = await _userManager.FindByIdAsync(userId);
-
-                if (psychiatrist == null)
-                {
-                    TempData["Error"] = "Psychiatrist not found.";
-                    return RedirectToAction("ManageSessions");
-                }
-
-                var appointment = await _context.Appointments
-                    .Include(a => a.Student)
-                    .FirstOrDefaultAsync(a => a.AppointmentId == id && a.PsychiatristId == userId);
-
-                if (appointment == null)
-                {
-                    TempData["Error"] = "Appointment not found or unauthorized access.";
-                    return RedirectToAction("ManageSessions");
-                }
-
-                var viewModel = new AppointmentApprovalViewModel
-                {
-                    AppointmentId = appointment.AppointmentId,
-                    StudentName = $"{appointment.Student.FirstName} {appointment.Student.LastName}",
-                    StartTime = appointment.StartTime,
-                    EndTime = appointment.EndTime,
-                    Status = appointment.Status,
-                    PsychiatristNotes = ""  // New notes to be added during approval
-                };
-
-                return View(viewModel);
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = "An error occurred while processing the appointment.";
-                return RedirectToAction("ManageSessions");
+                studentAppointment.Status = "Approved";
+                studentAppointment.LastModified = DateTime.UtcNow;
+               // studentAppointment.PsychiatristNotes = model.PsychiatristNotes;
             }
         }
 
-        [HttpPost]
-        [Authorize(Roles = "Psychiatrist")]
-        public async Task<IActionResult> ApproveAppointment(AppointmentApprovalViewModel model)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    return View(model);
-                }
+        await _context.SaveChangesAsync();
 
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var appointment = await _context.Appointments
-                    .FirstOrDefaultAsync(a => a.AppointmentId == model.AppointmentId && a.PsychiatristId == userId);
-
-                if (appointment == null)
-                {
-                    TempData["Error"] = "Appointment not found or unauthorized access.";
-                    return RedirectToAction("ManageSessions");
-                }
-
-                // Update appointment
-                appointment.Status = "Approved";
-                appointment.LastModified = DateTime.Now;
-                appointment.UpdatedBy = userId;
-
-                await _context.SaveChangesAsync();
-
-                TempData["Success"] = "Appointment approved successfully.";
-                return RedirectToAction("ManageSessions");
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = "An error occurred while approving the appointment.";
-                return View(model);
-            }
-        }
+        TempData["Success"] = "Appointment approved successfully.";
+        return RedirectToAction("ManageSessions");
+    }
+    catch (Exception ex)
+    {
+        TempData["Error"] = "An error occurred while approving the appointment.";
+        return View(model);
+    }
+}
         [HttpGet]
         [Authorize(Roles = "Psychiatrist")]
         public async Task<IActionResult> CancelAppointment(int id)

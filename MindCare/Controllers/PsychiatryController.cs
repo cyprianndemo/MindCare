@@ -197,19 +197,23 @@ namespace MindCare.Controllers
             return RedirectToAction(nameof(PsychiatrySessions));
         }
         public async Task<IActionResult> SessionDetails(int id)
-        {
-            var appointment = await _context.Appointments
-                .Include(a => a.Therapist)
-                .Include(a => a.Psychiatrist)
-                .FirstOrDefaultAsync(a => a.AppointmentId == id);
+{
+    var appointment = await _context.Appointments
+        .Include(a => a.Psychiatrist)
+        .FirstOrDefaultAsync(a => a.AppointmentId == id);
 
-            if (appointment == null)
-            {
-                return NotFound();
-            }
+    if (appointment == null)
+    {
+        return NotFound();
+    }
 
-            return View(appointment);
-        }
+    // Generate a video call link (using Jitsi Meet as an example)
+    // Customize the link generation logic if using other services
+    string videoCallRoom = $"MindCare_{appointment.AppointmentId}_{appointment.PsychiatristId}";
+    ViewBag.VideoCallLink = $"https://meet.jit.si/{videoCallRoom}";
+
+    return View(appointment);
+}
 
         private async Task SendAppointmentConfirmationEmail(Appointment appointment)
         {
