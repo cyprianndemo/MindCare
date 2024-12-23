@@ -1,0 +1,42 @@
+@model MindCare.ViewModel.MedicationViewModel
+
+<div class="container">
+    <h2>Add New Medication</h2>
+
+    <form asp-action="AddMedication" method="post" enctype="multipart/form-data">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        
+        <div class="form-group">
+            <label asp-for="Name" class="control-label"></label>
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Description" class="control-label"></label>
+            <textarea asp-for="Description" class="form-control"></textarea>
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Dosage" class="control-label"></label>
+            <input asp-for="Dosage" class="form-control" />
+            <span asp-validation-for="Dosage" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="MedicationImage" class="control-label"></label>
+            <input asp-for="MedicationImage" type="file" class="form-control" accept="image/*" />
+            <span asp-validation-for="MedicationImage" class="text-danger"></span>
+        </div>
+
+        <div class="form-group mt-3">
+            <input type="submit" value="Create" class="btn btn-primary" />
+            <a asp-action="MedicationList" class="btn btn-secondary">Back to List</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
