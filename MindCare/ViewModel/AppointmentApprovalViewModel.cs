@@ -5,6 +5,7 @@ namespace MindCare.ViewModel
     public class AppointmentApprovalViewModel
     {
         public int AppointmentId { get; set; }
+        public string StudentId { get; set; }
         public string StudentName { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }

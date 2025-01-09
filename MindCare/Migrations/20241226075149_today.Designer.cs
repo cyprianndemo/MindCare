@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MindCare.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MindCare.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241226075149_today")]
+    partial class today
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,6 +24,21 @@ namespace MindCare.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("MedicationPrescription", b =>
+                {
+                    b.Property<int>("MedicationsMedicationId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PrescriptionsPrescriptionId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("MedicationsMedicationId", "PrescriptionsPrescriptionId");
+
+                    b.HasIndex("PrescriptionsPrescriptionId");
+
+                    b.ToTable("MedicationPrescription");
+                });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
@@ -465,8 +483,7 @@ namespace MindCare.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("text");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("numeric");
@@ -686,44 +703,19 @@ namespace MindCare.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Instructions")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("MedicationId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("PrescribedDate")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("PsychiatristId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("StudentId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("PrescriptionId");
 
-                    b.HasIndex("MedicationId");
+                    b.HasIndex("PsychiatristId");
+
+                    b.HasIndex("StudentId");
 
                     b.ToTable("Prescriptions");
-                });
-
-            modelBuilder.Entity("MindCare.Models.PrescriptionMedication", b =>
-                {
-                    b.Property<int>("PrescriptionId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("MedicationId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("PrescriptionId", "MedicationId");
-
-                    b.HasIndex("MedicationId");
-
-                    b.ToTable("PrescriptionMedication");
                 });
 
             modelBuilder.Entity("MindCare.Models.UserActivity", b =>
@@ -756,15 +748,39 @@ namespace MindCare.Migrations
                     b.ToTable("UserActivities");
                 });
 
+            modelBuilder.Entity("MindCare.Models.Psychiatrist", b =>
+                {
+                    b.HasBaseType("MindCare.Models.ApplicationUser");
+
+                    b.Property<string>("ConsultationType")
+                        .HasColumnType("text");
+
+                    b.Property<string>("LicenseNumber")
+                        .HasColumnType("text");
+
+                    b.HasDiscriminator().HasValue("Psychiatrist");
+                });
+
             modelBuilder.Entity("MindCare.Models.Student", b =>
                 {
                     b.HasBaseType("MindCare.Models.ApplicationUser");
 
-                    b.Property<string>("StudentId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.HasDiscriminator().HasValue("Student");
+                });
+
+            modelBuilder.Entity("MedicationPrescription", b =>
+                {
+                    b.HasOne("MindCare.Models.Medication", null)
+                        .WithMany()
+                        .HasForeignKey("MedicationsMedicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MindCare.Models.Prescription", null)
+                        .WithMany()
+                        .HasForeignKey("PrescriptionsPrescriptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -928,32 +944,17 @@ namespace MindCare.Migrations
 
             modelBuilder.Entity("MindCare.Models.Prescription", b =>
                 {
-                    b.HasOne("MindCare.Models.Medication", "Medication")
+                    b.HasOne("MindCare.Models.Psychiatrist", "Psychiatrist")
                         .WithMany()
-                        .HasForeignKey("MedicationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("PsychiatristId");
 
-                    b.Navigation("Medication");
-                });
+                    b.HasOne("MindCare.Models.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId");
 
-            modelBuilder.Entity("MindCare.Models.PrescriptionMedication", b =>
-                {
-                    b.HasOne("MindCare.Models.Medication", "Medication")
-                        .WithMany("PrescriptionMedications")
-                        .HasForeignKey("MedicationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Navigation("Psychiatrist");
 
-                    b.HasOne("MindCare.Models.Prescription", "Prescription")
-                        .WithMany("PrescriptionMedications")
-                        .HasForeignKey("PrescriptionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Medication");
-
-                    b.Navigation("Prescription");
+                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("MindCare.Models.UserActivity", b =>
@@ -977,19 +978,9 @@ namespace MindCare.Migrations
                     b.Navigation("CartItems");
                 });
 
-            modelBuilder.Entity("MindCare.Models.Medication", b =>
-                {
-                    b.Navigation("PrescriptionMedications");
-                });
-
             modelBuilder.Entity("MindCare.Models.MentalHealthResource", b =>
                 {
                     b.Navigation("Users");
-                });
-
-            modelBuilder.Entity("MindCare.Models.Prescription", b =>
-                {
-                    b.Navigation("PrescriptionMedications");
                 });
 #pragma warning restore 612, 618
         }

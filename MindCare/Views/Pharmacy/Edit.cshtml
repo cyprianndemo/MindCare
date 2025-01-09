@@ -1,0 +1,74 @@
+﻿@model MindCare.ViewModel.MedicationViewModel
+@{
+    ViewData["Title"] = "Edit Medication";
+    Layout = "_PsychiatristLayout";
+}
+
+<div class="container mt-4">
+    <h2>Edit Medication</h2>
+
+    <form asp-action="Edit" method="post" enctype="multipart/form-data">
+        <input type="hidden" asp-for="MedicationId" />
+       @*  <input type="hidden" asp-for="ExistingImagePath" /> *@
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label">Name</label>
+                    <input asp-for="Name" class="form-control" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label">Description</label>
+                    <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Dosage" class="form-label">Dosage</label>
+                    <input asp-for="Dosage" class="form-control" />
+                    <span asp-validation-for="Dosage" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Price" class="form-label">Price</label>
+                    <input asp-for="Price" class="form-control" type="number" step="0.01" />
+                    <span asp-validation-for="Price" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="MedicationImage" class="form-label">New Image</label>
+                    <input asp-for="MedicationImage" class="form-control" type="file" accept="image/*" />
+                    <span asp-validation-for="MedicationImage" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                @* @if (!string.IsNullOrEmpty(Model.ExistingImagePath))
+                {
+                    <div class="mb-3">
+                        <label class="form-label">Current Image</label>
+                        <div>
+                            <img src="~/images/medications/@Model.ExistingImagePath"
+                                 alt="Current Medication Image"
+                                 class="img-thumbnail"
+                                 style="max-width: 200px;" />
+                        </div>
+                    </div>
+                } *@
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <a href="@Url.Action("MedicationList", "Pharmacy")" class="btn btn-secondary">Back to List</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -7,27 +7,37 @@ namespace MindCare.Models
     {
         [Key]
         public int PrescriptionId { get; set; }
+        public int MedicationId { get; set; }
+        public Medication Medication { get; set; }
 
         [Required]
-        public string? Description { get; set; } // Description of the prescribed treatment
+        public string? Description { get; set; }
 
         public DateTime DatePrescribed { get; set; } = DateTime.Now;
 
-        // Foreign Keys
-        [ForeignKey("Student")]
-        public string? StudentId { get; set; }
-        public Student Student { get; set; } // Student receiving the prescription
+        [Required]
+        public string Instructions { get; set; }
+        public string StudentId { get; set; }
+        public string PsychiatristId { get; set; }
 
-        [ForeignKey("Psychiatrist")]
-        public string? PsychiatristId { get; set; }
-        public Psychiatrist Psychiatrist { get; set; } // Psychiatrist issuing the prescription
+        [Required]
+        public DateTime PrescribedDate { get; set; }
+        public int PatientId { get; set; }
+        public string Dosage { get; set; }
+        public string Frequency { get; set; }
+        public string Duration { get; set; }
+        public DateTime PrescriptionDate { get; set; }
+        public string Status { get; set; }
 
-        // Navigation Property
-        public ICollection<Medication> Medications { get; set; }
+        // Navigation properties
+        public virtual Student Student { get; set; }
+        // Many-to-Many Relationship
+        public ICollection<PrescriptionMedication> PrescriptionMedications { get; set; }
 
         public Prescription()
         {
-            Medications = new List<Medication>();
+            PrescriptionMedications = new List<PrescriptionMedication>();
         }
     }
+
 }

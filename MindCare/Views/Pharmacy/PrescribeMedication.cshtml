@@ -1,3 +1,81 @@
-﻿@{
-    Layout = "_PsychiatristLayout";  // Specify the layout for the view
+﻿@model MindCare.ViewModel.PrescriptionViewModel
+@{
+    ViewData["Title"] = "Prescribe Medication";
+    Layout = "_PsychiatristLayout";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Prescribe Medication</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="PrescribeMedication" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <input type="hidden" asp-for="MedicationId" />
+
+                        <div class="mb-3">
+                            <label class="form-label">Medication Name</label>
+                            <input class="form-control" value="@Model.MedicationName" readonly />
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="PatientId" class="form-label">Patient</label>
+                            <select asp-for="PatientId" asp-items="Model.Patients" class="form-select">
+                                <option value="">-- Select Patient --</option>
+                            </select>
+                            <span asp-validation-for="PatientId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Dosage" class="form-label">Dosage</label>
+                            <input asp-for="Dosage" class="form-control" />
+                            <span asp-validation-for="Dosage" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Frequency" class="form-label">Frequency</label>
+                            <input asp-for="Frequency" class="form-control" placeholder="e.g., Twice daily" />
+                            <span asp-validation-for="Frequency" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Duration" class="form-label">Duration</label>
+                            <input asp-for="Duration" class="form-control" placeholder="e.g., 7 days" />
+                            <span asp-validation-for="Duration" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Instructions" class="form-label">Special Instructions</label>
+                            <textarea asp-for="Instructions" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Instructions" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="PrescriptionDate" class="form-label">Prescription Date</label>
+                            <input asp-for="PrescriptionDate" class="form-control" type="date" />
+                            <span asp-validation-for="PrescriptionDate" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-prescription"></i> Create Prescription
+                            </button>
+                            <a asp-action="MedicationList" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to List
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

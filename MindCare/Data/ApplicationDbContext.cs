@@ -32,6 +32,19 @@ namespace MindCare.Data
                 .WithMany()
                 .HasForeignKey(a => a.PsychiatristId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<PrescriptionMedication>()
+        .HasKey(pm => new { pm.PrescriptionId, pm.MedicationId });
+
+            modelBuilder.Entity<PrescriptionMedication>()
+                .HasOne(pm => pm.Prescription)
+                .WithMany(p => p.PrescriptionMedications)
+                .HasForeignKey(pm => pm.PrescriptionId);
+
+            modelBuilder.Entity<PrescriptionMedication>()
+                .HasOne(pm => pm.Medication)
+                .WithMany(m => m.PrescriptionMedications)
+                .HasForeignKey(pm => pm.MedicationId);
         }
         public DbSet<Feedback> Feedback { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
@@ -45,5 +58,6 @@ namespace MindCare.Data
         public DbSet<UserActivity> UserActivities { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<Student> Students { get; set; }
     }
 }

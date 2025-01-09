@@ -1,0 +1,22 @@
+﻿@model IEnumerable<MindCare.Models.Medication>
+
+<h2>Prescribe Medication</h2>
+
+<form asp-action="PrescribeMedication" method="post">
+    <div class="form-group">
+        <label for="MedicationId">Select Medication:</label>
+        <select id="MedicationId" name="medicationId" class="form-control" required>
+            @foreach (var medication in Model)
+            {
+                <option value="@medication.MedicationId">@medication.Name</option>
+            }
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="Instructions">Dosage Instructions:</label>
+        <textarea id="Instructions" name="instructions" class="form-control" required></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Prescribe</button>
+</form>
