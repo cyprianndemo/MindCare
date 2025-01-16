@@ -1,5 +1,4 @@
 ﻿@model IEnumerable<Appointment>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,25 +18,31 @@
     </style>
 </head>
 <body>
-
     <div class="container my-5">
         <h1 class="text-center" style="color: #004085;">Your Psychiatry Sessions</h1>
-
         <div class="text-right mb-3">
             <a href="@Url.Action("BookSession", "Psychiatry")" class="btn" style="background-color: #004085; color: #fff;">Book a New Session</a>
         </div>
-
         <div class="list-group">
-            @foreach (var session in Model)
+            @if (!Model.Any())
             {
-                <a href="@Url.Action("SessionDetails", "Psychiatry", new { id = session.AppointmentId })" class="list-group-item list-group-item-action">
-                    <h5 class="mb-1">@session.Date.ToShortDateString() @session.Time</h5>
-                    <p class="mb-1">Status: @session.Status</p>
-                    <small>Click for details</small>
-                </a>
+                <div class="alert alert-info">
+                    You don't have any scheduled Psychiatry sessions yet.
+                </div>
+            }
+            else
+            {
+                @foreach (var session in Model)
+                {
+                    <a href="@Url.Action("SessionDetails", "Psychiatry", new { id = session.AppointmentId })" class="list-group-item list-group-item-action">
+                        <h5 class="mb-1">@session.GetLocalStartTime().ToShortDateString() @session.GetLocalStartTime().ToString("HH:mm")</h5>
+                        <p class="mb-1">Status: @session.Status</p>
+                        <small>Psychiatrist: @(session.Psychiatrist?.UserName ?? "Not Assigned")</small><br />
+                        <small>Click for details</small>
+                    </a>
+                }
             }
         </div>
     </div>
-
 </body>
 </html>

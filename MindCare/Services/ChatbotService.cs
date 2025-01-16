@@ -113,8 +113,8 @@ What would you like to know more about?";
             var moodEntry = new MoodEntry
             {
                 UserId = userId,
-                MoodScore = score,
-                Date = DateTime.UtcNow
+                /*MoodScore = score,
+                Date = DateTime.UtcNow*/
             };
 
             _context.MoodEntries.Add(moodEntry);

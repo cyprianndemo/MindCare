@@ -1,3 +1,5 @@
+using DinkToPdf;
+using DinkToPdf.Contracts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -19,6 +21,7 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.R
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
+builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
 builder.Services.AddScoped<ChatbotService>();
 builder.Services.AddScoped<UserActivityService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
@@ -30,8 +33,6 @@ builder.Services.AddHttpClient("mpesa", c => {
     c.BaseAddress = new Uri("https://sandbox.safaricom.co.ke");
 }
 );
-
-
 
 var app = builder.Build();
 
@@ -100,14 +101,14 @@ await SeedRolesAndAdminUser(app.Services);
 
 app.Run();
 
-// Method to seed initial roles and an admin user
+
 static async Task SeedRolesAndAdminUser(IServiceProvider serviceProvider)
 {
     using (var scope = serviceProvider.CreateScope())
     {
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-
+        
         var roles = new[] { "Admin", "Student", "Therapist", "Psychiatrist" };
 
         // Seed roles

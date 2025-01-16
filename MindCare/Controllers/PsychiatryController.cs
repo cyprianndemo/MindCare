@@ -36,9 +36,10 @@ namespace MindCare.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var appointments = await _context.Appointments
-                /*.Include(a => a.Therapist)*/
                 .Include(a => a.Psychiatrist)
-                .Where(a => a.StudentId == userId)
+                .Where(a => a.StudentId == userId &&
+                            a.PsychiatristId != null &&
+                            a.TherapistId == null)  
                 .OrderByDescending(a => a.StartTime)
                 .ToListAsync();
 
@@ -57,9 +58,7 @@ namespace MindCare.Controllers
                 LastModified = DateTime.UtcNow
             };
 
-            /*var therapistUsers = await _userManager.GetUsersInRoleAsync("Therapist");
-            ViewBag.Therapists = therapistUsers.Select(u => new SelectListItem { Text = $"{u.FirstName} {u.LastName}", Value = u.Id }).ToList();
-*/
+          
             var psychiatristUsers = await _userManager.GetUsersInRoleAsync("Psychiatrist");
             ViewBag.Psychiatrists = psychiatristUsers.Select(u => new SelectListItem { Text = $"{u.FirstName} {u.LastName}", Value = u.Id }).ToList();
 

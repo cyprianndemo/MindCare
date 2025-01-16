@@ -38,6 +38,86 @@ namespace MindCare.Controllers
         }
 
         [HttpPost]
+        public IActionResult TestPayment(PaymentViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return Json(new { success = false, errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
+            }
+
+            // Create receipt data
+            var receiptData = new ReceiptViewModel
+            {
+                ReceiptNumber = GenerateReceiptNumber(),
+                TransactionId = Guid.NewGuid().ToString("N"),
+                PaymentDate = DateTime.UtcNow,
+                Amount = model.Amount,
+                PaymentMethod = "Test Payment",
+                Status = "Completed",
+                CustomerDetails = new CustomerDetails
+                {
+                    Name = "Test Customer",
+                    Email = "test@example.com",
+                    PhoneNumber = model.PhoneNumber
+                }
+            };
+
+            // Store receipt data in TempData for retrieval in receipt view
+            TempData["ReceiptData"] = System.Text.Json.JsonSerializer.Serialize(receiptData);
+
+            var response = new
+            {
+                success = true,
+                transactionId = receiptData.TransactionId,
+                amount = model.Amount,
+                date = receiptData.PaymentDate,
+                message = "Test payment processed successfully",
+                receiptUrl = Url.Action("Receipt", "Payment", new { id = receiptData.TransactionId })
+            };
+
+            return Json(response);
+        }
+        public IActionResult PaymentSuccess(decimal amount)
+        {
+            return View(amount);
+        }
+
+        public IActionResult Receipt(string id)
+        {
+            // In a real application, you would fetch this from your database
+            // For now, we'll retrieve it from TempData
+            if (TempData["ReceiptData"] is string receiptJson)
+            {
+                var receiptData = System.Text.Json.JsonSerializer.Deserialize<ReceiptViewModel>(receiptJson);
+                return View(receiptData);
+            }
+
+            // If no receipt data is found, create sample data (for demonstration)
+            var sampleReceipt = new ReceiptViewModel
+            {
+                ReceiptNumber = "RCP-" + DateTime.Now.ToString("yyyyMMdd-HHmmss"),
+                TransactionId = id ?? "TRANS-12345",
+                PaymentDate = DateTime.Now,
+                Amount = 100.00m,
+                PaymentMethod = "Test Payment",
+                Status = "Completed",
+                CustomerDetails = new CustomerDetails
+                {
+                    Name = "Test Customer",
+                    Email = "test@example.com",
+                    PhoneNumber = "254712345678"
+                }
+            };
+
+            return View(sampleReceipt);
+        }
+
+        private string GenerateReceiptNumber()
+        {
+            return "RCP-" + DateTime.Now.ToString("yyyyMMdd-HHmmss");
+        }
+    
+    [HttpPost]
         [ActionName("PayWithMpesa")]
         public async Task<IActionResult> PayWithMpesa(PaymentViewModel model)
         {

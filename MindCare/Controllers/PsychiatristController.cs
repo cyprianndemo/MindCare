@@ -25,6 +25,96 @@ namespace MindCare.Controllers
         {
             return View("Dashboard");
         }
+        // Update the PsychiatristController.cs
+        public async Task<IActionResult> PatientList()
+        {
+            try
+            {
+                // Get the logged-in psychiatrist's ID
+                var psychiatristId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                // Get all unique patients who have appointments with this psychiatrist
+                // Explicitly join with AspNetUsers table
+                var patients = await _context.Appointments
+                    .Where(a => a.PsychiatristId == psychiatristId)
+                    .Join(
+                        _context.Users, // Join with AspNetUsers table
+                        appointment => appointment.StudentId,
+                        user => user.Id,
+                        (appointment, user) => new { Appointment = appointment, User = user }
+                    )
+                    .GroupBy(x => x.User.Id)
+                    .Select(g => new PatientViewModel
+                    {
+                        StudentId = g.Key,
+                        Name = $"{g.First().User.FirstName} {g.First().User.LastName}",
+                        Email = g.First().User.Email,
+                        LastAppointment = g.Max(x => x.Appointment.StartTime),
+                        TotalAppointments = g.Count()
+                    })
+                    .OrderByDescending(p => p.LastAppointment)
+                    .ToListAsync();
+
+                return View(patients);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "An error occurred while fetching the patient list.";
+                // Log the exception details
+                Console.WriteLine($"Error in PatientList: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+                return View(new List<PatientViewModel>());
+            }
+        }
+        [Authorize(Roles = "Psychiatrist")]
+        public async Task<IActionResult> ViewPatientHistory(string id)
+        {
+            try
+            {
+                // Get the logged-in psychiatrist's ID
+                var psychiatristId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                // Get patient details from AspNetUsers
+                var patient = await _context.Users
+                    .FirstOrDefaultAsync(u => u.Id == id);
+
+                if (patient == null)
+                {
+                    TempData["Error"] = "Patient not found.";
+                    return RedirectToAction("PatientList");
+                }
+
+                // Get all appointments for this patient with this psychiatrist
+                var appointments = await _context.Appointments
+                    .Where(a => a.StudentId == id && a.PsychiatristId == psychiatristId)
+                    .OrderByDescending(a => a.StartTime)
+                    .Select(a => new AppointmentHistoryViewModel
+                    {
+                        AppointmentId = a.AppointmentId,
+                        StartTime = a.StartTime,
+                        EndTime = a.EndTime,
+                        Status = a.Status,
+                        CreatedAt = a.CreatedAt,
+                        CancellationTime = a.CancellationTime
+                    })
+                    .ToListAsync();
+
+                var viewModel = new PatientHistoryViewModel
+                {
+                    StudentId = patient.Id,
+                    PatientName = $"{patient.FirstName} {patient.LastName}",
+                    Email = patient.Email,
+                    Appointments = appointments
+                };
+
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "An error occurred while fetching patient history.";
+                return RedirectToAction("PatientList");
+            }
+        }
 
         [Authorize(Roles = "Psychiatrist")]
         public async Task<IActionResult> ManageSessions()

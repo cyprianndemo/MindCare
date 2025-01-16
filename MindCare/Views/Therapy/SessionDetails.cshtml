@@ -47,12 +47,10 @@
                     <p><strong>Time:</strong> @Model.StartTime.ToLocalTime().ToString("HH:mm") - @Model.EndTime.ToLocalTime().ToString("HH:mm")</p>
                     <p><strong>Status:</strong> <span class="text-@(Model.Status == "Cancelled" ? "danger" : "success")">@Model.Status</span></p>
 
-                    <!-- Buttons Section -->
                     <div class="mt-4 text-right">
-                        <!-- Edit Appointment Button -->
                         <a href="@Url.Action("Edit", "Therapy", new { id = Model.AppointmentId })" class="btn btn-custom mr-2">Edit Appointment</a>
+                        <a href="@Url.Action("Pay", "Checkout", new { id = Model.AppointmentId })" class="btn btn-custom mr-2">Pay Session</a>
 
-                        <!-- Cancel Appointment Button -->
                         <form action="@Url.Action("Cancel", "Therapy", new { id = Model.AppointmentId })" method="post" class="d-inline">
                             @Html.AntiForgeryToken()
                             <button type="submit" class="btn btn-custom">Cancel Appointment</button>

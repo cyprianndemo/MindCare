@@ -9,7 +9,7 @@
     @if (!Model.Any())
     {
         <div class="alert alert-info">
-            No appointments found.
+            No pending appointments found.
         </div>
     }
     else
@@ -24,9 +24,7 @@
                                 <strong>Date:</strong> @appointment.Date.ToShortDateString()<br />
                                 <strong>Time:</strong> @appointment.Time<br />
                                 <strong>StudentId:</strong> @appointment.StudentId<br />
-                                <span class="status-badge badge @(appointment.Status == "Approved" ? "bg-success" : "bg-warning")">
-                                    @appointment.Status
-                                </span>
+                                <strong>Status:</strong> <span class="status-badge badge bg-warning">@appointment.Status</span>
                             </p>
                         </div>
                         <div class="btn-group">
@@ -40,14 +38,6 @@
                                    class="btn btn-danger me-2">
                                     <i class="fas fa-times"></i> Cancel
                                 </a>
-                            }
-                            @if (appointment.Status == "Approved")
-                            {
-                                <button type="button" class="btn btn-primary me-2 video-call-btn"
-                                        data-appointment-id="@appointment.AppointmentId"
-                                        data-student-id="@appointment.StudentId">
-                                    <i class="fas fa-video"></i> Start Session
-                                </button>
                             }
                             <a href="@Url.Action("EditAppointment", new { id = appointment.AppointmentId })"
                                class="btn btn-warning">

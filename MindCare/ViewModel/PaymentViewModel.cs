@@ -36,5 +36,8 @@ namespace MindCare.Models
         public string ExpiryDate { get; set; } // Format: MM/YY
 
         public string Cvv { get; set; }
+        public bool IsSuccessful { get; set; }
+        public string? TransactionId { get; set; }
+        public DateTime TransactionDate { get; set; }
     }
 }

@@ -169,7 +169,7 @@ namespace MindCare.Controllers
             // Count appointment sessions and their statuses
             var totalSessions = await _context.Appointments.CountAsync();
             var completedSessions = await _context.Appointments.CountAsync(a => a.Status == "Completed");
-            var upcomingSessions = await _context.Appointments.CountAsync(a => a.Status == "Upcoming");
+            var upcomingSessions = await _context.Appointments.CountAsync(a => a.Status == "Approved");
 
             // Package the data into a view model
             var viewModel = new PerformanceReportViewModel

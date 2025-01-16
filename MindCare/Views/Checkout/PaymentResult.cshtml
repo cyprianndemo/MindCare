@@ -1,12 +1,21 @@
 ﻿@model MindCare.Models.PaymentResultViewModel
 
-<h3>Payment Result</h3>
-<div>
-    <h4>Status: @Model.Status</h4>
-    <p>Payment ID: @Model.PaymentId</p>
-    <!-- Additional information can be displayed here -->
-</div>
+@{
+    ViewData["Title"] = "Payment Successful";
+}
 
-<div>
-    <a asp-action="Pay">Make another payment</a>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="mb-4">
+                <i class="fas fa-check-circle text-success" style="font-size: 5rem;"></i>
+            </div>
+            <h2 class="mb-3">Payment Successful</h2>
+            <p class="mb-4">Your payment of $@Model.Amount.ToString("F2") was successfully completed.</p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="@Url.Action("Receipt", "Checkout")" class="btn btn-outline-primary">View Receipt</a>
+                <a href="@Url.Action("Index", "Home")" class="btn btn-primary">Return Home</a>
+            </div>
+        </div>
+    </div>
 </div>

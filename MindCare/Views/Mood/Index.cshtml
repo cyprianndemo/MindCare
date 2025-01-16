@@ -1,30 +1,45 @@
-﻿@model IEnumerable<MindCare.Models.MoodEntry>
+﻿<!-- Views/Mood/Index.cshtml -->
+@model IEnumerable<MindCare.Models.MoodEntry>
 @{
     ViewData["Title"] = "Mood History";
 }
+
 <div class="container my-5">
-    <h1 class="text-primary">Mood History</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="text-primary">Mood History</h1>
+        <a asp-action="AddMood" class="btn btn-primary">Add New Mood Entry</a>
+    </div>
 
-    <table class="table table-striped mt-4">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Mood</th>
-                <th>Intensity</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var mood in Model)
-            {
-                <tr>
-                    <td>@mood.EntryDate.ToShortDateString()</td>
-                    <td>@mood.Mood</td>
-                    <td>@mood.Intensity</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-
-    <a href="@Url.Action("AddMood", "Mood")" class="btn" style="background-color: #004085; color: #fff;">Add New Mood</a>
-    <a href="@Url.Action("Analytics", "Mood")" class="btn btn-success">View Analytics</a>
+    @if (Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Mood</th>
+                        <th>Intensity</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.EntryDate.ToString("MMM dd, yyyy HH:mm")</td>
+                            <td>@item.Mood</td>
+                            <td>@item.Intensity</td>
+                            <td>@item.Notes</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            No mood entries yet. Start tracking your mood by adding a new entry!
+        </div>
+    }
 </div>

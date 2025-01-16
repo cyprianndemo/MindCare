@@ -1,106 +1,209 @@
-﻿@model IEnumerable<MentalHealthResource>
+﻿@model ResourceViewModel
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Mental Health Resources</title>
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mental Health Support Resources</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
     <style>
-        .section-title {
-            font-weight: bold;
-            color: #17a2b8;
+        .scenario-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            height: 100%;
         }
 
-        .card-text {
-            max-height: 80px;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        .scenario-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
-        .btn-custom {
-            background-color: #28a745;
+        .resource-card {
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+
+        .resource-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .urgency-immediate {
+            border-left: 4px solid #dc3545;
+        }
+
+        .urgency-soon {
+            border-left: 4px solid #ffc107;
+        }
+
+        .urgency-general {
+            border-left: 4px solid #28a745;
+        }
+
+        .filter-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .emergency-banner {
+            background: #dc3545;
             color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
         }
 
-        .content-preview {
-            font-size: 0.9em;
-            color: #555;
-            max-height: 50px;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            margin: 2px;
+            border-radius: 12px;
+            background: #e9ecef;
+            font-size: 0.8em;
         }
     </style>
 </head>
 <body>
-
     <div class="container my-5">
-        <h1 class="text-center text-primary">Mental Health Resources</h1>
-        <p class="text-center text-muted">Explore resources that support mental wellness, help build awareness, and reduce stigma.</p>
-
-        <!-- Awareness Section -->
-        <div class="section my-5">
-            <h2 class="section-title text-center">Mental Health Awareness</h2>
-            <p class="text-center">Learn about mental health, reduce stigma, and promote well-being.</p>
-            <div class="row mt-4">
-                @foreach (var resource in Model.Where(r => r.Category == "Awareness"))
-                {
-                    <div class="col-md-4 mb-4">
-                        <div class="card h-100 shadow-sm">
-                            <div class="card-body">
-                                <h5 class="card-title">@resource.Title</h5>
-                                <p class="card-text">@resource.Description</p>
-                                <p class="content-preview">@resource.Content</p>
-                                <a href="@resource.Url" class="btn btn-outline-primary">Learn More</a>
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
+        <!-- Emergency Banner -->
+        <div class="emergency-banner animate__animated animate__fadeIn">
+            <h4>Need immediate help?</h4>
+            <p class="mb-0">Call 988 - National Suicide Prevention Lifeline | Available 24/7</p>
         </div>
 
-        <!-- Emotional and Physical Support Section -->
-        <div class="section my-5">
-            <h2 class="section-title text-center">Support Resources</h2>
-            <p class="text-center">Find tools and guidance to support emotional and physical well-being.</p>
-            <div class="row mt-4">
-                @foreach (var resource in Model.Where(r => r.Category == "Support"))
-                {
-                    <div class="col-md-4 mb-4">
-                        <div class="card h-100 shadow-sm">
-                            <div class="card-body">
-                                <h5 class="card-title">@resource.Title</h5>
-                                <p class="card-text">@resource.Description</p>
-                                <p class="content-preview">@resource.Content</p>
-                                <a href="@resource.Url" class="btn btn-outline-primary">Get Support</a>
-                            </div>
+        <h1 class="text-center text-primary animate__animated animate__fadeInDown">Mental Health Support</h1>
+        <p class="text-center text-muted mb-5 animate__animated animate__fadeInUp">Select your current situation to find relevant resources</p>
+
+        <!-- Scenarios Section -->
+        <div class="row mb-5">
+            @foreach (var scenario in Model.Scenarios)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card scenario-card animate__animated animate__fadeIn" 
+                         onclick="location.href='@Url.Action("Index", new { scenario = scenario })'">
+                        <div class="card-body">
+                            <h5 class="card-title">@scenario</h5>
+                            <p class="card-text">@Model.ScenarioDescriptions[scenario]</p>
                         </div>
                     </div>
-                }
-            </div>
+                </div>
+            }
         </div>
 
-        <!-- Overcoming Stigma Section -->
-        <div class="section my-5">
-            <h2 class="section-title text-center">Overcoming Stigma</h2>
-            <p class="text-center">Resources to understand and overcome mental health stigma.</p>
-            <div class="row mt-4">
-                @foreach (var resource in Model.Where(r => r.Category == "Stigma"))
+        <!-- Filter Section -->
+        <div class="filter-section animate__animated animate__fadeIn">
+            <form method="get" class="row">
+                <div class="col-md-3">
+                    <label>Scenario</label>
+                    <select name="scenario" class="form-control" onchange="this.form.submit()">
+                        <option value="">All Scenarios</option>
+                        @foreach (var scenario in Model.Scenarios)
+                        {
+                            <option value="@scenario" selected="@(scenario == Model.SelectedScenario)">@scenario</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label>Category</label>
+                    <select name="category" class="form-control" onchange="this.form.submit()">
+                        <option value="">All Categories</option>
+                        @foreach (var category in Model.Categories)
+                        {
+                            <option value="@category" selected="@(category == Model.SelectedCategory)">@category</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label>Resource Type</label>
+                    <select name="resourceType" class="form-control" onchange="this.form.submit()">
+                        <option value="">All Types</option>
+                        @foreach (var type in Model.ResourceTypes)
+                        {
+                            <option value="@type" selected="@(type == Model.SelectedType)">@type</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary btn-block">Apply Filters</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Resources Grid -->
+        <div class="row">
+            @if (!Model.Resources.Any())
+            {
+                <div class="col-12 text-center">
+                    <h3>No resources found</h3>
+                    <p>Try adjusting your filters or selecting a different scenario.</p>
+                </div>
+            }
+            else
+            {
+                foreach (var resource in Model.Resources)
                 {
                     <div class="col-md-4 mb-4">
-                        <div class="card h-100 shadow-sm">
+                        <div class="card resource-card @($"urgency-{resource.Urgency?.ToLower()}")">
                             <div class="card-body">
                                 <h5 class="card-title">@resource.Title</h5>
+                                <div class="mb-2">
+                                    <span class="tag">@resource.Category</span>
+                                    <span class="tag">@resource.ResourceType</span>
+                                    <span class="tag">@resource.Scenario</span>
+                                </div>
                                 <p class="card-text">@resource.Description</p>
-                                <p class="content-preview">@resource.Content</p>
-                                <a href="@resource.Url" class="btn btn-outline-primary">Read More</a>
+                                <div class="mt-3">
+                                    @if (!string.IsNullOrEmpty(resource.Url))
+                                    {
+                                        <a href="@resource.Url" class="btn btn-outline-primary mr-2" target="_blank">
+                                            <i class="fas fa-external-link-alt"></i> View Online
+                                        </a>
+                                    }
+                                    @if (resource.IsDownloadable)
+                                    {
+                                        <a href="@Url.Action("Download", new { id = resource.Id })" class="btn btn-success">
+                                            <i class="fas fa-download"></i> Download Resource
+                                        </a>
+                                    }
+                                </div>
                             </div>
                         </div>
                     </div>
                 }
-            </div>
+            }
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Animate elements on scroll
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate__animated', 'animate__fadeIn');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.resource-card').forEach(card => {
+                observer.observe(card);
+            });
+
+            // Handle scenario card clicks
+            document.querySelectorAll('.scenario-card').forEach(card => {
+                card.addEventListener('click', function () {
+                    this.classList.add('animate__animated', 'animate__pulse');
+                });
+            });
+        });
+    </script>
 </body>
 </html>

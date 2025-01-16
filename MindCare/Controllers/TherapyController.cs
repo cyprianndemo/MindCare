@@ -37,8 +37,9 @@ namespace MindCare.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var appointments = await _context.Appointments
                 .Include(a => a.Therapist)
-                .Include(a => a.Psychiatrist)
-                .Where(a => a.StudentId == userId)
+                .Where(a => a.StudentId == userId &&
+                            a.TherapistId != null &&
+                            a.PsychiatristId == null)  // Only include therapy appointments
                 .OrderByDescending(a => a.StartTime)
                 .ToListAsync();
 

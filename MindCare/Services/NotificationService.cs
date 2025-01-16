@@ -1,11 +1,10 @@
-﻿using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using MindCare.Data;
 using MindCare.Hubs;
 using MindCare.Models;
-using System.Net.Mail;
 using System.Net;
+using System.Net.Mail;
 
 namespace MindCare.Services
 {
@@ -25,6 +24,34 @@ namespace MindCare.Services
             _configuration = configuration;
         }
 
+        public async Task SendAppointmentNotification(string userId, DateTime appointmentTime, string notificationType)
+        {
+            (string title, string message) notification = notificationType switch
+            {
+                "BOOKED" => NotificationTemplates.GetAppointmentBookedTemplate(appointmentTime),
+                "APPROVED" => NotificationTemplates.GetAppointmentApprovedTemplate(appointmentTime),
+                "CANCELLED" => NotificationTemplates.GetAppointmentCancelledTemplate(appointmentTime),
+                "REMINDER" => NotificationTemplates.GetAppointmentReminderTemplate(appointmentTime),
+                _ => throw new ArgumentException("Invalid notification type", nameof(notificationType))
+            };
+
+            await CreateNotification(userId, notification.message, notificationType);
+            await SendEmail(await GetUserEmail(userId), notification.title, notification.message);
+        }
+
+        public async Task SendAppointmentRescheduledNotification(string userId, DateTime oldTime, DateTime newTime)
+        {
+            var (title, message) = NotificationTemplates.GetAppointmentRescheduledTemplate(oldTime, newTime);
+            await CreateNotification(userId, message, "RESCHEDULED");
+            await SendEmail(await GetUserEmail(userId), title, message);
+        }
+
+        private async Task<string> GetUserEmail(string userId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            return user?.Email ?? throw new ArgumentException("User not found", nameof(userId));
+        }
+
         public async Task CreateNotification(string userId, string message, string type)
         {
             var notification = new Notification
@@ -39,7 +66,6 @@ namespace MindCare.Services
             _context.Notifications.Add(notification);
             await _context.SaveChangesAsync();
 
-            // Send real-time notification
             await _hubContext.Clients.User(userId).SendAsync("ReceiveNotification", new
             {
                 notification.Id,
@@ -47,24 +73,6 @@ namespace MindCare.Services
                 notification.CreatedAt,
                 notification.Type
             });
-        }
-
-        public async Task<List<Notification>> GetUserNotifications(string userId)
-        {
-            return await _context.Notifications
-                .Where(n => n.UserId == userId)
-                .OrderByDescending(n => n.CreatedAt)
-                .ToListAsync();
-        }
-
-        public async Task MarkAsRead(int notificationId)
-        {
-            var notification = await _context.Notifications.FindAsync(notificationId);
-            if (notification != null)
-            {
-                notification.IsRead = true;
-                await _context.SaveChangesAsync();
-            }
         }
 
         public async Task SendEmail(string email, string subject, string message)
@@ -89,6 +97,24 @@ namespace MindCare.Services
                 client.EnableSsl = true;
 
                 await client.SendMailAsync(mailMessage);
+            }
+        }
+
+        public async Task<List<Notification>> GetUserNotifications(string userId)
+        {
+            return await _context.Notifications
+                .Where(n => n.UserId == userId)
+                .OrderByDescending(n => n.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task MarkAsRead(int notificationId)
+        {
+            var notification = await _context.Notifications.FindAsync(notificationId);
+            if (notification != null)
+            {
+                notification.IsRead = true;
+                await _context.SaveChangesAsync();
             }
         }
     }

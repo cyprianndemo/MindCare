@@ -45,6 +45,8 @@ namespace MindCare.Data
                 .HasOne(pm => pm.Medication)
                 .WithMany(m => m.PrescriptionMedications)
                 .HasForeignKey(pm => pm.MedicationId);
+            modelBuilder.Entity<MoodEntry>()
+               .HasIndex(m => new { m.UserId, m.EntryDate });
         }
         public DbSet<Feedback> Feedback { get; set; }
         public DbSet<CartItem> CartItems { get; set; }

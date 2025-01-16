@@ -22,18 +22,14 @@ namespace MindCare.Models
 
         [Required]
         public DateTime PrescribedDate { get; set; }
-        public int PatientId { get; set; }
         public string Dosage { get; set; }
         public string Frequency { get; set; }
         public string Duration { get; set; }
         public DateTime PrescriptionDate { get; set; }
+        public DateTime CreatedAt { get; set; }
         public string Status { get; set; }
-
-        // Navigation properties
         public virtual Student Student { get; set; }
-        // Many-to-Many Relationship
         public ICollection<PrescriptionMedication> PrescriptionMedications { get; set; }
-
         public Prescription()
         {
             PrescriptionMedications = new List<PrescriptionMedication>();

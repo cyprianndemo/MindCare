@@ -1,0 +1,95 @@
+﻿@model MindCare.ViewModel.ReceiptViewModel
+@{
+    ViewData["Title"] = "Payment Receipt";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <!-- Receipt Header -->
+                    <div class="text-center mb-4">
+                        <h2 class="mb-0">MindCare Pharmacy</h2>
+                        <p class="text-muted">Payment Receipt</p>
+                    </div>
+
+                    <!-- Receipt Details -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5 class="text-muted mb-2">Receipt Details</h5>
+                            <p class="mb-1"><strong>Receipt Number:</strong> @Model.ReceiptNumber</p>
+                            <p class="mb-1"><strong>Transaction ID:</strong> @Model.TransactionId</p>
+                            <p class="mb-1"><strong>Date:</strong> @Model.PaymentDate.ToString("dd MMM yyyy HH:mm:ss")</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="text-muted mb-2">Customer Details</h5>
+                            <p class="mb-1"><strong>Name:</strong> @Model.CustomerDetails.Name</p>
+                            <p class="mb-1"><strong>Email:</strong> @Model.CustomerDetails.Email</p>
+                            <p class="mb-1"><strong>Phone:</strong> @Model.CustomerDetails.PhoneNumber</p>
+                        </div>
+                    </div>
+
+                    <!-- Payment Details -->
+                    <div class="table-responsive mb-4">
+                        <table class="table table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Payment Method</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>@Model.PaymentMethod</td>
+                                    <td>$@Model.Amount.ToString("N2")</td>
+                                    <td>
+                                        <span class="badge bg-success">@Model.Status</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="d-flex justify-content-center gap-2">
+                        <button onclick="window.print()" class="btn btn-primary">
+                            <i class="fas fa-print me-2"></i>Print Receipt
+                        </button>
+                        <button onclick="downloadPDF()" class="btn btn-secondary">
+                            <i class="fas fa-download me-2"></i>Download PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Include html2pdf.js for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        @@media print {
+            .btn { display: none; }
+            .card { box-shadow: none !important; }
+        }
+    </style>
+    <script>
+        function downloadPDF() {
+            const element = document.querySelector('.card');
+            const opt = {
+                margin: 1,
+                filename: 'receipt-' + '@Model.ReceiptNumber' + '.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            // Corrected usage of html2pdf
+            html2pdf().set(opt).from(element).save();
+        }
+    </script>
+
+}

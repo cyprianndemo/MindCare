@@ -1,57 +1,246 @@
 ﻿@model MindCare.Models.PaymentViewModel
 @{
-    ViewData["Title"] = "Pay for your Medicine";
+    ViewData["Title"] = "Make Payment";
 }
 
-<h2>Pay for your Medicine</h2>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title text-center mb-4" style="color: #004085; font-size: 28px;">
+                        Pay for your Medicine
+                    </h2>
 
-<form method="post" asp-action="PayWithMpesa">
-    <h3>M-Pesa Payment</h3>
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-    <div class="form-group">
-        <label asp-for="Amount" class="control-label">Amount</label>
-        <input asp-for="Amount" class="form-control" />
-        <span asp-validation-for="Amount" class="text-danger"></span>
-    </div>
-    <div class="form-group">
-        <label asp-for="PhoneNumber" class="control-label">Phone Number</label>
-        <input asp-for="PhoneNumber" class="form-control" placeholder="Enter M-Pesa phone number (2547xxxxx)" />
-        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
-    </div>
-    <div class="form-group">
-        <input type="submit" value="Pay with M-Pesa" class="btn" style="background-color: #004085; color: #fff;" />
-    </div>
-</form>
+                    <div class="form-group mb-4">
+                        <label class="form-label fw-bold mb-3">Select Payment Method</label>
+                        <div class="d-flex gap-4 justify-content-center">
+                            <div class="form-check">
+                                <input type="radio" id="mpesa-option" name="paymentMethod" value="mpesa"
+                                       class="form-check-input" checked>
+                                <label class="form-check-label fs-5" for="mpesa-option">
+                                    <i class="fas fa-mobile-alt me-2"></i>M-Pesa
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input type="radio" id="visa-option" name="paymentMethod" value="visa"
+                                       class="form-check-input">
+                                <label class="form-check-label fs-5" for="visa-option">
+                                    <i class="fab fa-cc-visa me-2"></i>Visa
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input type="radio" id="test-option" name="paymentMethod" value="test"
+                                       class="form-check-input">
+                                <label class="form-check-label fs-5" for="test-option">
+                                    <i class="fas fa-vial me-2"></i>Test Mode
+                                </label>
+                            </div>
+                        </div>
+                    </div>
 
-<form asp-action="PayWithVisa" method="post" id="visa-form">
-    <h3>Visa Payment</h3>
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-    <div class="form-group">
-        <label asp-for="Amount" class="control-label">Amount</label>
-        <input asp-for="Amount" class="form-control" />
-        <span asp-validation-for="Amount" class="text-danger"></span>
+                    <div id="mpesa-form" class="payment-form">
+                        <form method="post" asp-action="PayWithMpesa">
+                            <h3 class="text-center mb-4" style="color: #004085; font-size: 24px;">M-Pesa Payment</h3>
+                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                            <div class="form-group mb-3">
+                                <label asp-for="Amount" class="form-label fw-semibold">Amount (KES)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">KES</span>
+                                    <input asp-for="Amount" class="form-control form-control-lg" />
+                                </div>
+                                <span asp-validation-for="Amount" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group mb-4">
+                                <label asp-for="PhoneNumber" class="form-label fw-semibold">Phone Number</label>
+                                <input asp-for="PhoneNumber" class="form-control form-control-lg"
+                                       placeholder="Enter M-Pesa phone number (2547xxxxx)" />
+                                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-lg"
+                                        style="background-color: #4CAF50; color: #fff;">
+                                    Pay with M-PESA
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div id="visa-form" style="display: none;" class="payment-form">
+                        <form asp-action="PayWithVisa" method="post">
+                            <h3 class="text-center mb-4" style="color: #004085; font-size: 24px;">Visa Payment</h3>
+                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                            <div class="form-group mb-3">
+                                <label asp-for="Amount" class="form-label fw-semibold">Amount (USD)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="Amount" class="form-control form-control-lg" />
+                                </div>
+                                <span asp-validation-for="Amount" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label asp-for="CardName" class="form-label fw-semibold">Cardholder Name</label>
+                                <input asp-for="CardName" class="form-control form-control-lg"
+                                       placeholder="Enter cardholder name" />
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label asp-for="CardNumber" class="form-label fw-semibold">Card Number</label>
+                                <input asp-for="CardNumber" class="form-control form-control-lg"
+                                       placeholder="1234 5678 9012 3456" />
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label asp-for="ExpiryDate" class="form-label fw-semibold">Expiry Date</label>
+                                    <input asp-for="ExpiryDate" class="form-control form-control-lg"
+                                           placeholder="MM/YY" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="Cvv" class="form-label fw-semibold">CVV</label>
+                                    <input asp-for="Cvv" class="form-control form-control-lg"
+                                           placeholder="123" />
+                                </div>
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-lg"
+                                        style="background-color: #004085; color: #fff;">
+                                    Pay with Visa
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div id="test-form" style="display: none;" class="payment-form">
+                        <form id="testPaymentForm" asp-action="TestPayment" method="post">
+                            <h3 class="text-center mb-4" style="color: #004085; font-size: 24px;">Test Payment</h3>
+                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                            <div class="form-group mb-3">
+                                <label asp-for="Amount" class="form-label fw-semibold">Amount (USD)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="Amount" class="form-control form-control-lg" />
+                                </div>
+                                <span asp-validation-for="Amount" class="text-danger"></span>
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-lg" style="background-color: #6c757d; color: #fff;">
+                                    Complete Test Payment
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Success Modal -->
+                    <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-body text-center p-4">
+                                    <div class="mb-4">
+                                        <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                                    </div>
+                                    <h4 class="mb-3">Payment Successful</h4>
+                                    <p class="mb-4">Your payment of $<span id="paidAmount">0.00</span> was successfully completed.</p>
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <button class="btn btn-outline-secondary" onclick="window.location.href='/Receipt'">View Receipt</button>
+                                        <button class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="form-group">
-        <label asp-for="CardName" class="control-label">Card Name</label>
-        <input asp-for="CardName" class="form-control" placeholder="Cardholder Name" />
-    </div>
-    <div class="form-group">
-        <label asp-for="CardNumber" class="control-label">Card Number</label>
-        <input asp-for="CardNumber" class="form-control" placeholder="1234 5678 9012 3456" />
-    </div>
-    <div class="form-group">
-        <label asp-for="ExpiryDate" class="control-label">Expiry Date (MM/YY)</label>
-        <input asp-for="ExpiryDate" class="form-control" placeholder="MM/YY" />
-    </div>
-    <div class="form-group">
-        <label asp-for="Cvv" class="control-label">CVV</label>
-        <input asp-for="Cvv" class="form-control" placeholder="123" />
-    </div>
-    <div class="form-group">
-        <input type="submit" value="Pay with Visa" class="btn" style="background-color: #004085; color: #fff;" />
-    </div>
-</form>
+</div>
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
+    <!-- Add Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        .payment-form {
+            transition: all 0.3s ease-in-out;
+        }
+
+        .form-control {
+            border: 1px solid #ced4da;
+            padding: 0.75rem 1rem;
+        }
+
+        .form-control:focus {
+            border-color: #004085;
+            box-shadow: 0 0 0 0.2rem rgba(0, 64, 133, 0.25);
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .form-check-input:checked {
+            background-color: #004085;
+            border-color: #004085;
+        }
+
+        /* Success icon animation */
+        @@keyframes checkmark {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .fa-check-circle {
+            animation: checkmark 0.5s ease-in-out;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const mpesaOption = document.getElementById('mpesa-option');
+            const visaOption = document.getElementById('visa-option');
+            const testOption = document.getElementById('test-option');
+            const mpesaForm = document.getElementById('mpesa-form');
+            const visaForm = document.getElementById('visa-form');
+            const testForm = document.getElementById('test-form');
+
+            function togglePaymentForms() {
+                mpesaForm.style.display = 'none';
+                visaForm.style.display = 'none';
+                testForm.style.display = 'none';
+
+                if (mpesaOption.checked) {
+                    mpesaForm.style.display = 'block';
+                } else if (visaOption.checked) {
+                    visaForm.style.display = 'block';
+                } else if (testOption.checked) {
+                    testForm.style.display = 'block';
+                }
+            }
+
+            mpesaOption.addEventListener('change', togglePaymentForms);
+            visaOption.addEventListener('change', togglePaymentForms);
+            testOption.addEventListener('change', togglePaymentForms);
+
+            // Handle test payment form submission
+            const testPaymentForm = testForm.querySelector('form');
+            testPaymentForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const amount = this.querySelector('input[asp-for="Amount"]').value;
+                document.getElementById('paidAmount').textContent = amount;
+                
+                // Show success modal
+                const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                successModal.show();
+            });
+        });
+    </script>
 }
