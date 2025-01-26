@@ -47,6 +47,20 @@ namespace MindCare.Data
                 .HasForeignKey(pm => pm.MedicationId);
             modelBuilder.Entity<MoodEntry>()
                .HasIndex(m => new { m.UserId, m.EntryDate });
+      modelBuilder.Entity<MoodEntry>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Mood).IsRequired();
+                entity.Property(e => e.Intensity).IsRequired();
+                entity.Property(e => e.UserId).IsRequired();
+                entity.Property(e => e.EntryDate).IsRequired();
+
+                // Configure the relationship with ApplicationUser
+                entity.HasOne(e => e.User)
+                      .WithMany()
+                      .HasForeignKey(e => e.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
         }
         public DbSet<Feedback> Feedback { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
@@ -61,5 +75,7 @@ namespace MindCare.Data
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<Student> Students { get; set; }
+        public DbSet<ConversationLog> ConversationLogs { get; set; }
+
     }
 }

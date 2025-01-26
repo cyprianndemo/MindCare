@@ -8,5 +8,14 @@
         public string? ReceiverId { get; set; }
         public DateTime Timestamp { get; set; }
         public bool IsFromBot { get; set; }
+        public MessageType Type { get; set; }
+    }
+
+    public enum MessageType
+    {
+        Normal,
+        Crisis,
+        Resource,
+        Error
     }
 }

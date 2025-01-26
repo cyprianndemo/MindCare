@@ -28,7 +28,8 @@ namespace MindCare.Models
         public DateTime PrescriptionDate { get; set; }
         public DateTime CreatedAt { get; set; }
         public string Status { get; set; }
-        public virtual Student Student { get; set; }
+        public virtual ApplicationUser Student { get; set; }
+        public virtual ApplicationUser Psychiatrist { get; set; }
         public ICollection<PrescriptionMedication> PrescriptionMedications { get; set; }
         public Prescription()
         {

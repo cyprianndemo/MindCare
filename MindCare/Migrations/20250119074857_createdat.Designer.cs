@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MindCare.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MindCare.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250119074857_createdat")]
+    partial class createdat
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -411,34 +414,6 @@ namespace MindCare.Migrations
                     b.ToTable("Checkouts");
                 });
 
-            modelBuilder.Entity("MindCare.Models.ConversationLog", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("BotResponse")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("Timestamp")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("UserMessage")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ConversationLogs");
-                });
-
             modelBuilder.Entity("MindCare.Models.Feedback", b =>
                 {
                     b.Property<int>("FeedbackId")
@@ -585,9 +560,6 @@ namespace MindCare.Migrations
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
                     b.ToTable("Messages");
@@ -708,10 +680,6 @@ namespace MindCare.Migrations
                     b.Property<DateTime>("TransactionDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("TransactionId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.HasKey("PaymentId");
 
                     b.HasIndex("StudentId");
@@ -777,8 +745,6 @@ namespace MindCare.Migrations
                     b.HasKey("PrescriptionId");
 
                     b.HasIndex("MedicationId");
-
-                    b.HasIndex("PsychiatristId");
 
                     b.HasIndex("StudentId");
 
@@ -1012,21 +978,13 @@ namespace MindCare.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("MindCare.Models.ApplicationUser", "Psychiatrist")
-                        .WithMany()
-                        .HasForeignKey("PsychiatristId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("MindCare.Models.ApplicationUser", "Student")
+                    b.HasOne("MindCare.Models.Student", "Student")
                         .WithMany()
                         .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Medication");
-
-                    b.Navigation("Psychiatrist");
 
                     b.Navigation("Student");
                 });

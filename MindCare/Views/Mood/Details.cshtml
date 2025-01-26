@@ -1,0 +1,31 @@
+﻿@model MindCare.Models.MoodEntry
+
+@{
+    ViewData["Title"] = "Mood Entry Details";
+}
+
+<div class="container">
+    <h2>Mood Entry Details</h2>
+
+    <div class="card">
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">Date</dt>
+                <dd class="col-sm-9">@Model.EntryDate.ToString("MMM dd, yyyy HH:mm")</dd>
+
+                <dt class="col-sm-3">Mood</dt>
+                <dd class="col-sm-9">@Model.Mood</dd>
+
+                <dt class="col-sm-3">Intensity</dt>
+                <dd class="col-sm-9">@Model.Intensity</dd>
+
+                <dt class="col-sm-3">Notes</dt>
+                <dd class="col-sm-9">@Model.Notes</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+    </div>
+</div>

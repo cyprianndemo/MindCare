@@ -23,6 +23,8 @@ builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
 builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
 builder.Services.AddScoped<ChatbotService>();
+//builder.Services.Configure<OpenAISettings>(configuration.GetSection("OpenAI"));
+
 builder.Services.AddScoped<UserActivityService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 /*builder.Services.Configure<NotificationConfiguration>(builder.Configuration.GetSection("NotificationConfiguration"));

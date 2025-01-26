@@ -7,6 +7,8 @@ namespace MindCare.Models
     {
         [Key]
         public int PaymentId { get; set; }
+        public string TransactionId { get; set; }
+
         public decimal Amount { get; set; }
         public DateTime PaymentDate { get; set; }
         public PaymentStatus Status { get; set; }

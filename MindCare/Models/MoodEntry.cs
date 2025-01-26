@@ -16,12 +16,11 @@ namespace MindCare.Models
         public int Intensity { get; set; }
 
         [StringLength(500, ErrorMessage = "Notes cannot exceed 500 characters")]
-        public string Notes { get; set; }
+        public string? Notes { get; set; }
 
         [Required]
         public string UserId { get; set; }
 
-        [ForeignKey("UserId")]
         public virtual ApplicationUser User { get; set; }
 
         public DateTime EntryDate { get; set; }

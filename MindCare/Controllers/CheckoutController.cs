@@ -10,6 +10,8 @@ using System.Net.Http;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using MindCare.Data;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace MindCare.Controllers
 {
@@ -20,14 +22,21 @@ namespace MindCare.Controllers
         private readonly IHttpClientFactory _clientFactory;
         private readonly ILogger<CheckoutController> _logger;
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
 
-        public CheckoutController(IConfiguration configuration, IHttpClientFactory clientFactory, ApplicationDbContext context, ILogger<CheckoutController> logger)
+        public CheckoutController(
+        ApplicationDbContext context,
+        UserManager<ApplicationUser> userManager,
+        ILogger<CheckoutController> logger,
+        IConfiguration configuration,
+        IHttpClientFactory clientFactory)
         {
+            _context = context;
+            _userManager = userManager;
+            _logger = logger;
             _configuration = configuration;
             _clientFactory = clientFactory;
-            _context = context;
-            _logger = logger;
         }
 
         [HttpGet]
@@ -82,37 +91,60 @@ namespace MindCare.Controllers
             return View(amount);
         }
 
-        public IActionResult Receipt(string id)
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> Receipt(string id)
         {
-            // In a real application, you would fetch this from your database
-            // For now, we'll retrieve it from TempData
-            if (TempData["ReceiptData"] is string receiptJson)
+            try
             {
-                var receiptData = System.Text.Json.JsonSerializer.Deserialize<ReceiptViewModel>(receiptJson);
+                // Get the currently logged in user
+                var currentUser = await _userManager.GetUserAsync(User);
+                if (currentUser == null)
+                {
+                    return RedirectToAction("Login", "Account");
+                }
+
+                // Try to get payment details from database
+                var payment = await _context.Payments
+                    .FirstOrDefaultAsync(p => p.TransactionId == id);
+
+                if (payment == null)
+                {
+                    _logger.LogWarning($"Payment with ID {id} not found");
+                    return NotFound("Payment not found");
+                }
+
+                // Create receipt view model
+                var receiptData = new ReceiptViewModel
+                {
+                    ReceiptNumber = payment.MpesaReceiptNumber ?? $"RCP-{payment.TransactionId}",
+                    TransactionId = payment.TransactionId,
+                    PaymentDate = payment.TransactionDate,
+                    Amount = payment.Amount,
+                    PaymentMethod = "M-Pesa",
+                    Status = payment.IsSuccessful ? "Completed" : "Failed",
+                    CustomerDetails = new CustomerDetails
+                    {
+                        Name = $"{currentUser.FirstName} {currentUser.LastName}",
+                        Email = currentUser.Email,
+                        PhoneNumber = payment.PhoneNumber 
+                    }
+                };
+
                 return View(receiptData);
             }
-
-            // If no receipt data is found, create sample data (for demonstration)
-            var sampleReceipt = new ReceiptViewModel
+            catch (Exception ex)
             {
-                ReceiptNumber = "RCP-" + DateTime.Now.ToString("yyyyMMdd-HHmmss"),
-                TransactionId = id ?? "TRANS-12345",
-                PaymentDate = DateTime.Now,
-                Amount = 100.00m,
-                PaymentMethod = "Test Payment",
-                Status = "Completed",
-                CustomerDetails = new CustomerDetails
+                _logger.LogError(ex, "Error generating receipt");
+                return View("Error", new ErrorViewModel
                 {
-                    Name = "Test Customer",
-                    Email = "test@example.com",
-                    PhoneNumber = "254712345678"
-                }
-            };
-
-            return View(sampleReceipt);
+                    Message = "There was an error generating your receipt. Please try again later."
+                });
+            }
         }
+    
 
-        private string GenerateReceiptNumber()
+    private string GenerateReceiptNumber()
         {
             return "RCP-" + DateTime.Now.ToString("yyyyMMdd-HHmmss");
         }

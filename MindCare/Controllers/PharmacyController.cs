@@ -24,12 +24,35 @@ namespace MindCare.Controllers
 
         public async Task<IActionResult> PrescriptionList()
         {
-            var prescriptions = await _context.Prescriptions.ToListAsync();
+            var prescriptions = await _context.Prescriptions
+                .Include(p => p.Medication)
+                .Include(p => p.Student)
+                .Include(p => p.Psychiatrist)
+                .Select(p => new PrescriptionViewModel
+                {
+                    PrescriptionId = p.PrescriptionId,
+                    MedicationId = p.MedicationId,
+                    StudentId = p.StudentId,
+                    PsychiatristId = p.PsychiatristId,
+                    Dosage = p.Dosage,
+                    Frequency = p.Frequency,
+                    Duration = p.Duration,
+                    Instructions = p.Instructions,
+                    PrescriptionDate = p.PrescriptionDate,
+                    Status = p.Status,
+                    Student = p.Student,
+                    Psychiatrist = p.Psychiatrist,
+                    Medication = p.Medication,
+                    MedicationName = p.Medication.Name
+                })
+                .OrderByDescending(p => p.PrescriptionDate)
+                .ToListAsync();
+
             return View(prescriptions);
         }
 
-        // Updated MedicationList action to show all medications
-        public async Task<IActionResult> MedicationList()
+    // Updated MedicationList action to show all medications
+    public async Task<IActionResult> MedicationList()
         {
             try
             {
@@ -137,10 +160,8 @@ namespace MindCare.Controllers
                     return NotFound();
                 }
 
-                // Get the logged-in psychiatrist's ID
                 var psychiatristId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-                // Get list of patients who have appointments with this psychiatrist
                 var patients = await _context.Appointments
                     .Where(a => a.PsychiatristId == psychiatristId)
                     .Join(
@@ -162,7 +183,7 @@ namespace MindCare.Controllers
                     MedicationId = medication.MedicationId,
                     MedicationName = medication.Name,
                     Patients = patients,
-                    PrescriptionDate = DateTime.Today // Set default date to today
+                    PrescriptionDate = DateTime.Today
                 };
 
                 return View(viewModel);
@@ -183,18 +204,16 @@ namespace MindCare.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    // Get the logged-in psychiatrist's ID
-                    var psychiatristId1 = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    var psychiatristId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
                     // Verify that the selected patient is actually a patient of this psychiatrist
                     var isValidPatient = await _context.Appointments
-                        .AnyAsync(a => a.PsychiatristId == psychiatristId1 && a.StudentId == model.StudentId);
+                        .AnyAsync(a => a.PsychiatristId == psychiatristId && a.StudentId == model.StudentId);
 
                     if (!isValidPatient)
                     {
-                        ModelState.AddModelError("PatientId", "Invalid patient selection.");
-                        // Reload the patient list
-                        model.Patients = await GetPsychiatristPatients(psychiatristId1);
+                        ModelState.AddModelError("StudentId", "Invalid patient selection.");
+                        model.Patients = await GetPsychiatristPatients(psychiatristId);
                         return View(model);
                     }
 
@@ -202,7 +221,7 @@ namespace MindCare.Controllers
                     {
                         MedicationId = model.MedicationId,
                         StudentId = model.StudentId,
-                        PsychiatristId = psychiatristId1, // Add the psychiatrist ID
+                        PsychiatristId = psychiatristId,
                         Dosage = model.Dosage,
                         Frequency = model.Frequency,
                         Duration = model.Duration,
@@ -231,8 +250,8 @@ namespace MindCare.Controllers
                 }
 
                 // If we got this far, something failed, redisplay form
-                var psychiatristId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                model.Patients = await GetPsychiatristPatients(psychiatristId);
+                var currentPsychiatristId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                model.Patients = await GetPsychiatristPatients(currentPsychiatristId);
                 return View(model);
             }
             catch (Exception ex)
@@ -241,9 +260,9 @@ namespace MindCare.Controllers
                 return RedirectToAction("MedicationList");
             }
         }
-
-        // Helper method to get psychiatrist's patients
-        private async Task<List<SelectListItem>> GetPsychiatristPatients(string psychiatristId)
+    
+    // Helper method to get psychiatrist's patients
+    private async Task<List<SelectListItem>> GetPsychiatristPatients(string psychiatristId)
         {
             return await _context.Appointments
                 .Where(a => a.PsychiatristId == psychiatristId)

@@ -1,14 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MindCare.Data;
 using MindCare.Models;
-using System;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
 
 namespace MindCare.Controllers
 {
@@ -17,113 +13,133 @@ namespace MindCare.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ILogger<MoodController> _logger;
 
-        public MoodController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public MoodController(
+            ApplicationDbContext context,
+            UserManager<ApplicationUser> userManager,
+            ILogger<MoodController> logger)
         {
             _context = context;
             _userManager = userManager;
+            _logger = logger;
         }
 
+        // GET: MoodEntry
         public async Task<IActionResult> Index()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var userMoods = _context.MoodEntries
+            var moodEntries = await _context.MoodEntries
                 .Where(m => m.UserId == userId)
                 .OrderByDescending(m => m.EntryDate)
-                .ToList();
-            return View(userMoods);
+                .ToListAsync();
+            return View(moodEntries);
         }
 
-        // GET: Mood/AddMood
-        public IActionResult AddMood()
+        // GET: MoodEntry/Create
+        public IActionResult Create()
         {
-            SetViewBagData();
-            return View();
+            return View(new MoodEntry { EntryDate = DateTime.UtcNow });
         }
 
-        // POST: Mood/AddMood
+        // POST: MoodEntry/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddMood(MoodEntry moodEntry)
+        public async Task<IActionResult> Create(MoodEntry moodEntry)
         {
             try
             {
+                // Remove these fields from validation since we'll set them manually
+                ModelState.Remove("UserId");
+                ModelState.Remove("User");
+                ModelState.Remove("EntryDate");
+
                 if (ModelState.IsValid)
                 {
-                    // Get the current user's ID
+                    // Get current user ID
                     var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                     if (string.IsNullOrEmpty(userId))
                     {
-                        ModelState.AddModelError("", "User not found. Please try logging in again.");
-                        SetViewBagData();
-                        return View(moodEntry);
+                        _logger.LogError("User ID is null or empty");
+                        throw new Exception("User not found");
                     }
 
-                    moodEntry.UserId = userId;
-                    moodEntry.EntryDate = DateTime.UtcNow;
+                    // Create a new MoodEntry instance to avoid tracking issues
+                    var newMoodEntry = new MoodEntry
+                    {
+                        Mood = moodEntry.Mood,
+                        Intensity = moodEntry.Intensity,
+                        Notes = moodEntry.Notes,
+                        UserId = userId,
+                        EntryDate = DateTime.UtcNow
+                    };
 
-                    await _context.MoodEntries.AddAsync(moodEntry);
-                    await _context.SaveChangesAsync();
+                    _logger.LogInformation($"Attempting to save mood entry: Mood={newMoodEntry.Mood}, Intensity={newMoodEntry.Intensity}, UserId={newMoodEntry.UserId}");
 
-                    TempData["Success"] = "Mood entry added successfully!";
+                    // Add to context
+                    await _context.MoodEntries.AddAsync(newMoodEntry);
+
+                    // Save changes
+                    var saveResult = await _context.SaveChangesAsync();
+                    _logger.LogInformation($"SaveChanges result: {saveResult}");
+
                     return RedirectToAction(nameof(Index));
                 }
+                else
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                    _logger.LogError($"ModelState errors: {string.Join(", ", errors)}");
+                    return View(moodEntry);
+                }
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError($"Database error: {ex.Message}");
+                _logger.LogError($"Inner exception: {ex.InnerException?.Message}");
+                ModelState.AddModelError("", $"Database error: {ex.InnerException?.Message ?? ex.Message}");
             }
             catch (Exception ex)
             {
-                // Log the exception here
-                ModelState.AddModelError("", "An error occurred while saving the mood entry.");
+                _logger.LogError($"Error saving mood entry: {ex.Message}");
+                _logger.LogError($"Stack trace: {ex.StackTrace}");
+                ModelState.AddModelError("", $"Error: {ex.Message}");
             }
 
-            SetViewBagData();
             return View(moodEntry);
         }
 
-        private void SetViewBagData()
+        // GET: MoodEntry/Details/5
+        public async Task<IActionResult> Details(int? id)
         {
-            ViewBag.PredefinedMoods = new[] { "Happy", "Sad", "Angry", "Excited", "Anxious", "Neutral" };
-            ViewBag.IntensityLevels = Enumerable.Range(1, 10)
-                .Select(i => new
-                {
-                    Value = i,
-                    Description = $"Level {i} - {GetIntensityDescription(i)}"
-                });
-        }
-
-        private string GetIntensityDescription(int level)
-        {
-            return level switch
+            if (id == null)
             {
-                1 => "Very Mild",
-                2 => "Mild",
-                3 => "Somewhat Mild",
-                4 => "Moderate-Low",
-                5 => "Moderate",
-                6 => "Moderate-High",
-                7 => "Somewhat Strong",
-                8 => "Strong",
-                9 => "Very Strong",
-                10 => "Extreme",
-                _ => string.Empty
-            };
-        }
+                return NotFound();
+            }
 
-        // GET: Mood/Analytics
-        public IActionResult Analytics()
-        {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var moodData = _context.MoodEntries
-                .Where(m => m.UserId == userId)
+            var moodEntry = await _context.MoodEntries
+                .FirstOrDefaultAsync(m => m.Id == id && m.UserId == userId);
+
+            if (moodEntry == null)
+            {
+                return NotFound();
+            }
+
+            return View(moodEntry);
+        }
+        public async Task<IActionResult> Analytics()
+        {
+            var moodAnalytics = await _context.MoodEntries
                 .GroupBy(m => m.Mood)
                 .Select(g => new MoodAnalytics
                 {
                     Mood = g.Key,
                     Count = g.Count(),
-                    AverageIntensity = Math.Round(g.Average(m => m.Intensity), 1)
+                    AverageIntensity = g.Average(m => m.Intensity)
                 })
-                .ToList();
+                .ToListAsync();
 
-            return View(moodData);
+            return View(moodAnalytics);
         }
     }
 }

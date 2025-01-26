@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using MindCare.Models;
 using System.ComponentModel.DataAnnotations;
 
 namespace MindCare.ViewModel
@@ -18,7 +19,14 @@ namespace MindCare.ViewModel
         [Required]
         public string Instructions { get; set; }
         public DateTime PrescriptionDate { get; set; }
+        public string Status { get; set; }
+        public int PrescriptionId { get; set; }
+        public Medication Medication { get; set; }
+        public virtual ApplicationUser Student { get; set; }
+
         public List<SelectListItem> Patients { get; set; }
+        public virtual ApplicationUser Psychiatrist { get; set; }
+        public string PsychiatristId { get; set; }
 
         public PrescriptionViewModel()
         {

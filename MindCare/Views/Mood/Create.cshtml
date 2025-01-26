@@ -1,0 +1,59 @@
+﻿@model MindCare.Models.MoodEntry
+
+@{
+    ViewData["Title"] = "Add Mood Entry";
+}
+
+<div class="container">
+    <h2>Add New Mood Entry</h2>
+
+    <form asp-action="Create" method="post">
+        <div asp-validation-summary="All" class="text-danger"></div>
+
+        <div class="form-group mb-3">
+            <label asp-for="Mood" class="control-label">How are you feeling?</label>
+            <select asp-for="Mood" class="form-control">
+                <option value="">Select a mood...</option>
+                <option value="Happy">Happy</option>
+                <option value="Excited">Excited</option>
+                <option value="Calm">Calm</option>
+                <option value="Neutral">Neutral</option>
+                <option value="Sad">Sad</option>
+                <option value="Anxious">Anxious</option>
+                <option value="Angry">Angry</option>
+                <option value="Stressed">Stressed</option>
+            </select>
+            <span asp-validation-for="Mood" class="text-danger"></span>
+        </div>
+
+        <div class="form-group mb-3">
+            <label asp-for="Intensity" class="control-label">How intense is this feeling? (1-10)</label>
+            <input asp-for="Intensity" type="number" class="form-control" min="1" max="10" required />
+            <span asp-validation-for="Intensity" class="text-danger"></span>
+        </div>
+
+        <div class="form-group mb-3">
+            <label asp-for="Notes" class="control-label">Additional Notes</label>
+            <textarea asp-for="Notes" class="form-control" rows="4" maxlength="500"></textarea>
+            <span asp-validation-for="Notes" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <input type="submit" value="Save Entry" class="btn btn-primary" />
+            <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function () {
+            $('form').submit(function () {
+                if ($(this).valid()) {
+                    $(this).find(':submit').prop('disabled', true);
+                }
+            });
+        });
+    </script>
+}
