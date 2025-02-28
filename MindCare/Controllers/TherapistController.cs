@@ -455,6 +455,48 @@ namespace MindCare.Controllers
                 return View(model);
             }
         }
+        [Authorize(Roles = "Therapist")]
+        public async Task<IActionResult> ApprovedAppointments()
+        {
+            try
+            {
+                // Get the logged-in Therapist's ID
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var Therapist = await _userManager.FindByIdAsync(userId);
+
+                if (Therapist == null)
+                {
+                    TempData["Error"] = "Therapist not found.";
+                    return RedirectToAction("Dashboard");
+                }
+
+                // Fetch pending appointments with related data
+                var appointments = await _context.Appointments
+                    .Include(a => a.Student)
+                    .Include(a => a.Therapist)
+                    .Where(a => a.TherapistId == Therapist.Id && a.Status == "Approved")
+                    .Select(a => new Appointment
+                    {
+                        AppointmentId = a.AppointmentId,
+                        Date = a.Date,
+                        Time = a.Time,
+                        StartTime = a.StartTime,
+                        EndTime = a.EndTime,
+                        Status = a.Status,
+                        TherapistId = a.TherapistId,
+                        StudentId = a.StudentId
+                    })
+                    .OrderByDescending(a => a.StartTime)
+                    .ToListAsync();
+
+                return View(appointments);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "An error occurred while fetching appointments.";
+                return RedirectToAction("Dashboard");
+            }
+        }
 
     }
 }

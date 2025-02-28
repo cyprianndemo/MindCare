@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿// Models/Feedback.cs
+using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
 namespace MindCare.Models
@@ -12,11 +13,21 @@ namespace MindCare.Models
         public string? Content { get; set; }
 
         [Range(1, 5)]
-        public int Rating { get; set; } // Rating out of 5
+        public int Rating { get; set; }
 
-        // Foreign Key
-        [ForeignKey("User")]
-        public string? UserId { get; set; }
-        public ApplicationUser? User { get; set; }
+        [ForeignKey("Student")]
+        public string? StudentId { get; set; }
+        public ApplicationUser? Student { get; set; }
+
+        [ForeignKey("Therapist")]
+        public string? TherapistId { get; set; }
+        public ApplicationUser? Therapist { get; set; }
+
+        [Required]
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        // Navigation property to link with appointment
+        public int? AppointmentId { get; set; }
+        public Appointment? Appointment { get; set; }
     }
 }

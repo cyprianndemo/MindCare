@@ -1,0 +1,159 @@
+﻿@model MindCare.ViewModel.DiscussionDetailsViewModel
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-action="SupportGroups">Support Groups</a></li>
+                    <li class="breadcrumb-item"><a asp-action="GroupDetails" asp-route-groupId="@Model.GroupId">@Model.GroupName</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Discussion</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Original Discussion -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h1 class="fs-4 mb-0">@Model.Title</h1>
+                        <small class="text-muted">@Model.CreatedAt.ToString("MMM dd, yyyy h:mm tt")</small>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex mb-3">
+                        <div class="mood-icon me-2 fs-3">@Model.UserMoodIcon</div>
+                        <div>
+                            <h6 class="mb-0">@Model.UserName</h6>
+                            <small class="text-muted">Original Post</small>
+                        </div>
+                    </div>
+                    <div class="discussion-content">
+                        @Html.Raw(Model.Content.Replace("\n", "<br />"))
+                    </div>
+                </div>
+            </div>
+
+            <!-- Responses section -->
+            <h3 class="mb-3">Responses (@Model.Responses.Count)</h3>
+
+            @if (!Model.Responses.Any())
+            {
+                <div class="alert alert-info">
+                    No responses yet. Be the first to respond!
+                </div>
+            }
+            else
+            {
+                foreach (var response in Model.Responses)
+                {
+                    <div class="card mb-3 @(response.IsAuthor ? "border-primary" : "")">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="d-flex">
+                                    <div class="mood-icon me-2 fs-4">@response.UserMoodIcon</div>
+                                    <div>
+                                        <h6 class="mb-0">@response.UserName</h6>
+                                        <small class="text-muted">@response.CreatedAt.ToString("MMM dd, yyyy h:mm tt")</small>
+                                    </div>
+                                </div>
+                                @if (response.IsAuthor)
+                                {
+                                    <span class="badge bg-primary">Your Response</span>
+                                }
+                            </div>
+                            <div class="response-content">
+                                @Html.Raw(response.Content.Replace("\n", "<br />"))
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+
+            <!-- Add Response Form -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-light">
+                    <h4 class="mb-0">Add Your Response</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="AddResponse" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <input type="hidden" asp-for="NewResponse.DiscussionId" />
+
+                        <div class="mb-3">
+                            <label asp-for="NewResponse.Content" class="form-label">Your Response</label>
+                            <textarea asp-for="NewResponse.Content" class="form-control" rows="5" placeholder="Share your thoughts, support, or experiences..."></textarea>
+                            <span asp-validation-for="NewResponse.Content" class="text-danger"></span>
+                            <div class="form-text">
+                                <i class="bi bi-info-circle"></i> Please be supportive and respectful in your response.
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Post Response</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">About This Discussion</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Group:</strong> <a asp-action="GroupDetails" asp-route-groupId="@Model.GroupId">@Model.GroupName</a></p>
+                    <p><strong>Started by:</strong> @Model.UserName</p>
+                    <p><strong>Date:</strong> @Model.CreatedAt.ToString("MMMM dd, yyyy")</p>
+                    <p><strong>Responses:</strong> @Model.Responses.Count</p>
+                    <p><strong>Last Activity:</strong> @(Model.Responses.Any() ? Model.Responses.Max(r => r.CreatedAt).ToString("MMMM dd, yyyy") : Model.CreatedAt.ToString("MMMM dd, yyyy"))</p>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Community Guidelines</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="small">
+                        <li>Be respectful and supportive</li>
+                        <li>Focus on sharing experiences rather than giving advice</li>
+                        <li>Avoid judgmental language</li>
+                        <li>Respect confidentiality</li>
+                        <li>If you're concerned about someone's wellbeing, encourage them to seek professional help</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Add any JavaScript for this page here
+    </script>
+}

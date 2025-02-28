@@ -1,126 +1,337 @@
 ﻿@{
     ViewData["Title"] = "Welcome to MindCare System";
+    Layout = "_Layout";
 }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewData["Title"]</title>
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f5f8fa; /* Soft background color */
-            color: #333; /* Gentle, readable text color */
-            font-family: Arial, sans-serif;
-        }
-        .hero-section {
-            background-color: #004085;
-            color: #fff;
-            padding: 60px 20px;
-            text-align: center;
-            border-radius: 8px;
-        }
-        .nav-link, .section-title {
-            color: #004085;
-        }
-        .card {
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            transition: 0.3s;
-            border: none;
-            border-radius: 10px;
-        }
-        .card:hover {
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-        }
-        .btn-primary {
-            background-color: #004085;
-            border-color: #004085;
-        }
-        .btn-primary:hover {
-            background-color: #002752;
-            border-color: #002752;
-        }
-        .section-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-top: 20px;
-        }
-        .text-muted {
-            font-size: 0.9rem;
-        }
-    </style>
-</head>
-<body>
+<style>
+    /* Hero Section */
+    .hero-section {
+        background: linear-gradient(rgba(0, 64, 133, 0.8), rgba(0, 64, 133, 0.9)), url("/images/hero-bg.jpg") center/cover;
+        min-height: 50vh;
+        color: white;
+        padding: 100px 0;
+        position: relative;
+    }
 
-    <div class="container my-5">
-        <!-- Hero Section -->
-        <div class="hero-section rounded">
-            <h1>Welcome to MindCare</h1>
-            <p>Your safe space for mental wellness and support. Here, you can connect with professionals, access helpful resources, and take positive steps towards well-being.</p>
-            <a href="@Url.Action("AboutUs", "Home")" class="btn btn-primary mt-3">Learn More About Us</a>
+    /* Logo Styling */
+    .logo-container {
+        width: 100px;
+        height: 10px;
+        margin-bottom: 2rem;
+    }
+
+    /* Section Styling */
+    .section-padding {
+        padding: 80px 0;
+    }
+
+    .service-card {
+        border: none;
+        border-radius: 15px;
+        transition: transform 0.3s ease;
+        height: 100%;
+    }
+
+        .service-card:hover {
+            transform: translateY(-10px);
+        }
+
+    .service-icon {
+        font-size: 2.5rem;
+        color: #004085;
+        margin-bottom: 1rem;
+    }
+
+    /* Testimonial Section */
+    .testimonial-card {
+        background: #fff;
+        border-radius: 15px;
+        padding: 2rem;
+        margin: 1rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .video-container {
+        position: relative;
+        padding-bottom: 56.25%;
+        height: 0;
+        overflow: hidden;
+        border-radius: 10px;
+    }
+
+    /* Health Resources */
+    .resource-card {
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .resource-img {
+        height: 200px;
+        object-fit: cover;
+    }
+
+    /* Contact Section */
+    .contact-info {
+        background: #f8f9fa;
+        padding: 2rem;
+        border-radius: 15px;
+    }
+
+    /* Call to Action */
+    .cta-section {
+        background: linear-gradient(rgba(0, 64, 133, 0.9), rgba(0, 64, 133, 0.9)), url("/images/cta-bg.jpg") center/cover;
+        color: white;
+        padding: 60px 0;
+    }
+
+    /* Statistics */
+    .stat-card {
+        text-align: center;
+        padding: 2rem;
+        background: #fff;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #004085;
+    }
+</style>
+
+<!-- Hero Section -->
+<section class="hero-section d-flex align-items-center text-center">
+    <div class="container">
+        <div class="logo-container mx-auto">
+            <img src="/images/mindcare-logo.png" alt="MindCare Logo" class="img-fluid">
         </div>
-
-        <!-- Navigation Cards -->
-        <div class="row my-5">
-            <!-- Therapy Sessions -->
-            <div class="col-md-4">
-                <div class="card p-4">
-                    <h2 class="section-title">Therapy Sessions</h2>
-                    <p>Book appointments with our experienced therapists to get support and talk through anything on your mind.</p>
-                    <a href="@Url.Action("TherapySessions", "Therapy")" class="btn btn-primary">Book Now</a>
-                </div>
-            </div>
-            
-            <!-- Resources -->
-            <div class="col-md-4">
-                <div class="card p-4">
-                    <h2 class="section-title">Mental Health Resources</h2>
-                    <p>Explore articles, videos, and exercises to learn about mental health, self-care practices, and mindfulness.</p>
-                    <a href="@Url.Action("Index", "Resources")" class="btn btn-primary">Explore Resources</a>
-                </div>
-            </div>
-            
-            <!-- Pharmacy -->
-            <div class="col-md-4">
-                <div class="card p-4">
-                    <h2 class="section-title">Pharmacy</h2>
-                    <p>View prescribed medication from your psychiatrist and add items to your cart for easy checkout.</p>
-                    <a href="@Url.Action("PrescriptionList", "Pharmacy")" class="btn btn-primary">Visit Pharmacy</a>
-                </div>
-            </div>
+        <h1 class="display-4 mb-4">Your Journey to Mental Wellness Begins Here</h1>
+        <p class="lead mb-4">Professional support, resources, and a community that understands your mental health needs</p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="@Url.Action("BookAppointment", "Therapy")" class="btn btn-primary btn-lg">Book a Session</a>
+            <a href="#learn-more" class="btn btn-outline-light btn-lg">Learn More</a>
         </div>
-
-        <!-- Additional Support Section -->
-        <div class="row">
-            <!-- Chat with Us -->
-            <div class="col-md-6">
-                <div class="card p-4">
-                    <h2 class="section-title">Chat with Us</h2>
-                    <p>Need someone to talk to? Our chatbot and live support are here to listen and help you find solutions.</p>
-                    <a href="@Url.Action("Index", "Chat")" class="btn btn-primary">Start Chat</a>
-                </div>
-            </div>
-            
-            <!-- Feedback and Satisfaction -->
-            <div class="col-md-6">
-                <div class="card p-4">
-                    <h2 class="section-title">Feedback</h2>
-                    <p>We value your thoughts. Help us improve by sharing your experiences and feedback on our services.</p>
-                    <a href="@Url.Action("Create", "Feedback")" class="btn btn-primary">Give Feedback</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Footer Section -->
-        <footer class="mt-5 text-center">
-            <p class="text-muted">MindCare System | Supporting mental health, one step at a time. ©2024</p>
-        </footer>
     </div>
+</section>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@@popperjs/core@2.0.7/dist/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-</body>
-</html>
+<!-- Why Choose Us Section -->
+<section id="learn-more" class="section-padding">
+    <div class="container">
+        <h2 class="text-center mb-5">Why Choose MindCare?</h2>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="stat-card">
+                    <div class="stat-number">95%</div>
+                    <p>Student Satisfaction Rate</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="stat-card">
+                    <div class="stat-number">24/7</div>
+                    <p>Support Available</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="stat-card">
+                    <div class="stat-number">1000+</div>
+                    <p>Students Helped</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Services Section -->
+<section class="section-padding bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">Our Services</h2>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="service-card card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-user-md service-icon"></i>
+                        <h3>Individual Therapy</h3>
+                        <p>One-on-one sessions with licensed therapists who understand student life.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="service-card card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-users service-icon"></i>
+                        <h3>Group Support</h3>
+                        <p>Connect with peers facing similar challenges in a safe, moderated environment.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="service-card card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-pills service-icon"></i>
+                        <h3>Medication Management</h3>
+                        <p>Professional psychiatric services and medication oversight when needed.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Mental Health Resources -->
+<section class="section-padding">
+    <div class="container">
+        <h2 class="text-center mb-5">Mental Health Resources</h2>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="resource-card card">
+                    <img src="/images/anxiety.jpg" class="resource-img" alt="Anxiety Support">
+                    <div class="card-body">
+                        <h3>Anxiety Management</h3>
+                        <p>Learn effective techniques to manage anxiety and stress during academic life.</p>
+                        <a href="#" class="btn btn-primary">Learn More</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="resource-card card">
+                    <img src="/images/depression.jpg" class="resource-img" alt="Depression Support">
+                    <div class="card-body">
+                        <h3>Depression Support</h3>
+                        <p>Understanding depression and finding ways to cope with its challenges.</p>
+                        <a href="#" class="btn btn-primary">Learn More</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="resource-card card">
+                    <img src="/images/stress.jpg" class="resource-img" alt="Stress Management">
+                    <div class="card-body">
+                        <h3>Stress Management</h3>
+                        <p>Practical tools and techniques for managing academic and personal stress.</p>
+                        <a href="#" class="btn btn-primary">Learn More</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="section-padding bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">Student Success Stories</h2>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="testimonial-card">
+                    <div class="video-container mb-3">
+                        <img src="/images/testimonial1.jpg" alt="Student Testimonial" class="img-fluid">
+                        <!-- Video embed would go here -->
+                    </div>
+                    <h4>Sarah's Journey</h4>
+                    <p>"MindCare helped me manage my anxiety and improve my academic performance."</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="testimonial-card">
+                    <div class="video-container mb-3">
+                        <img src="/images/testimonial2.jpg" alt="Student Testimonial" class="img-fluid">
+                        <!-- Video embed would go here -->
+                    </div>
+                    <h4>Michael's Story</h4>
+                    <p>"The support I received helped me overcome depression and return to my studies."</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="testimonial-card">
+                    <div class="video-container mb-3">
+                        <img src="/images/testimonial3.jpg" alt="Student Testimonial" class="img-fluid">
+                        <!-- Video embed would go here -->
+                    </div>
+                    <h4>Emma's Experience</h4>
+                    <p>"Group therapy sessions helped me realize I wasn't alone in my struggles."</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Why Seek Help Section -->
+<section class="section-padding">
+    <div class="container">
+        <h2 class="text-center mb-5">Why Seek Help?</h2>
+        <div class="row align-items-center">
+            <div class="col-md-6 mb-4">
+                <img src="/images/seeking-help.jpg" alt="Seeking Help" class="img-fluid rounded">
+            </div>
+            <div class="col-md-6">
+                <h3>It's Okay to Ask for Support</h3>
+                <ul class="list-unstyled">
+                    <li class="mb-3"><i class="fas fa-check text-primary mr-2"></i> Improve academic performance</li>
+                    <li class="mb-3"><i class="fas fa-check text-primary mr-2"></i> Build better relationships</li>
+                    <li class="mb-3"><i class="fas fa-check text-primary mr-2"></i> Develop coping strategies</li>
+                    <li class="mb-3"><i class="fas fa-check text-primary mr-2"></i> Enhance self-awareness</li>
+                    <li class="mb-3"><i class="fas fa-check text-primary mr-2"></i> Create work-life balance</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Section -->
+<section class="section-padding bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">Contact Us</h2>
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="contact-info">
+                    <h3>Get in Touch</h3>
+                    <p><i class="fas fa-phone mr-2"></i> Emergency: 1-800-MINDCARE</p>
+                    <p><i class="fas fa-envelope mr-2"></i> support@mindcare.com</p>
+                    <p><i class="fas fa-map-marker-alt mr-2"></i> Student Center, Building 4</p>
+                    <p><i class="fas fa-clock mr-2"></i> Available 24/7</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <form>
+                    <div class="mb-3">
+                        <input type="text" class="form-control" placeholder="Your Name">
+                    </div>
+                    <div class="mb-3">
+                        <input type="email" class="form-control" placeholder="Your Email">
+                    </div>
+                    <div class="mb-3">
+                        <textarea class="form-control" rows="5" placeholder="Your Message"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Send Message</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="cta-section">
+    <div class="container text-center">
+        <h2 class="mb-4">Ready to Take the First Step?</h2>
+        <p class="lead mb-4">Your mental health matters. Let us help you on your journey to wellness.</p>
+        <a href="@Url.Action("BookAppointment", "Therapy")" class="btn btn-light btn-lg">Book Your First Session</a>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        // Animation for statistics
+        document.addEventListener('DOMContentLoaded', function () {
+            // Add scroll animations
+            AOS.init();
+
+            // Initialize testimonial carousel
+            $('.testimonial-carousel').carousel({
+                interval: 5000
+            });
+        });
+    </script>
+}

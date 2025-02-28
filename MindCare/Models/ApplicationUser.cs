@@ -31,8 +31,10 @@ namespace MindCare.Models
 
         [Display(Name = "Verification Code")]
         public string? VerificationCode { get; set; }
-      
-    
+        public string? CurrentMood { get; set; }
+        public string? CurrentMoodIcon { get; set; }
+        public DateTime? LastLoginDate { get; set; }
+
     }
 
 

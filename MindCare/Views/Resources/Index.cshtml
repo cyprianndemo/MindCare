@@ -1,209 +1,399 @@
 ﻿@model ResourceViewModel
+@{
+    ViewData["Title"] = "Mental Health Resources";
+}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mental Health Support Resources</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
-    <style>
-        .scenario-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            cursor: pointer;
-            height: 100%;
-        }
-
-        .scenario-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
-        .resource-card {
-            transition: all 0.3s ease;
-            height: 100%;
-        }
-
-        .resource-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
-        .urgency-immediate {
-            border-left: 4px solid #dc3545;
-        }
-
-        .urgency-soon {
-            border-left: 4px solid #ffc107;
-        }
-
-        .urgency-general {
-            border-left: 4px solid #28a745;
-        }
-
-        .filter-section {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-
-        .emergency-banner {
-            background: #dc3545;
-            color: white;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-
-        .tag {
-            display: inline-block;
-            padding: 2px 8px;
-            margin: 2px;
-            border-radius: 12px;
-            background: #e9ecef;
-            font-size: 0.8em;
-        }
-    </style>
-</head>
-<body>
-    <div class="container my-5">
-        <!-- Emergency Banner -->
-        <div class="emergency-banner animate__animated animate__fadeIn">
-            <h4>Need immediate help?</h4>
-            <p class="mb-0">Call 988 - National Suicide Prevention Lifeline | Available 24/7</p>
-        </div>
-
-        <h1 class="text-center text-primary animate__animated animate__fadeInDown">Mental Health Support</h1>
-        <p class="text-center text-muted mb-5 animate__animated animate__fadeInUp">Select your current situation to find relevant resources</p>
-
-        <!-- Scenarios Section -->
-        <div class="row mb-5">
-            @foreach (var scenario in Model.Scenarios)
-            {
-                <div class="col-md-4 mb-4">
-                    <div class="card scenario-card animate__animated animate__fadeIn" 
-                         onclick="location.href='@Url.Action("Index", new { scenario = scenario })'">
-                        <div class="card-body">
-                            <h5 class="card-title">@scenario</h5>
-                            <p class="card-text">@Model.ScenarioDescriptions[scenario]</p>
-                        </div>
-                    </div>
+<div class="container-fluid py-5">
+    <!-- Hero Section with Search -->
+    <div class="row mb-5 animate__animated animate__fadeIn">
+        <div class="col-md-12 text-center">
+            <h1 class="display-4 mb-4">Your Mental Health Matters</h1>
+            <p class="lead">Find the support and resources you need on your wellness journey.</p>
+            <div class="search-container mt-4">
+                <div class="input-group w-75 mx-auto">
+                    <input type="text" id="searchInput" class="form-control form-control-lg" 
+                           placeholder="Search resources..." value="@Model.SearchTerm">
+                    <button class="btn btn-primary" type="button" onclick="performSearch()">
+                        <i class="bi bi-search"></i> Search
+                    </button>
                 </div>
-            }
-        </div>
-
-        <!-- Filter Section -->
-        <div class="filter-section animate__animated animate__fadeIn">
-            <form method="get" class="row">
-                <div class="col-md-3">
-                    <label>Scenario</label>
-                    <select name="scenario" class="form-control" onchange="this.form.submit()">
-                        <option value="">All Scenarios</option>
-                        @foreach (var scenario in Model.Scenarios)
-                        {
-                            <option value="@scenario" selected="@(scenario == Model.SelectedScenario)">@scenario</option>
-                        }
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label>Category</label>
-                    <select name="category" class="form-control" onchange="this.form.submit()">
-                        <option value="">All Categories</option>
-                        @foreach (var category in Model.Categories)
-                        {
-                            <option value="@category" selected="@(category == Model.SelectedCategory)">@category</option>
-                        }
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label>Resource Type</label>
-                    <select name="resourceType" class="form-control" onchange="this.form.submit()">
-                        <option value="">All Types</option>
-                        @foreach (var type in Model.ResourceTypes)
-                        {
-                            <option value="@type" selected="@(type == Model.SelectedType)">@type</option>
-                        }
-                    </select>
-                </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary btn-block">Apply Filters</button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Resources Grid -->
-        <div class="row">
-            @if (!Model.Resources.Any())
-            {
-                <div class="col-12 text-center">
-                    <h3>No resources found</h3>
-                    <p>Try adjusting your filters or selecting a different scenario.</p>
-                </div>
-            }
-            else
-            {
-                foreach (var resource in Model.Resources)
-                {
-                    <div class="col-md-4 mb-4">
-                        <div class="card resource-card @($"urgency-{resource.Urgency?.ToLower()}")">
-                            <div class="card-body">
-                                <h5 class="card-title">@resource.Title</h5>
-                                <div class="mb-2">
-                                    <span class="tag">@resource.Category</span>
-                                    <span class="tag">@resource.ResourceType</span>
-                                    <span class="tag">@resource.Scenario</span>
-                                </div>
-                                <p class="card-text">@resource.Description</p>
-                                <div class="mt-3">
-                                    @if (!string.IsNullOrEmpty(resource.Url))
-                                    {
-                                        <a href="@resource.Url" class="btn btn-outline-primary mr-2" target="_blank">
-                                            <i class="fas fa-external-link-alt"></i> View Online
-                                        </a>
-                                    }
-                                    @if (resource.IsDownloadable)
-                                    {
-                                        <a href="@Url.Action("Download", new { id = resource.Id })" class="btn btn-success">
-                                            <i class="fas fa-download"></i> Download Resource
-                                        </a>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                }
-            }
+            </div>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Animate elements on scroll
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('animate__animated', 'animate__fadeIn');
-                    }
-                });
-            }, { threshold: 0.1 });
+    <!-- Emergency Banner -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-danger animate__animated animate__pulse animate__infinite">
+                <h4 class="alert-heading">Need immediate help?</h4>
+                <p>If you're in crisis or having thoughts of suicide, help is available 24/7.</p>
+                <hr>
+                <a href="@Url.Action("Crisis", "Resources")" class="btn btn-danger">Get Emergency Help</a>
+                <span class="ms-3">Or call: <strong>988</strong> (Suicide & Crisis Lifeline)</span>
+            </div>
+        </div>
+    </div>
 
-            document.querySelectorAll('.resource-card').forEach(card => {
-                observer.observe(card);
+    <!-- Recommended Resources -->
+    @if (Model.RecommendedResources?.Any() == true)
+    {
+        <div class="row mb-5">
+            <div class="col-12">
+                <h3 class="mb-4">Recommended Resources</h3>
+                <div class="row">
+                    @foreach (var resource in Model.RecommendedResources)
+                    {
+                        <div class="col-md-4 mb-4 animate__animated animate__fadeIn">
+                            <div class="card h-100 recommended-card">
+                                <div class="card-body">
+                                    <span class="badge bg-primary mb-2">Recommended</span>
+                                    <h5 class="card-title">@resource.Title</h5>
+                                    <p class="card-text">@resource.Description</p>
+                                    <a href="@Url.Action("Read", new { id = resource.Id })" 
+                                       class="btn btn-outline-primary">Read Now</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Filter Section -->
+    <div class="row mb-5 animate__animated animate__fadeInUp">
+        <div class="col-md-4">
+            <label class="form-label">Category</label>
+            <select id="categoryFilter" class="form-select" asp-for="SelectedCategory"
+                    asp-items="@(new SelectList(Model.Categories))">
+                <option value="">All Categories</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Resource Type</label>
+            <select id="typeFilter" class="form-select" asp-for="SelectedType"
+                    asp-items="@(new SelectList(Model.ResourceTypes))">
+                <option value="">All Resource Types</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Scenario</label>
+            <select id="scenarioFilter" class="form-select" asp-for="SelectedScenario"
+                    asp-items="@(new SelectList(Model.Scenarios))">
+                <option value="">All Scenarios</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Category Explorer -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h3 class="mb-4">Explore by Category</h3>
+        </div>
+        @foreach (var category in ResourceConstants.Categories)
+        {
+            <div class="col-md-4 mb-4 animate__animated animate__fadeInUp">
+                <div class="card h-100 hover-effect category-card">
+                    <div class="card-body">
+                        <h5 class="card-title">@category.Key</h5>
+                        <ul class="list-unstyled">
+                            @foreach (var subCategory in category.Value)
+                            {
+                                <li>
+                                    <i class="bi bi-chevron-right"></i>
+                                    <a href="javascript:void(0)" 
+                                       onclick="loadResources('@category.Key', '@subCategory')" 
+                                       class="text-decoration-none">
+                                        @subCategory
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                        <button class="btn btn-primary mt-3" onclick="loadResources('@category.Key')">
+                            View All @category.Key Resources
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Resources Section -->
+    <div id="resourcesContainer" class="row">
+        @foreach (var resource in Model.Resources)
+        {
+            <div class="col-md-6 mb-4 animate__animated animate__fadeIn">
+                <div class="card h-100 resource-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5 class="card-title mb-0">@resource.Title</h5>
+                            <span class="badge bg-secondary">@resource.Category</span>
+                        </div>
+                        <h6 class="card-subtitle mb-2 text-muted">@resource.ResourceType</h6>
+                        <p class="card-text">@resource.Description</p>
+                        <div class="tags mb-3">
+                            @foreach (var tag in resource.Tags)
+                            {
+                                <span class="badge bg-light text-dark me-1">@tag</span>
+                            }
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="@Url.Action("Read", new { id = resource.Id })" 
+                               class="btn btn-primary">
+                                Read Now
+                            </a>
+                            @if (resource.IsDownloadable)
+                            {
+                                <a href="@resource.FileUrl" class="btn btn-outline-success">
+                                    <i class="bi bi-download"></i> Download
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <style>
+        .hover-effect {
+            transition: transform 0.3s ease;
+        }
+        .hover-effect:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .card {
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .recommended-card {
+            border-left: 4px solid #007bff;
+        }
+        .category-card {
+            background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+        }
+        .resource-card:hover {
+            transform: translateY(-3px);
+            transition: transform 0.3s ease;
+        }
+        select.form-select {
+            border-radius: 10px;
+            padding: 10px;
+        }
+        .btn {
+            border-radius: 25px;
+            padding: 8px 20px;
+        }
+        .search-container {
+            position: relative;
+        }
+        #searchResults {
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 75%;
+            z-index: 1000;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .tags .badge {
+            padding: 5px 10px;
+            margin-right: 5px;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#categoryFilter, #typeFilter, #scenarioFilter').change(function() {
+                submitFilters();
             });
 
-            // Handle scenario card clicks
-            document.querySelectorAll('.scenario-card').forEach(card => {
-                card.addEventListener('click', function () {
-                    this.classList.add('animate__animated', 'animate__pulse');
-                });
+            // Setup search with debounce
+            let searchTimeout;
+            $('#searchInput').on('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(performSearch, 500);
             });
         });
+
+        function performSearch() {
+            var searchTerm = $('#searchInput').val();
+            submitFilters(searchTerm);
+        }
+
+        function submitFilters(searchTerm) {
+            var category = $('#categoryFilter').val();
+            var type = $('#typeFilter').val();
+            var scenario = $('#scenarioFilter').val();
+
+            window.location.href = '@Url.Action("Index")' + 
+                '?category=' + encodeURIComponent(category) +
+                '&type=' + encodeURIComponent(type) +
+                '&scenario=' + encodeURIComponent(scenario) +
+                '&searchTerm=' + encodeURIComponent(searchTerm || '');
+        }
+
+        function loadResources(category, subCategory) {
+            $.get('@Url.Action("GetResourcesByCategory")', { 
+                category: category,
+                subCategory: subCategory 
+            }, function(data) {
+                $('#resourcesContainer').empty();
+                data.forEach(function(resource) {
+                    var card = createResourceCard(resource);
+                    $('#resourcesContainer').append(card);
+                });
+                animateCards();
+            });
+        }
+
+        function createResourceCard(resource) {
+            let tagsHtml = resource.tags ? resource.tags.map(tag => 
+                `<span class="badge bg-light text-dark me-1">${tag}</span>`
+            ).join('') : '';
+
+            return `
+                <div class="col-md-6 mb-4 animate__animated animate__fadeIn">
+                    <div class="card h-100 resource-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h5 class="card-title mb-0">${resource.title}</h5>
+                                <span class="badge bg-secondary">${resource.category}</span>
+                            </div>
+        <h6 class="card-subtitle mb-2 text-muted">${resource.resourceType}</h6>
+                                    <p class="card-text">${resource.description}</p>
+                                    <div class="tags mb-3">
+                                        ${tagsHtml}
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <a href="/Resources/Read/${resource.id}"
+                                           class="btn btn-primary">
+                                            Read Now
+                                        </a>
+                                        ${resource.isDownloadable ?
+                    `<a href="${resource.fileUrl}" class="btn btn-outline-success">
+                                                <i class="bi bi-download"></i> Download
+                                            </a>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+        }
+
+        function animateCards() {
+            $('.animate__animated').each(function (index) {
+                $(this).css('animation-delay', (index * 0.1) + 's');
+            });
+        }
+        // Add to your existing script section
+        function favoriteResource(id) {
+            // Send request to save this resource as favorite for the current user
+            $.post('/Resources/ToggleFavorite', { id: id }, function (response) {
+                if (response.success) {
+                    showToast(response.message);
+                }
+            });
+        }
+
+        // Add a progress tracker for exercises and reading
+        function updateProgress(resourceId, progress) {
+            $.post('/Resources/UpdateProgress', {
+                resourceId: resourceId,
+                progress: progress
+            }, function (response) {
+                if (response.success) {
+                    showToast(`Progress saved: ${progress}%`);
+                }
+            });
+        }
+
+        // Add a simple toast notification system
+        function showToast(message) {
+            const toast = `
+                <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+                    <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="toast-header">
+                            <strong class="me-auto">MindCare</strong>
+                            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                        <div class="toast-body">
+                            ${message}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            $('body').append(toast);
+            $('.toast').toast('show');
+        }
+
+        // Live search functionality
+        let searchTimeout;
+        function performLiveSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function () {
+                const searchTerm = $('#searchInput').val();
+                if (searchTerm.length < 2) {
+                    $('#searchResults').remove();
+                    return;
+                }
+
+                $.post('@Url.Action("Search")', { term: searchTerm }, function (results) {
+                    displaySearchResults(results);
+                });
+            }, 300);
+        }
+
+        function displaySearchResults(results) {
+            $('#searchResults').remove();
+            if (!results.length) return;
+
+            const resultsHtml = `
+                        <div id="searchResults" class="p-3">
+                            ${results.map(r => `
+                                <div class="search-result-item p-2 hover-effect">
+                                    <a href="/Resources/Read/${r.id}" class="text-decoration-none">
+                                        <h6 class="mb-1">${r.title}</h6>
+                                        <small class="text-muted">${r.category} - ${r.resourceType}</small>
+                                    </a>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+
+            $('.search-container').append(resultsHtml);
+        }
+
+        // Close search results when clicking outside
+        $(document).on('click', function (e) {
+            if (!$(e.target).closest('.search-container').length) {
+                $('#searchResults').remove();
+            }
+        });
+
+        // Handle category card hover effects
+        $('.category-card').hover(
+            function () {
+                $(this).find('.btn').addClass('btn-outline-primary').removeClass('btn-primary');
+            },
+            function () {
+                $(this).find('.btn').addClass('btn-primary').removeClass('btn-outline-primary');
+            }
+        );
+
+        // Initialize tooltips
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip();
+        });
     </script>
-</body>
-</html>
+}

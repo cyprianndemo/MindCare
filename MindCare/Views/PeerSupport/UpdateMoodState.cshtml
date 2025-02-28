@@ -1,0 +1,107 @@
+﻿@model MindCare.ViewModel.UpdateMoodViewModel
+@{
+    ViewData["Title"] = "Update Your Mood";
+}
+
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-4">Update Your Mood</h1>
+            <p class="lead">Let others know how you're feeling today.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">How are you feeling today?</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="UpdateMoodState" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="mb-4">
+                            <label asp-for="MoodRating" class="form-label">Rate your mood (1-10)</label>
+                            <input type="range" class="form-range" min="1" max="10" step="1" asp-for="MoodRating" id="moodSlider">
+                            <div class="d-flex justify-content-between">
+                                <span>1 (Low)</span>
+                                <span id="moodValue">@Model.MoodRating</span>
+                                <span>10 (High)</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="CurrentMood" class="form-label">Describe your mood</label>
+                            <input asp-for="CurrentMood" class="form-control" placeholder="E.g., Feeling calm, Anxious, Hopeful..." />
+                            <span asp-validation-for="CurrentMood" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Choose a mood icon</label>
+                            <div class="d-flex flex-wrap gap-2 mb-2">
+                                @foreach (var icon in new[] { "😊", "😃", "😌", "🙂", "😐", "😕", "😢", "😔", "😞", "😤", "😴", "🤔" })
+                                {
+                                    <div class="mood-icon-option @(Model.MoodIcon == icon ? "selected" : "")">
+                                        <input type="radio" name="MoodIcon" id="icon-@icon" value="@icon" class="d-none" @(Model.MoodIcon == icon ? "checked" : "") />
+                                        <label for="icon-@icon" class="fs-2 p-2">@icon</label>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Notes" class="form-label">Additional notes (optional)</label>
+                            <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Share more about how you're feeling..."></textarea>
+                            <span asp-validation-for="Notes" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="FindPeers" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Update Mood</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .mood-icon-option {
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+            .mood-icon-option:hover {
+                background-color: #f8f9fa;
+            }
+
+            .mood-icon-option.selected {
+                background-color: #e9ecef;
+                border: 2px solid #0d6efd;
+            }
+    </style>
+}
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function () {
+            // Update displayed mood value when slider changes
+            $('#moodSlider').on('input', function () {
+                $('#moodValue').text($(this).val());
+            });
+
+            // Handle mood icon selection
+            $('.mood-icon-option label').click(function () {
+                $('.mood-icon-option').removeClass('selected');
+                $(this).parent().addClass('selected');
+            });
+        });
+    </script>
+}

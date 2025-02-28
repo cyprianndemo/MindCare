@@ -26,6 +26,6 @@ namespace MindCare.ViewModel
         [DataType(DataType.Upload)]
         public IFormFile MedicationImage { get; set; }
 
-        //public string ExistingImagePath { get; set; }
+        public string ExistingImagePath { get; set; }
     }
 }

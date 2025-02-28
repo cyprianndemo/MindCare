@@ -1,0 +1,128 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<MindCare.Models.ApplicationUser> UserManager
+@model List<MindCare.ViewModel.PeerViewModel>
+@{
+    ViewData["Title"] = "Find Peers";
+}
+
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-4">Find Peers</h1>
+            <p class="lead">Connect with others who understand what you're going through.</p>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">My Current Mood</h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="display-1 mb-3">
+                        @{
+                            var user = await UserManager.GetUserAsync(User);
+                            var moodIcon = user?.CurrentMoodIcon ?? "😊";
+                            var mood = user?.CurrentMood ?? "Not set";
+                        }
+                        @moodIcon
+                    </div>
+                    <h5>@mood</h5>
+                    <a asp-action="UpdateMoodState" class="btn btn-outline-primary mt-2">Update My Mood</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Finding Meaningful Connections</h5>
+                </div>
+                <div class="card-body">
+                    <p>Connecting with peers who understand your experiences can be incredibly helpful. Here are some tips for making the most of peer support:</p>
+                    <ul>
+                        <li>Start with a friendly message introducing yourself</li>
+                        <li>Share what you're comfortable with - no pressure to disclose everything</li>
+                        <li>Ask open-ended questions to learn about others' experiences</li>
+                        <li>Remember that everyone's journey is unique</li>
+                        <li>Be respectful of boundaries and privacy</li>
+                    </ul>
+                    <p>Remember that peer support complements professional help but doesn't replace it.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col">
+            <h2>People You May Connect With</h2>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        @foreach (var peer in Model)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">@peer.Name</h5>
+                            <span class="fs-4">@peer.MoodIcon</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">
+                            <small class="text-muted">Current mood: @peer.CurrentMood</small>
+                        </p>
+                        @if (!string.IsNullOrEmpty(peer.Biography))
+                        {
+                            <p class="card-text">@(peer.Biography.Length > 150 ? peer.Biography.Substring(0, 147) + "..." : peer.Biography)</p>
+                        }
+                        @if (!string.IsNullOrEmpty(peer.Conditions))
+                        {
+                            <p class="card-text"><small class="text-muted">Experiences: @peer.Conditions</small></p>
+                        }
+                        <p class="card-text">
+                            <small class="text-muted">Last active: @(peer.LastActive.HasValue ? peer.LastActive.Value.ToString("g") : "Unknown")</small>
+                        </p>
+                    </div>
+                    <div class="card-footer bg-white">
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="DirectMessages" asp-route-peerId="@peer.UserId" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-chat-dots"></i> Message
+                            </a>
+                            <small class="text-muted align-self-center">
+                                Journey progress: @peer.JourneyProgress%
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        @if (!Model.Any())
+        {
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i> No peers found at the moment. Check back later or complete your mental health profile to find better matches.
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="row mt-5">
+        <div class="col text-center">
+            <a asp-action="SupportGroups" class="btn btn-outline-secondary">
+                <i class="bi bi-people"></i> Browse Support Groups
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Enable tooltips
+            $('[data-bs-toggle="tooltip"]').tooltip();
+        });
+    </script>
+}

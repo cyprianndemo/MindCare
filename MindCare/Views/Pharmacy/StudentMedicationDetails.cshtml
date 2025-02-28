@@ -1,0 +1,81 @@
+﻿@model MindCare.ViewModel.PrescriptionViewModel
+@{
+    ViewData["Title"] = "Medication Details";
+}
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0">Medication Details</h2>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    @if (!string.IsNullOrEmpty(Model.Medication.ImagePath))
+                    {
+                        <img src="~/images/medications/@Model.Medication.ImagePath" alt="@Model.MedicationName" class="img-fluid rounded mb-3" style="max-height: 300px; width: auto;" />
+                    }
+                    else
+                    {
+                        <div class="text-center p-5 bg-light rounded mb-3">
+                            <i class="fas fa-prescription-bottle fa-5x text-muted"></i>
+                            <p class="mt-2">No image available</p>
+                        </div>
+                    }
+                </div>
+                <div class="col-md-8">
+                    <h3 class="mb-3">@Model.MedicationName</h3>
+
+                    <div class="row mb-2">
+                        <div class="col-md-4 font-weight-bold">Prescribed On:</div>
+                        <div class="col-md-8">@Model.PrescriptionDate.ToShortDateString()</div>
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="col-md-4 font-weight-bold">Prescribed By:</div>
+                        <div class="col-md-8">Dr. @Model.Psychiatrist.FirstName @Model.Psychiatrist.LastName</div>
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="col-md-4 font-weight-bold">Dosage:</div>
+                        <div class="col-md-8">@Model.Dosage</div>
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="col-md-4 font-weight-bold">Frequency:</div>
+                        <div class="col-md-8">@Model.Frequency</div>
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="col-md-4 font-weight-bold">Duration:</div>
+                        <div class="col-md-8">@Model.Duration</div>
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="col-md-4 font-weight-bold">Status:</div>
+                        <div class="col-md-8">
+                            <span class="badge @(Model.Status == "Active" ? "badge-success" : "badge-secondary")">
+                                @Model.Status
+                            </span>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <div class="mb-4">
+                        <h5>Special Instructions:</h5>
+                        <p>@(string.IsNullOrEmpty(Model.Instructions) ? "No special instructions provided." : Model.Instructions)</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5>About this Medication:</h5>
+                        <p>@Model.Medication.Description</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <a href="@Url.Action("MyPrescriptions", "Pharmacy")" class="btn btn-secondary">Back to My Medications</a>
+        </div>
+    </div>
+</div>

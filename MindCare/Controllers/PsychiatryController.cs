@@ -32,16 +32,27 @@ namespace MindCare.Controllers
             _configuration = configuration;
         }
 
-        public async Task<IActionResult> PsychiatrySessions()
+        public async Task<IActionResult> PsychiatrySessions(string status = "All")
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var appointments = await _context.Appointments
+            var query = _context.Appointments
                 .Include(a => a.Psychiatrist)
                 .Where(a => a.StudentId == userId &&
                             a.PsychiatristId != null &&
-                            a.TherapistId == null)  
-                .OrderByDescending(a => a.StartTime)
-                .ToListAsync();
+                            a.TherapistId == null);  
+
+            if (status == "Pending")
+            {
+                query = query.Where(a => a.Status == "Pending");
+            }
+            else if (status == "Approved")
+            {
+                query = query.Where(a => a.Status == "Approved");
+            }
+            // If status is "All" or not specified, no additional filtering needed
+
+            var appointments = await query.OrderByDescending(a => a.StartTime).ToListAsync();
+            ViewBag.CurrentStatus = status;
 
             return View(appointments);
         }
@@ -86,6 +97,75 @@ namespace MindCare.Controllers
             // Ensure all DateTime fields are explicitly UTC
             appointment.EnsureUtcTimes();
 
+            // Check for conflicting appointments
+            var conflictingAppointments = await _context.Appointments
+                .Where(a => a.StudentId == userId &&
+                            a.Status != "Cancelled" &&
+                            ((appointment.StartTime <= a.EndTime && appointment.EndTime >= a.StartTime) ||
+                             (appointment.StartTime >= a.StartTime && appointment.StartTime < a.EndTime)))
+                .ToListAsync();
+
+            if (conflictingAppointments.Any())
+            {
+                ModelState.AddModelError("", "You already have an appointment scheduled during this time slot.");
+
+                // Repopulate psychiatrists dropdown for the view
+                var psychiatristUsers = await _userManager.GetUsersInRoleAsync("Psychiatrist");
+                ViewBag.Psychiatrists = psychiatristUsers.Select(u => new SelectListItem { Text = $"{u.FirstName} {u.LastName}", Value = u.Id }).ToList();
+
+                var currentUser = await _userManager.FindByIdAsync(userId);
+                ViewBag.UserEmail = currentUser.Email;
+                ViewBag.StudentId = userId;
+
+                return View(appointment);
+            }
+
+            // Check for appointments within an hour (before or after)
+            var nearbyAppointments = await _context.Appointments
+                .Where(a => a.StudentId == userId &&
+                            a.Status != "Cancelled" &&
+                            ((a.StartTime >= appointment.StartTime.AddHours(-1) && a.StartTime <= appointment.StartTime.AddHours(1)) ||
+                             (a.EndTime >= appointment.EndTime.AddHours(-1) && a.EndTime <= appointment.EndTime.AddHours(1))))
+                .ToListAsync();
+
+            if (nearbyAppointments.Any())
+            {
+                ModelState.AddModelError("", "You cannot book appointments less than an hour apart.");
+
+                // Repopulate psychiatrists dropdown for the view
+                var psychiatristUsers = await _userManager.GetUsersInRoleAsync("Psychiatrist");
+                ViewBag.Psychiatrists = psychiatristUsers.Select(u => new SelectListItem { Text = $"{u.FirstName} {u.LastName}", Value = u.Id }).ToList();
+
+                var currentUser = await _userManager.FindByIdAsync(userId);
+                ViewBag.UserEmail = currentUser.Email;
+                ViewBag.StudentId = userId;
+
+                return View(appointment);
+            }
+
+            // Check if the user is booking with a different psychiatrist at the same time
+            var psychiatristConflicts = await _context.Appointments
+                .Where(a => a.StudentId == userId &&
+                            a.Status != "Cancelled" &&
+                            a.PsychiatristId != appointment.PsychiatristId &&
+                            ((appointment.StartTime <= a.EndTime && appointment.EndTime >= a.StartTime)))
+                .ToListAsync();
+
+            if (psychiatristConflicts.Any())
+            {
+                ModelState.AddModelError("", "You cannot book multiple psychiatrists for the same time slot.");
+
+                // Repopulate psychiatrists dropdown for the view
+                var psychiatristUsers = await _userManager.GetUsersInRoleAsync("Psychiatrist");
+                ViewBag.Psychiatrists = psychiatristUsers.Select(u => new SelectListItem { Text = $"{u.FirstName} {u.LastName}", Value = u.Id }).ToList();
+
+                var currentUser = await _userManager.FindByIdAsync(userId);
+                ViewBag.UserEmail = currentUser.Email;
+                ViewBag.StudentId = userId;
+
+                return View(appointment);
+            }
+
             _context.Add(appointment);
             await _context.SaveChangesAsync();
 
@@ -93,7 +173,6 @@ namespace MindCare.Controllers
 
             return RedirectToAction(nameof(PsychiatrySessions));
         }
-
 
         // GET: Edit Appointment
         public async Task<IActionResult> Edit(int id)
@@ -125,7 +204,6 @@ namespace MindCare.Controllers
             return View(appointment);
         }
 
-        // POST: Edit Appointment
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Appointment appointment)
@@ -147,6 +225,86 @@ namespace MindCare.Controllers
             if (existingAppointment.StudentId != userId && !User.IsInRole("Admin"))
             {
                 return Forbid(); // Users can only edit their own appointments
+            }
+
+            // Convert appointment times to UTC for validation
+            var updatedStartTime = appointment.StartTime;
+            var updatedEndTime = appointment.EndTime;
+
+            if (updatedStartTime == DateTime.MinValue || updatedEndTime == DateTime.MinValue)
+            {
+                appointment.SetAppointmentTimes(appointment.Date, appointment.Time);
+                updatedStartTime = appointment.StartTime;
+                updatedEndTime = appointment.EndTime;
+            }
+
+            // Check for conflicting appointments (excluding this one)
+            var conflictingAppointments = await _context.Appointments
+                .Where(a => a.StudentId == userId &&
+                            a.Status != "Cancelled" &&
+                            a.AppointmentId != id &&
+                            ((updatedStartTime <= a.EndTime && updatedEndTime >= a.StartTime) ||
+                             (updatedStartTime >= a.StartTime && updatedStartTime < a.EndTime)))
+                .ToListAsync();
+
+            if (conflictingAppointments.Any())
+            {
+                ModelState.AddModelError("", "You already have an appointment scheduled during this time slot.");
+
+                // Repopulate dropdowns
+                var therapistUsers = await _userManager.GetUsersInRoleAsync("Therapist");
+                ViewBag.Therapists = therapistUsers.Select(u => new SelectListItem { Text = $"{u.FirstName} {u.LastName}", Value = u.Id }).ToList();
+
+                var psychiatristUsers = await _userManager.GetUsersInRoleAsync("Psychiatrist");
+                ViewBag.Psychiatrists = psychiatristUsers.Select(u => new SelectListItem { Text = $"{u.FirstName} {u.LastName}", Value = u.Id }).ToList();
+
+                return View(appointment);
+            }
+
+            // Check for appointments within an hour (before or after)
+            var nearbyAppointments = await _context.Appointments
+                .Where(a => a.StudentId == userId &&
+                            a.Status != "Cancelled" &&
+                            a.AppointmentId != id &&
+                            ((a.StartTime >= updatedStartTime.AddHours(-1) && a.StartTime <= updatedStartTime.AddHours(1)) ||
+                             (a.EndTime >= updatedEndTime.AddHours(-1) && a.EndTime <= updatedEndTime.AddHours(1))))
+                .ToListAsync();
+
+            if (nearbyAppointments.Any())
+            {
+                ModelState.AddModelError("", "You cannot book appointments less than an hour apart.");
+
+                // Repopulate dropdowns
+                var therapistUsers = await _userManager.GetUsersInRoleAsync("Therapist");
+                ViewBag.Therapists = therapistUsers.Select(u => new SelectListItem { Text = $"{u.FirstName} {u.LastName}", Value = u.Id }).ToList();
+
+                var psychiatristUsers = await _userManager.GetUsersInRoleAsync("Psychiatrist");
+                ViewBag.Psychiatrists = psychiatristUsers.Select(u => new SelectListItem { Text = $"{u.FirstName} {u.LastName}", Value = u.Id }).ToList();
+
+                return View(appointment);
+            }
+
+            // Check if the user is booking with a different psychiatrist at the same time
+            var psychiatristConflicts = await _context.Appointments
+                .Where(a => a.StudentId == userId &&
+                            a.Status != "Cancelled" &&
+                            a.AppointmentId != id &&
+                            a.PsychiatristId != appointment.PsychiatristId &&
+                            ((updatedStartTime <= a.EndTime && updatedEndTime >= a.StartTime)))
+                .ToListAsync();
+
+            if (psychiatristConflicts.Any())
+            {
+                ModelState.AddModelError("", "You cannot book multiple psychiatrists for the same time slot.");
+
+                // Repopulate dropdowns
+                var therapistUsers = await _userManager.GetUsersInRoleAsync("Therapist");
+                ViewBag.Therapists = therapistUsers.Select(u => new SelectListItem { Text = $"{u.FirstName} {u.LastName}", Value = u.Id }).ToList();
+
+                var psychiatristUsers = await _userManager.GetUsersInRoleAsync("Psychiatrist");
+                ViewBag.Psychiatrists = psychiatristUsers.Select(u => new SelectListItem { Text = $"{u.FirstName} {u.LastName}", Value = u.Id }).ToList();
+
+                return View(appointment);
             }
 
             // Update appointment details (Ensure UTC time)

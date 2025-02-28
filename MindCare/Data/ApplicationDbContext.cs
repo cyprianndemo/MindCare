@@ -14,6 +14,18 @@ namespace MindCare.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            
+            modelBuilder.Entity<DirectMessage>()
+               .HasOne(d => d.Sender)
+               .WithMany()
+               .HasForeignKey(d => d.SenderId)
+               .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<DirectMessage>()
+                .HasOne(d => d.Recipient)
+                .WithMany()
+                .HasForeignKey(d => d.RecipientId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Appointment>()
                 .HasOne(a => a.Student)
@@ -34,7 +46,7 @@ namespace MindCare.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<PrescriptionMedication>()
-        .HasKey(pm => new { pm.PrescriptionId, pm.MedicationId });
+                .HasKey(pm => new { pm.PrescriptionId, pm.MedicationId });
 
             modelBuilder.Entity<PrescriptionMedication>()
                 .HasOne(pm => pm.Prescription)
@@ -45,9 +57,10 @@ namespace MindCare.Data
                 .HasOne(pm => pm.Medication)
                 .WithMany(m => m.PrescriptionMedications)
                 .HasForeignKey(pm => pm.MedicationId);
+
             modelBuilder.Entity<MoodEntry>()
                .HasIndex(m => new { m.UserId, m.EntryDate });
-      modelBuilder.Entity<MoodEntry>(entity =>
+           modelBuilder.Entity<MoodEntry>(entity =>
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Mood).IsRequired();
@@ -61,6 +74,7 @@ namespace MindCare.Data
                       .HasForeignKey(e => e.UserId)
                       .OnDelete(DeleteBehavior.Cascade);
             });
+
         }
         public DbSet<Feedback> Feedback { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
@@ -74,8 +88,23 @@ namespace MindCare.Data
         public DbSet<UserActivity> UserActivities { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<DirectMessage> DirectMessages { get; set; }
+        public DbSet<ReportMetrics> Metrics { get; set; }
         public DbSet<Student> Students { get; set; }
         public DbSet<ConversationLog> ConversationLogs { get; set; }
+        public DbSet<SupportGroup> SupportGroups { get; set; }
+        public DbSet<ChatMessage> ChatMessages { get; set; }
+        public DbSet<GroupMember> GroupMembers { get; set; }
+        public DbSet<Discussion> Discussions { get; set; }
+        public DbSet<Response> Responses { get; set; }
+        public DbSet<MentalHealthProfile> MentalHealthProfiles { get; set; }
+        public DbSet<MoodLog> MoodLogs { get; set; }
+        public DbSet<Conversation> Conversations { get; set; }
+        public DbSet<UserProgress> UserProgress { get; set; }
+        public DbSet<UserFavorite> UserFavorites { get; set; }
 
+        public DbSet<MentalHealthExercise> MentalHealthExercises { get; set; }
+        public DbSet<ProfessionalResource> ProfessionalResources { get; set; }
+        public DbSet<MentalHealthAssessment> MentalHealthAssessments { get; set; }
     }
 }

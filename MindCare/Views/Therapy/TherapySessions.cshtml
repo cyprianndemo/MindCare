@@ -1,48 +1,65 @@
 ﻿@model IEnumerable<Appointment>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Therapy Sessions</title>
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .text-primary {
-            color: #004085;
-        }
+@{
+    ViewData["Title"] = "Therapy Sessions";
+    Layout = "_StudentLayout";
+    var currentStatus = ViewBag.CurrentStatus ?? "All";
+}
+<div class="container my-5">
+    <h1 class="text-center" style="color: #004085;">Your Therapy Sessions</h1>
 
-        body {
-            background-color: #f5f8fa;
-            color: #333;
-            font-family: Arial, sans-serif;
-        }
-    </style>
-</head>
-<body>
-    <div class="container my-5">
-        <h1 class="text-center" style="color: #004085;">Your Therapy Sessions</h1>
-        <div class="text-right mb-3">
-            <a href="@Url.Action("BookSession", "Therapy")" class="btn" style="background-color: #004085; color: #fff;">Book a New Session</a>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="btn-group" role="group" aria-label="Session status filter">
+            <a href="@Url.Action("TherapySessions", "Therapy", new { status = "All" })"
+               class="btn @(currentStatus == "All" ? "btn-primary" : "btn-outline-primary")">
+                All Sessions
+            </a>
+            <a href="@Url.Action("TherapySessions", "Therapy", new { status = "Pending" })"
+               class="btn @(currentStatus == "Pending" ? "btn-primary" : "btn-outline-primary")">
+                Pending Sessions
+            </a>
+            <a href="@Url.Action("TherapySessions", "Therapy", new { status = "Approved" })"
+               class="btn @(currentStatus == "Approved" ? "btn-primary" : "btn-outline-primary")">
+                Confirmed Sessions
+            </a>
         </div>
-        <div class="list-group">
-            @if (!Model.Any())
-            {
-                <div class="alert alert-info">
-                    You don't have any scheduled therapy sessions yet.
-                </div>
-            }
-            else
-            {
-                @foreach (var session in Model)
-                {
-                    <a href="@Url.Action("SessionDetails", "Therapy", new { id = session.AppointmentId })" class="list-group-item list-group-item-action">
-                        <h5 class="mb-1">@session.GetLocalStartTime().ToShortDateString() @session.GetLocalStartTime().ToString("HH:mm")</h5>
-                        <p class="mb-1">Status: @session.Status</p>
-                        <small>Therapist: @(session.Therapist?.UserName ?? "Not Assigned")</small><br />
-                        <small>Click for details</small>
-                    </a>
-                }
-            }
-        </div>
+
+        <a href="@Url.Action("BookSession", "Therapy")" class="btn" style="background-color: #004085; color: #fff;">
+            Book Session
+        </a>
     </div>
-</body>
-</html>
+
+    <div class="list-group">
+        @if (!Model.Any())
+        {
+            <div class="alert alert-info">
+                @if (currentStatus == "All")
+                {
+                    <span>You don't have any scheduled therapy sessions yet.</span>
+                }
+                else
+                {
+                    <span>You don't have any @currentStatus.ToLower() therapy sessions.</span>
+                }
+            </div>
+        }
+        else
+        {
+            @foreach (var session in Model)
+            {
+                <a href="@Url.Action("SessionDetails", "Therapy", new { id = session.AppointmentId })"
+                   class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">@session.GetLocalStartTime().ToShortDateString() @session.GetLocalStartTime().ToString("HH:mm")</h5>
+                        <span class="badge @(session.Status == "Pending" ? "badge-warning" :
+                                       session.Status == "Approved" ? "badge-success" :
+                                       session.Status == "Cancelled" ? "badge-danger" : "badge-secondary")">
+                            @session.Status
+                        </span>
+                    </div>
+                    <p class="mb-1">Therapist: @(session.Therapist?.FirstName ?? "") @(session.Therapist?.LastName ?? "Not Assigned")</p>
+                    <small class="text-muted">Click for details</small>
+                </a>
+            }
+        }
+    </div>
+</div>

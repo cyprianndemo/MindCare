@@ -27,7 +27,7 @@ namespace MindCare.Models
         public string Urgency { get; set; }  // Immediate, Soon, General
 
         public string Url { get; set; }
-
+        public int ViewCount { get; set; }
         public string FileUrl { get; set; }
 
         public bool IsDownloadable { get; set; }
@@ -43,6 +43,9 @@ namespace MindCare.Models
         public string SelectedCategory { get; set; }
         public string SelectedType { get; set; }
         public string SelectedScenario { get; set; }
+        public IEnumerable<MentalHealthResource> RecommendedResources { get; set; }
+        public string SearchTerm { get; set; }
+        public int ViewCount { get; set; }
         public List<string> Categories { get; set; }
         public List<string> ResourceTypes { get; set; }
         public List<string> Scenarios { get; set; }

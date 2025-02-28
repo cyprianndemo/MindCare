@@ -6,6 +6,8 @@
     <title>@ViewData["Title"] - Student Dashboard</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    @await RenderSectionAsync("Styles", required: false)
+
     <style>
         /* General Styling */
         body {
@@ -134,6 +136,46 @@
         .sidebar-overlay.show {
             display: block;
         }
+        /* Hover dropdown styles */
+        .dropdown-hover {
+            position: relative;
+        }
+
+        .hover-menu {
+            display: none;
+            position: absolute;
+            left: 100%;
+            top: 0;
+            min-width: 150px;
+            background-color: #fff;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            z-index: 100;
+            border-radius: 4px;
+            border: 1px solid rgba(0,0,0,0.15);
+        }
+
+        .dropdown-hover:hover .hover-menu {
+            display: block;
+        }
+
+        .hover-menu-item {
+            display: block;
+            padding: 0.5rem 1rem;
+            clear: both;
+            font-weight: 400;
+            color: #212529;
+            text-align: inherit;
+            white-space: nowrap;
+            background-color: transparent;
+            border: 0;
+            text-decoration: none;
+        }
+
+            .hover-menu-item:hover {
+                background-color: #f8f9fa;
+                color: #16181b;
+                text-decoration: none;
+            }
     </style>
 </head>
 <body>
@@ -179,10 +221,21 @@
                         <span class="nav-item-icon"><i class="fas fa-home"></i></span> Dashboard
                     </a>
                 </li>
-                <li class="nav-item">
+                <li class="nav-item dropdown-hover">
                     <a class="nav-link" href="@Url.Action("TherapySessions", "Therapy")">
                         <span class="nav-item-icon"><i class="fas fa-comments"></i></span> Therapy Sessions
                     </a>
+                    <div class="hover-menu">
+                        <a class="hover-menu-item" href="@Url.Action("TherapySessions", "Therapy", new { status = "All" })">
+                            All Sessions
+                        </a>
+                        <a class="hover-menu-item" href="@Url.Action("TherapySessions", "Therapy", new { status = "Pending" })">
+                            Pending Sessions
+                        </a>
+                        <a class="hover-menu-item" href="@Url.Action("TherapySessions", "Therapy", new { status = "Approved" })">
+                            Confirmed Sessions
+                        </a>
+                    </div>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="@Url.Action("Index", "Mood")">
@@ -195,12 +248,17 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="@Url.Action("Index", "PeerSupport")">
+                        <span class="nav-item-icon"><i class="fas fa-user-friends"></i></span> Peer Support
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="@Url.Action("Index", "Resources")">
                         <span class="nav-item-icon"><i class="fas fa-book"></i></span> Mental Health Resources
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="@Url.Action("PrescriptionList", "Pharmacy")">
+                    <a class="nav-link" href="@Url.Action("MyPrescriptions", "Pharmacy")">
                         <span class="nav-item-icon"><i class="fas fa-pills"></i></span> Pharmacy
                     </a>
                 </li>

@@ -1,0 +1,179 @@
+﻿@model MindCare.ViewModel.GroupDetailsViewModel
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-action="SupportGroups">Support Groups</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">@Model.Name</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Info"] != null)
+    {
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            @TempData["Info"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                    <h1 class="card-title">@Model.Name</h1>
+                    <p class="card-text">@Model.Description</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            <i class="bi bi-people"></i> @Model.MemberCount members
+                        </small>
+                        @if (Model.IsMember)
+                        {
+                            <form asp-action="LeaveGroup" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="groupId" value="@Model.GroupId" />
+                                <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure you want to leave this group?')">
+                                    <i class="bi bi-box-arrow-right"></i> Leave Group
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <form asp-action="JoinGroup" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="groupId" value="@Model.GroupId" />
+                                <button type="submit" class="btn btn-success btn-sm">
+                                    <i class="bi bi-box-arrow-in-right"></i> Join Group
+                                </button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Discussions</h2>
+                @if (Model.IsMember)
+                {
+                    <a asp-action="CreateDiscussion" asp-route-groupId="@Model.GroupId" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> New Discussion
+                    </a>
+                }
+            </div>
+
+            @if (!Model.Discussions.Any())
+            {
+                <div class="alert alert-info">
+                    No discussions have been started in this group yet.
+                    @if (Model.IsMember)
+                    {
+                        <span>Be the first to <a asp-action="CreateDiscussion" asp-route-groupId="@Model.GroupId">start a discussion</a>!</span>
+                    }
+                    else
+                    {
+                        <span>Join the group to start a discussion!</span>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="list-group mb-4">
+                    @foreach (var discussion in Model.Discussions)
+                    {
+                        <a asp-action="DiscussionDetails" asp-route-discussionId="@discussion.DiscussionId" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">@discussion.Title</h5>
+                                <small>
+                                    @if (discussion.ResponseCount > 0)
+                                    {
+                                        <span class="badge bg-primary rounded-pill">@discussion.ResponseCount @(discussion.ResponseCount == 1 ? "response" : "responses")</span>
+                                    }
+                                </small>
+                            </div>
+                            <p class="mb-1 text-truncate">@discussion.Content</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">Started by @discussion.UserName on @discussion.CreatedAt.ToString("MMM dd, yyyy")</small>
+                                <small class="text-muted">
+                                    @if (discussion.ResponseCount > 0)
+                                    {
+                                        <span>Latest activity: @discussion.LatestResponseAt.ToString("MMM dd, yyyy")</span>
+                                    }
+                                </small>
+                            </div>
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Group Information</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Total Members:</strong> @Model.MemberCount</p>
+                    <p><strong>Total Discussions:</strong> @Model.Discussions.Count</p>
+                    <p>
+                        <strong>Latest Discussion:</strong>
+                        @if (Model.Discussions.Any())
+                        {
+                            <a asp-action="DiscussionDetails" asp-route-discussionId="@Model.Discussions.OrderByDescending(d => d.CreatedAt).First().DiscussionId">
+                                @Model.Discussions.OrderByDescending(d => d.CreatedAt).First().Title
+                            </a>
+                        }
+                        else
+                        {
+                            <span>None yet</span>
+                        }
+                    </p>
+                    <p>
+                        <strong>Most Active Discussion:</strong>
+                        @if (Model.Discussions.Any())
+                        {
+                            <a asp-action="DiscussionDetails" asp-route-discussionId="@Model.Discussions.OrderByDescending(d => d.ResponseCount).First().DiscussionId">
+                                @Model.Discussions.OrderByDescending(d => d.ResponseCount).First().Title
+                            </a>
+                        }
+                        else
+                        {
+                            <span>None yet</span>
+                        }
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <h6>Group Guidelines</h6>
+                    <ul class="small">
+                        <li>Be respectful and supportive of all members</li>
+                        <li>Maintain confidentiality within the group</li>
+                        <li>Share experiences but avoid giving medical advice</li>
+                        <li>Consider others' feelings when responding</li>
+                        <li>Report any concerns to moderators</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

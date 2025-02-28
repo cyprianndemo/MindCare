@@ -50,7 +50,9 @@ namespace MindCare.Models
 
         [Required]
         public DateTime EndTime { get; set; }
-
+        // In MindCare.Models.Appointment
+        public string? StudentFirstName { get; set; }
+        public string? StudentLastName { get; set; }
         // Helper methods for timezone handling
         public void SetTimesInUtc(DateTime localStartTime, DateTime localEndTime)
         {

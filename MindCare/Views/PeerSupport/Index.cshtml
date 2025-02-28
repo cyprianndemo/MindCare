@@ -1,0 +1,126 @@
+﻿@{
+    ViewData["Title"] = "Mental Health Support Dashboard";
+}
+
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col text-center">
+            <h1 class="display-4">MindCare</h1>
+            <p class="lead">Your personal mental health support platform</p>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        <!-- Mood Tracking Card -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="display-1 mb-3">😊</div>
+                    <h3 class="card-title">Mood Tracking</h3>
+                    <p class="card-text">Record and monitor your daily mood to better understand your emotional patterns.</p>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a asp-action="UpdateMoodState" class="btn btn-primary w-100">Update My Mood</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Peer Support Card -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="display-1 mb-3">👥</div>
+                    <h3 class="card-title">Peer Support</h3>
+                    <p class="card-text">Connect with others who understand what you're going through.</p>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a asp-action="FindPeers" class="btn btn-primary w-100">Find Peers</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Support Groups Card -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="display-1 mb-3">🤝</div>
+                    <h3 class="card-title">Support Groups</h3>
+                    <p class="card-text">Join group discussions focused on specific mental health topics and concerns.</p>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a asp-action="SupportGroups" class="btn btn-primary w-100">Browse Groups</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Direct Messages Card -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="display-1 mb-3">💬</div>
+                    <h3 class="card-title">Messages</h3>
+                    <p class="card-text">Send and receive private messages with peers in your support network.</p>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a asp-action="DirectMessages" class="btn btn-primary w-100">View Messages</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mental Health Resources Card -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="display-1 mb-3">📚</div>
+                    <h3 class="card-title">Resources</h3>
+                    <p class="card-text">Access helpful articles, exercises, and professional resources.</p>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="#" class="btn btn-primary w-100">Browse Resources</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Crisis Support Card -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm bg-light">
+                <div class="card-body text-center">
+                    <div class="display-1 mb-3">🆘</div>
+                    <h3 class="card-title">Crisis Support</h3>
+                    <p class="card-text">Need immediate help? Access emergency resources and support hotlines.</p>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="#" class="btn btn-danger w-100">Get Help Now</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Your Mental Health Journey</h5>
+                </div>
+                <div class="card-body">
+                    <p>MindCare is here to support you every step of the way. Remember:</p>
+                    <ul>
+                        <li>Regular mood tracking can help identify patterns and triggers</li>
+                        <li>Connecting with peers who understand your experiences can reduce feelings of isolation</li>
+                        <li>Support groups provide a safe space to share and learn from others</li>
+                        <li>Professional help is always available when you need it</li>
+                    </ul>
+                    <p class="mb-0">Your mental health matters, and you're not alone on this journey.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

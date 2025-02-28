@@ -1,0 +1,69 @@
+﻿@model MindCare.ViewModel.CreateDiscussionViewModel
+@{
+    ViewData["Title"] = "Create Discussion";
+}
+
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-action="SupportGroups">Support Groups</a></li>
+                    <li class="breadcrumb-item"><a asp-action="GroupDetails" asp-route-groupId="@Model.GroupId">Group</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Create Discussion</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Start a New Discussion</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="CreateDiscussion" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <input type="hidden" asp-for="GroupId" />
+
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label">Discussion Title</label>
+                            <input asp-for="Title" class="form-control" placeholder="Enter a clear title for your discussion" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Content" class="form-label">Content</label>
+                            <textarea asp-for="Content" class="form-control" rows="8" placeholder="Share your thoughts, questions, or experiences..."></textarea>
+                            <span asp-validation-for="Content" class="text-danger"></span>
+                            <div class="form-text">
+                                <i class="bi bi-info-circle"></i> Tips for a great discussion:
+                                <ul class="mb-0">
+                                    <li>Be clear about what you'd like to discuss or ask</li>
+                                    <li>Share relevant context that helps others understand your situation</li>
+                                    <li>Consider asking specific questions to encourage responses</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="GroupDetails" asp-route-groupId="@Model.GroupId" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Post Discussion</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Add rich text editor if needed
+        $(document).ready(function () {
+            // Initialize editor here if you're using one
+        });
+    </script>
+}

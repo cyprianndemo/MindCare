@@ -4,35 +4,6 @@
     ViewData["Title"] = "Session Details";
 }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Session Details</title>
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f5f8fa;
-            color: #333;
-            font-family: Arial, sans-serif;
-        }
-
-        .text-primary {
-            color: #004085;
-        }
-
-        .btn-custom {
-            background-color: #004085;
-            color: #fff;
-        }
-
-            .btn-custom:hover {
-                background-color: #002752;
-                color: #fff;
-            }
-    </style>
-</head>
-<body>
     <div class="container mt-5">
         <h2 class="text-center text-primary mb-4">Session Details</h2>
 
@@ -48,33 +19,33 @@
                     <p><strong>Status:</strong> <span class="text-@(Model.Status == "Cancelled" ? "danger" : "success")">@Model.Status</span></p>
 
                     <div class="mt-4 text-right">
-                        <a href="@Url.Action("Edit", "Therapy", new { id = Model.AppointmentId })" class="btn btn-custom mr-2">Edit Appointment</a>
-                        <a href="@Url.Action("Pay", "Checkout", new { id = Model.AppointmentId })" class="btn btn-custom mr-2">Pay Session</a>
+                    <a href="@Url.Action("Edit", "Therapy", new { id = Model.AppointmentId })" class="btn" style="background-color: #004085; color: #fff;">Edit Appointment</a>
+                    <a href="@Url.Action("Pay", "Checkout", new { id = Model.AppointmentId })" class="btn" style="background-color: #004085; color: #fff;">Pay Session</a>
 
                         <form action="@Url.Action("Cancel", "Therapy", new { id = Model.AppointmentId })" method="post" class="d-inline">
                             @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-custom">Cancel Appointment</button>
+                        <button type="submit" class="btn" style="background-color: #004085; color: #fff;">Cancel Appointment</button>
                         </form>
                     </div>
 
                     @if ( Model.Status == "Approved")
                     {
-                        <div class="mt-3">
-                            <a href="@ViewBag.VideoCallLink" target="_blank" class="btn btn-custom">
-                                <i class="bi bi-camera-video"></i> Start Video Call
-                            </a>
-                        </div>
+                    <div class="mt-3">
+                        <a href="@ViewBag.VideoCallLink" target="_blank" class="btn" style="background-color: #004085; color: #fff;">
+                            <i class="bi bi-camera-video"></i> Start Video Call
+                        </a>
+                    </div>
                     }
                     else
                     {
-                        <p class="text-danger mt-3">The session must be Approved to start a video call.</p>
+                        <p class="text-danger mt-3">The session must be confirmed to start a video call.</p>
                     }
                 </div>
             </div>
 
             <!-- Back to Sessions Button -->
             <div class="text-center mt-4">
-                <a href="@Url.Action("TherapySessions", "Therapy")" class="btn btn-custom">Back to Sessions</a>
+            <a href="@Url.Action("TherapySessions", "Therapy")" class="btn" style="background-color: #004085; color: #fff;">Back to Sessions</a>
             </div>
         }
         else
@@ -84,5 +55,3 @@
             </div>
         }
     </div>
-</body>
-</html>

@@ -182,7 +182,12 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="@Url.Action("ManageSessions", "Therapist")">
-                        <span class="nav-item-icon"><i class="fas fa-calendar-alt"></i></span> Manage Sessions
+                        <span class="nav-item-icon"><i class="fas fa-calendar-alt"></i></span> Manage Appointments
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="@Url.Action("ApprovedAppointments", "Therapist")">
+                        <span class="nav-item-icon"><i class="fas fa-calendar-alt"></i></span> Confirmed Appointments
                     </a>
                 </li>
                 <li class="nav-item">
@@ -191,7 +196,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="@Url.Action("PatientFeedback", "Feedback")">
+                    <a class="nav-link" href="@Url.Action("ViewFeedbacks", "Feedback")">
                         <span class="nav-item-icon"><i class="fas fa-comment-alt"></i></span> View Feedback
                     </a>
                 </li>

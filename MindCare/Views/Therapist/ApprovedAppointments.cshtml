@@ -1,89 +1,51 @@
 ﻿@model IEnumerable<MindCare.Models.Appointment>
 @{
     Layout = "_TherapistLayout";
-    var count = Model?.Count() ?? 0;
+    ViewData["Title"] = "Manage Appointments";
 }
 
-<div class="container mt-4">
-    <div class="row mb-4">
-        <div class="col">
-            <h2>My Approved Appointments</h2>
-            <p class="text-muted">Total appointments: @count</p>
-        </div>
-    </div>
-
-    @if (TempData["Error"] != null)
+<div class="container my-5">
+    <h1 class="text-center" style="color: #004085;">Confirmed Appointments</h1>
+    @if (!Model.Any())
     {
-        <div class="alert alert-danger" role="alert">
-            @TempData["Error"]
-        </div>
-    }
-
-    @if (!Model?.Any() ?? true)
-    {
-        <div class="alert alert-info" role="alert">
-            You currently have no approved appointments.
+        <div class="alert alert-info">
+            No pending appointments found.
         </div>
     }
     else
     {
-        <div class="table-responsive">
-            <table class="table table-striped table-hover">
-                <thead class="table-light">
-                    <tr>
-                        <th>Student Name</th>
-                        <th>Start Time</th>
-                        <th>End Time</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var appointment in Model)
-                    {
-                        <tr>
-                            <td>
-                                @if (appointment.StudentId != null)
-                                {
-                                    @($"{appointment.StudentId}")
-                                }
-                                else
-                                {
-                                    <span class="text-muted">No student info</span>
-                                }
-                            </td>
-                            <td>@appointment.StartTime.ToString("MMM dd, yyyy hh:mm tt")</td>
-                            <td>@appointment.EndTime.ToString("MMM dd, yyyy hh:mm tt")</td>
-                            <td>
-                                <span class="badge bg-success">@appointment.Status</span>
-                            </td>
-                            <td>
-                                <div class="btn-group" role="group">
-                                    <a asp-action="EditAppointment"
-                                       asp-route-id="@appointment.AppointmentId"
-                                       class="btn btn-sm btn-primary me-2">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </a>
-                                    <a asp-action="CancelAppointment"
-                                       asp-route-id="@appointment.AppointmentId"
-                                       class="btn btn-sm btn-danger">
-                                        <i class="fas fa-times"></i> Cancel
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+        <div class="list-group">
+            @foreach (var appointment in Model)
+            {
+                <div class="list-group-item" id="appointment-@appointment.AppointmentId">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="mb-1">
+                                <strong>Date:</strong> @appointment.Date.ToShortDateString()<br />
+                                <strong>Time:</strong> @appointment.Time<br />
+                                <strong>Student:</strong> @appointment.StudentId<br />
+                                <strong>Status:</strong> <span class="status-badge badge bg-success">@appointment.Status</span>
+                            </p>
+                        </div>
+                        <div class="btn-group">
+                            @if (appointment.Status == "Approved")
+                            {
+                                <a href="@Url.Action("CancelAppointment", new { id = appointment.AppointmentId })" class="btn btn-danger me-2">
+                                    <i class="fas fa-times"></i> Cancel Appointment
+                                </a>
+                            }
+                            <a href="@Url.Action("EditAppointment", new { id = appointment.AppointmentId })" class="btn btn-warning">
+                                <i class="fas fa-edit"></i> Edit Appointment
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
         </div>
     }
+    <div class="text-center mt-4">
+        <a asp-action="Index" asp-controller="Therapist" class="btn" style="background-color: #004085; color: #fff;">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
 </div>
-
-@section Scripts {
-    <script>
-        $(document).ready(function () {
-            // Log the number of appointments for debugging
-            console.log('Number of appointments:', @count);
-        });
-    </script>
-}
