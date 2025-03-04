@@ -1,0 +1,92 @@
+﻿@model List<MindCare.MentalResources.MentalHealthResource>
+@{
+    ViewBag.Title = ViewBag.CategoryName + " Resources";
+}
+
+<div class="container resources-category">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Resources")">Resources</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">@ViewBag.CategoryName</li>
+                </ol>
+            </nav>
+            <h1>@ViewBag.CategoryName</h1>
+            <p class="lead">Browse our collection of @ViewBag.CategoryName.ToLower() to support your mental wellbeing.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        @foreach (var resource in Model)
+        {
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 resource-card">
+                    @if (!string.IsNullOrEmpty(resource.ImageUrl))
+                    {
+                        <img src="@resource.ImageUrl" class="card-img-top" alt="@resource.Title">
+                    }
+                    <div class="card-body">
+                        <h5 class="card-title">@resource.Title</h5>
+                        <p class="card-text">@resource.Summary</p>
+
+                        @if (resource.Tags != null && resource.Tags.Any())
+                        {
+                            <div class="mb-3">
+                                @foreach (var tag in resource.Tags.Take(3))
+                                {
+                                    <span class="badge me-1 mb-1" style="background-color: #004085; color: #fff;">@tag</span>
+                                }
+                            </div>
+                        }
+                    </div>
+                    <div class="card-footer bg-transparent border-top-0">
+                        <a href="@Url.Action("Details", "Resources", new { id = resource.Id })" class="btn custom-btn">Read More</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="row">
+            <div class="col-md-12">
+                <div class="alert alert-info" role="alert">
+                    No resources found in this category. Please check back later as we continue to add new content.
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <a href="@Url.Action("Index", "Resources")" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to All Resources
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .resource-card {
+            transition: transform 0.3s;
+        }
+
+            .resource-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            }
+
+        .card-img-top {
+            height: 180px;
+            object-fit: cover;
+        }
+        .custom-btn {
+    background-color: #004085;
+    color: #fff;
+    border-color: #004085; 
+        }
+    </style>
+}

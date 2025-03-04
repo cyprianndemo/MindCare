@@ -1,4 +1,5 @@
-﻿@model MindCare.ViewModel.MessagesViewModel
+﻿@using System.Security.Claims
+@model MindCare.ViewModel.MessagesViewModel
 
 @{
     ViewData["Title"] = "Direct Messages";
@@ -20,7 +21,8 @@
                         @foreach (var conversation in Model.Conversations)
                         {
                             <a href="@Url.Action("DirectMessages", "PeerSupport", new { peerId = conversation.OtherUserId })"
-                               class="list-group-item list-group-item-action @(Model.ActiveConversation != null && Model.ActiveConversation.OtherUserId == conversation.OtherUserId ? "active" : "")">
+                               class="list-group-item list-group-item-action @(Model.ActiveConversation != null && Model.ActiveConversation.OtherUserId == conversation.OtherUserId ? "active" : "")"
+                               data-conversation-id="@conversation.ConversationId">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
                                         @if (!string.IsNullOrEmpty(conversation.MoodIcon))
@@ -31,11 +33,11 @@
                                     </div>
                                     @if (conversation.UnreadCount > 0)
                                     {
-                                        <span class="badge bg-primary rounded-pill">@conversation.UnreadCount</span>
+                                        <span class="badge bg-primary rounded-pill unread-count">@conversation.UnreadCount</span>
                                     }
                                 </div>
-                                <p class="mb-1 text-truncate">@conversation.LastMessagePreview</p>
-                                <small class="text-muted">
+                                <p class="mb-1 text-truncate message-preview">@conversation.LastMessagePreview</p>
+                                <small class="text-muted message-time">
                                     @(conversation.LastMessageTime.HasValue
                                         ? conversation.LastMessageTime.Value.ToString("g")
                                         : "No messages yet")
@@ -52,7 +54,7 @@
                     }
                 </div>
                 <div class="card-footer">
-                    <a href="@Url.Action("FindPeers", "PeerSupport")" class="btn btn-primary btn-sm">
+                    <a href="@Url.Action("FindPeers", "PeerSupport")" class="btn" style="background-color: #004085; color: #fff;">
                         <i class="fas fa-search"></i> Find Peers
                     </a>
                 </div>
@@ -73,12 +75,12 @@
                             @Model.ActiveConversation.OtherUserName
                         </h5>
                     </div>
-                    <div class="card-body messages-container overflow-auto flex-grow-1">
+                    <div class="card-body messages-container overflow-auto flex-grow-1" id="messages-container">
                         @if (Model.ActiveConversation.Messages.Any())
                         {
                             @foreach (var message in Model.ActiveConversation.Messages)
                             {
-                                <div class="message @(message.IsFromCurrentUser ? "message-sent" : "message-received")">
+                                <div class="message @(message.IsFromCurrentUser ? "message-sent" : "message-received")" id="message-@message.MessageId">
                                     <div class="message-content">
                                         <div class="message-header">
                                             @if (!message.IsFromCurrentUser)
@@ -106,17 +108,20 @@
                         }
                     </div>
                     <div class="card-footer">
-                        <form asp-action="SendMessage" method="post">
+                        <form id="message-form" asp-action="SendMessage" method="post">
                             <input type="hidden" asp-for="ActiveConversation.NewMessage.ConversationId" value="@Model.ActiveConversation.ConversationId" />
                             <input type="hidden" asp-for="ActiveConversation.NewMessage.RecipientId" value="@Model.ActiveConversation.OtherUserId" />
+                            <input type="hidden" id="currentUserId" value="@User.FindFirstValue(ClaimTypes.NameIdentifier)" />
+
+                            @Html.AntiForgeryToken() 
 
                             <div class="input-group">
-                                <input type="text" asp-for="ActiveConversation.NewMessage.Content" class="form-control" placeholder="Type your message..." required />
-                                <button type="submit" class="btn btn-primary">
+                                <input type="text" asp-for="ActiveConversation.NewMessage.Content" id="message-input" class="form-control" placeholder="Type your message..." required />
+                                <button type="submit" class="btn" style="background-color: #004085; color: #fff;">
                                     <i class="fas fa-paper-plane"></i> Send
                                 </button>
                             </div>
-                            <span asp-validation-for="ActiveConversation.NewMessage.Content" class="text-danger"></span>
+                            <div id="message-error" class="text-danger"></div>
                         </form>
                     </div>
                 </div>
@@ -191,3 +196,170 @@
         }
     </style>
 }
+
+@section Scripts {
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Set up SignalR connection
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/messageHub")
+                .build();
+
+            // Get current conversation ID if we're in an active conversation
+            const conversationId = '@(Model.ActiveConversation?.ConversationId.ToString() ?? string.Empty)';
+            const currentUserId = $('#currentUserId').val();
+
+            // Join the conversation group when connection starts
+            connection.start().then(function () {
+                console.log("SignalR Connected!");
+
+                if (conversationId) {
+                    connection.invoke("JoinConversation", conversationId);
+                    console.log("Joined conversation:", conversationId);
+                }
+            }).catch(function (err) {
+                console.error(err.toString());
+            });
+
+            // Handle receiving messages
+            connection.on("ReceiveMessage", function (messageId, senderId, senderName, senderMoodIcon, content, createdAt) {
+                console.log("Received message:", messageId, senderId, content);
+
+                // Format the date
+                const date = new Date(createdAt);
+                const formattedDate = date.toLocaleString();
+
+                // Check if this is from the current user or someone else
+                const isFromCurrentUser = (senderId === currentUserId);
+                const messageClass = isFromCurrentUser ? "message-sent" : "message-received";
+
+                // Create message HTML
+                let messageHtml = `
+                                    <div class="message ${messageClass}" id="message-${messageId}">
+                                        <div class="message-content">
+                                            <div class="message-header">`;
+
+                // Only show sender info if it's not from current user
+                if (!isFromCurrentUser) {
+                    messageHtml += `
+                                        <span class="message-sender">`;
+
+                    if (senderMoodIcon) {
+                        messageHtml += `<span class="me-1">${senderMoodIcon}</span>`;
+                    }
+
+                    messageHtml += `${senderName}</span>`;
+                }
+
+                messageHtml += `
+                                            <small class="message-time">${formattedDate}</small>
+                                        </div>
+                                        <p class="mb-0">${content}</p>
+                                    </div>
+                                </div>`;
+
+                // Add message to container
+                $("#messages-container").append(messageHtml);
+
+                // Scroll to bottom of messages
+                $("#messages-container").scrollTop($("#messages-container")[0].scrollHeight);
+
+                // Update conversation list preview
+                if (conversationId) {
+                    const conversationElement = $(`.list-group-item[data-conversation-id="${conversationId}"]`);
+                    if (conversationElement.length) {
+                        // Update message preview (truncate if needed)
+                        let preview = content;
+                        if (preview.length > 30) {
+                            preview = preview.substring(0, 27) + "...";
+                        }
+                        conversationElement.find(".message-preview").text(preview);
+
+                        // Update timestamp
+                        conversationElement.find(".message-time").text(formattedDate);
+
+                        // If not from current user, increase unread count
+                        if (!isFromCurrentUser) {
+                            const unreadBadge = conversationElement.find(".unread-count");
+                            if (unreadBadge.length) {
+                                const currentCount = parseInt(unreadBadge.text());
+                                unreadBadge.text(currentCount + 1);
+                            } else {
+                                // Add a new badge
+                                conversationElement.find(".d-flex").append('<span class="badge bg-primary rounded-pill unread-count">1</span>');
+                            }
+                        }
+                    }
+                }
+            });
+
+            // THIS IS THE KEY CHANGE - Make sure the form submission is properly intercepted
+            $("#message-form").on("submit", function (e) {
+                e.preventDefault();
+
+                const form = $(this);
+                const url = form.attr("action");
+                const messageInput = $("#message-input");
+                const message = messageInput.val().trim();
+                const errorContainer = $("#message-error");
+                const conversationId = $("input[name='ActiveConversation.NewMessage.ConversationId']").val();
+                const recipientId = $("input[name='ActiveConversation.NewMessage.RecipientId']").val();
+
+                // Clear any previous error messages
+                errorContainer.text("");
+
+                // Validate message
+                if (!message) {
+                    errorContainer.text("Please enter a message.");
+                    return false;
+                }
+
+                // Prepare data for submission
+                const formData = {
+                    'ActiveConversation.NewMessage.Content': message,
+                    'ActiveConversation.NewMessage.ConversationId': conversationId,
+                    'ActiveConversation.NewMessage.RecipientId': recipientId,
+                    '__RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                };
+
+                $.ajax({
+                    type: "POST",
+                    url: url,
+                    data: formData,
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+                    success: function (response) {
+                        console.log("Server response:", response);
+
+                        if (response.success) {
+                            // Clear the input field on success
+                            messageInput.val('');
+                            errorContainer.text(''); // Clear any previous errors
+                        } else {
+                            // Display error message
+                            console.error("Server returned error:", response);
+                            errorContainer.text(response.error || "Failed to send message.");
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("AJAX Error:", xhr.responseText);
+                        console.error("Status:", status);
+                        console.error("Error:", error);
+
+                        // Try to parse the error response
+                        try {
+                            const errorResponse = JSON.parse(xhr.responseText);
+                            errorContainer.text(errorResponse.error || "Failed to send message. Please try again.");
+                        } catch {
+                            errorContainer.text("Failed to send message. Please try again.");
+                        }
+                    }
+                });
+
+                return false;
+            });
+        });
+    </script>
+    }

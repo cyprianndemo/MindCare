@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using MindCare.Data;
+using MindCare.Hubs;
 using MindCare.Models;
 using MindCare.ViewModel;
 using System;
@@ -19,11 +21,16 @@ namespace MindCare.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IHubContext<MessageHub> _hubContext;
 
-        public PeerSupportController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public PeerSupportController(
+            ApplicationDbContext context,
+            UserManager<ApplicationUser> userManager,
+            IHubContext<MessageHub> hubContext)
         {
             _context = context;
             _userManager = userManager;
+            _hubContext = hubContext;
         }
 
         public IActionResult Index()
@@ -536,56 +543,117 @@ namespace MindCare.Controllers
         // Send a direct message
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SendMessage(CreateMessageViewModel model)
+        public async Task<IActionResult> SendMessage(MessagesViewModel model)
         {
-            if (!ModelState.IsValid)
+            // Extract the message details from the nested object
+            var newMessage = model.ActiveConversation?.NewMessage;
+
+            // Detailed logging to understand the incoming data
+            Console.WriteLine($"Conversation ID: {newMessage?.ConversationId}");
+            Console.WriteLine($"Recipient ID: {newMessage?.RecipientId}");
+            Console.WriteLine($"Message Content: {newMessage?.Content}");
+
+            // Explicit null and empty checks
+            if (newMessage == null)
             {
-                TempData["Error"] = "Please enter a valid message.";
-                return RedirectToAction(nameof(DirectMessages), new { peerId = model.RecipientId });
+                return Json(new { success = false, error = "Message details are missing." });
+            }
+
+            if (string.IsNullOrWhiteSpace(newMessage.Content))
+            {
+                return Json(new { success = false, error = "Message cannot be empty." });
             }
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var currentUser = await _userManager.FindByIdAsync(userId);
+            var recipient = await _userManager.FindByIdAsync(newMessage.RecipientId);
 
-            // Verify the conversation exists and involves the current user
-            var conversation = await _context.Conversations
-                .FirstOrDefaultAsync(c => c.ConversationId == model.ConversationId &&
-                                         (c.User1Id == userId || c.User2Id == userId));
-
-            if (conversation == null)
+            if (currentUser == null || recipient == null)
             {
-                TempData["Error"] = "Conversation not found.";
-                return RedirectToAction(nameof(DirectMessages));
+                return Json(new { success = false, error = "Invalid user." });
             }
+
+            // Find or create conversation
+            var conversation = await FindOrCreateConversation(userId, newMessage.RecipientId);
 
             // Create and save the message
             var message = new DirectMessage
             {
-                ConversationId = model.ConversationId,
+                ConversationId = newMessage.ConversationId,
                 SenderId = userId,
-                RecipientId = model.RecipientId,
-                Content = model.Content,
+                RecipientId = newMessage.RecipientId,
+                Content = newMessage.Content.Trim(),
                 CreatedAt = DateTime.UtcNow,
                 IsRead = false
             };
 
-            _context.DirectMessages.Add(message);
-            await _context.SaveChangesAsync();
-
-            // Create notification for recipient
-            var notification = new Notification
+            try
             {
-                UserId = model.RecipientId,
-                Message = "You have a new direct message.",
-                CreatedAt = DateTime.UtcNow,
-                IsRead = false,
-                Type = "Message",
-                Link = $"/PeerSupport/DirectMessages?peerId={userId}"
-            };
+                _context.DirectMessages.Add(message);
+                await _context.SaveChangesAsync();
 
-            _context.Notifications.Add(notification);
-            await _context.SaveChangesAsync();
+                // Create notification
+                var notification = new Notification
+                {
+                    UserId = newMessage.RecipientId,
+                    Message = $"New message from {currentUser.FirstName} {currentUser.LastName}",
+                    CreatedAt = DateTime.UtcNow,
+                    IsRead = false,
+                    Type = "Message",
+                    Link = $"/PeerSupport/DirectMessages?peerId={userId}"
+                };
 
-            return RedirectToAction(nameof(DirectMessages), new { peerId = model.RecipientId });
+                _context.Notifications.Add(notification);
+                await _context.SaveChangesAsync();
+
+                // Send real-time notification via SignalR
+                await _hubContext.Clients.Group(conversation.ConversationId.ToString())
+                    .SendAsync("ReceiveMessage",
+                        message.MessageId.ToString(),
+                        userId,
+                        $"{currentUser.FirstName} {currentUser.LastName}",
+                        currentUser.CurrentMoodIcon ?? "😊",
+                        message.Content,
+                        message.CreatedAt);
+
+                return Json(new
+                {
+                    success = true,
+                    messageId = message.MessageId,
+                    content = message.Content,
+                    createdAt = message.CreatedAt
+                });
+            }
+            catch (Exception ex)
+            {
+                // Log the exception (use proper logging in production)
+                Console.WriteLine($"Message sending error: {ex.Message}");
+                return Json(new { success = false, error = "Failed to send message. Please try again." });
+            }
+        }
+
+        // Helper method to find or create a conversation
+        private async Task<Conversation> FindOrCreateConversation(string user1Id, string user2Id)
+        {
+            var conversation = await _context.Conversations
+                .FirstOrDefaultAsync(c =>
+                    (c.User1Id == user1Id && c.User2Id == user2Id) ||
+                    (c.User2Id == user1Id && c.User1Id == user2Id));
+
+            if (conversation == null)
+            {
+                conversation = new Conversation
+                {
+                    User1Id = user1Id,
+                    User2Id = user2Id,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _context.Conversations.Add(conversation);
+                await _context.SaveChangesAsync();
+            }
+
+            return conversation;
         }
     }
-}
+ }

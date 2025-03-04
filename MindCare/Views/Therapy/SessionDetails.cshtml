@@ -4,54 +4,57 @@
     ViewData["Title"] = "Session Details";
 }
 
-    <div class="container mt-5">
-        <h2 class="text-center text-primary mb-4">Session Details</h2>
+<div class="container mt-5">
+    <h2 class="text-center text-primary mb-4">Session Details</h2>
 
-        @if (Model != null)
-        {
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Appointment Information</h5>
+    @if (Model != null)
+    {
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Appointment Information</h5>
 
-                    <p><strong>Therapist:</strong> @Model.Therapist.FirstName @Model.Therapist.LastName</p>
-                    <p><strong>Date:</strong> @Model.StartTime.ToLocalTime().ToString("dd/MM/yyyy")</p>
-                    <p><strong>Time:</strong> @Model.StartTime.ToLocalTime().ToString("HH:mm") - @Model.EndTime.ToLocalTime().ToString("HH:mm")</p>
-                    <p><strong>Status:</strong> <span class="text-@(Model.Status == "Cancelled" ? "danger" : "success")">@Model.Status</span></p>
+                <p><strong>Therapist:</strong> @Model.Therapist.FirstName @Model.Therapist.LastName</p>
+                <p><strong>Date:</strong> @Model.StartTime.ToLocalTime().ToString("dd/MM/yyyy")</p>
+                <p><strong>Time:</strong> @Model.StartTime.ToLocalTime().ToString("HH:mm") - @Model.EndTime.ToLocalTime().ToString("HH:mm")</p>
+                <p><strong>Status:</strong> <span class="text-@(Model.Status == "Cancelled" ? "danger" : "success")">@Model.Status</span></p>
 
-                    <div class="mt-4 text-right">
+                <!-- Buttons Section -->
+                <div class="mt-4 text-right">
+                    <!-- Edit Appointment Button -->
                     <a href="@Url.Action("Edit", "Therapy", new { id = Model.AppointmentId })" class="btn" style="background-color: #004085; color: #fff;">Edit Appointment</a>
                     <a href="@Url.Action("Pay", "Checkout", new { id = Model.AppointmentId })" class="btn" style="background-color: #004085; color: #fff;">Pay Session</a>
 
-                        <form action="@Url.Action("Cancel", "Therapy", new { id = Model.AppointmentId })" method="post" class="d-inline">
-                            @Html.AntiForgeryToken()
+                    <!-- Cancel Appointment Button -->
+                    <form action="@Url.Action("Cancel", "Therapy", new { id = Model.AppointmentId })" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
                         <button type="submit" class="btn" style="background-color: #004085; color: #fff;">Cancel Appointment</button>
-                        </form>
-                    </div>
+                    </form>
+                </div>
 
-                    @if ( Model.Status == "Approved")
-                    {
+                @if (Model.Status == "Approved")
+                {
                     <div class="mt-3">
                         <a href="@ViewBag.VideoCallLink" target="_blank" class="btn" style="background-color: #004085; color: #fff;">
                             <i class="bi bi-camera-video"></i> Start Video Call
                         </a>
                     </div>
-                    }
-                    else
-                    {
-                        <p class="text-danger mt-3">The session must be confirmed to start a video call.</p>
-                    }
-                </div>
+                }
+                else
+                {
+                    <p class="text-danger mt-3">The session must be confirmed to start a video call.</p>
+                }
             </div>
+        </div>
 
-            <!-- Back to Sessions Button -->
-            <div class="text-center mt-4">
+        <!-- Back to Sessions Button -->
+        <div class="text-center mt-4">
             <a href="@Url.Action("TherapySessions", "Therapy")" class="btn" style="background-color: #004085; color: #fff;">Back to Sessions</a>
-            </div>
-        }
-        else
-        {
-            <div class="alert alert-warning text-center" role="alert">
-                Appointment not found.
-            </div>
-        }
-    </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning text-center" role="alert">
+            Appointment not found.
+        </div>
+    }
+</div>

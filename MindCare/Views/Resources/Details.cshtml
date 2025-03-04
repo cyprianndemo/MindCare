@@ -1,0 +1,167 @@
+﻿@model MindCare.MentalResources.MentalHealthResource
+@{
+    ViewBag.Title = Model.Title;
+}
+
+<div class="container resource-details">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Resources")">Resources</a></li>
+                    <li class="breadcrumb-item">
+                        <a href="@Url.Action("Category", "Resources", new { id = Model.CategoryId })">
+                            @(Model.CategoryId == 1 ? "Articles" :
+                                Model.CategoryId == 2 ? "Exercises" :
+                                Model.CategoryId == 3 ? "Professional Help" :
+                                Model.CategoryId == 4 ? "Self-Help Tools" : "Resources")
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">@Model.Title</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <article class="resource-article">
+                <h1 class="mb-4">@Model.Title</h1>
+
+                @if (Model.PublishedDate.HasValue)
+                {
+                    <p class="text-muted">
+                        <i class="far fa-calendar-alt"></i> Published on @Model.PublishedDate.Value.ToString("MMMM d, yyyy")
+                        @if (!string.IsNullOrEmpty(Model.Author))
+                        {
+                            <span> • <i class="far fa-user"></i> @Model.Author</span>
+                        }
+                    </p>
+                }
+
+                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                {
+                    <div class="featured-image mb-4">
+                        <img src="@Model.ImageUrl" class="img-fluid rounded" alt="@Model.Title">
+                    </div>
+                }
+
+                <div class="resource-content">
+                    @Html.Raw(Model.Content)
+                </div>
+
+                @if (Model.Tags != null && Model.Tags.Any())
+                {
+                    <div class="mt-5 mb-4">
+                        <h5>Tags</h5>
+                        <div>
+                            @foreach (var tag in Model.Tags)
+                            {
+                                <span class="badge me-1 mb-1" style="background-color: #004085; color: #fff;">@tag</span>
+                            }
+                        </div>
+                    </div>
+                }
+            </article>
+
+            <div class="mt-5">
+                <a href="@Url.Action("Category", "Resources", new { id = Model.CategoryId })" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Need Immediate Help?</h5>
+                </div>
+                <div class="card-body">
+                    <p>If you're experiencing a mental health crisis or having thoughts of suicide, please reach out for help immediately:</p>
+                    <ul class="list-unstyled">
+                        <li><strong>988 Suicide & Crisis Lifeline</strong><br>Call or text 988</li>
+                        <li class="mt-2"><strong>Crisis Text Line</strong><br>Text HOME to 741741</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Related Resources</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        @foreach (var tag in Model.Tags.Take(1))
+                        {
+                            <a href="@Url.Action("Category", "Resources", new { id = Model.CategoryId })" class="list-group-item list-group-item-action">
+                                More resources about @tag
+                            </a>
+                        }
+                        <a href="@Url.Action("WhySeekHelp", "Resources")" class="list-group-item list-group-item-action">
+                            Why Seek Professional Help
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Share This Resource</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-around">
+                        <a href="#" class="social-share-link" title="Share on Facebook">
+                            <i class="fab fa-facebook-square fa-2x"></i>
+                        </a>
+                        <a href="#" class="social-share-link" title="Share on Twitter">
+                            <i class="fab fa-twitter-square fa-2x"></i>
+                        </a>
+                        <a href="#" class="social-share-link" title="Share on LinkedIn">
+                            <i class="fab fa-linkedin fa-2x"></i>
+                        </a>
+                        <a href="#" class="social-share-link" title="Share via Email">
+                            <i class="fas fa-envelope-square fa-2x"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .resource-article {
+            font-size: 1.1rem;
+            line-height: 1.7;
+        }
+
+        .resource-content h2 {
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .resource-content h3 {
+            margin-top: 1.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .resource-content p {
+            margin-bottom: 1.5rem;
+        }
+
+        .resource-content ul, .resource-content ol {
+            margin-bottom: 1.5rem;
+            padding-left: 1.5rem;
+        }
+
+        .social-share-link {
+            color: #6c757d;
+            transition: color 0.2s;
+        }
+
+            .social-share-link:hover {
+                color: #0d6efd;
+            }
+    </style>
+}

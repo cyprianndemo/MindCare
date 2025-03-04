@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MindCare.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MindCare.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250303151506_new2")]
+    partial class new2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1018,11 +1021,11 @@ namespace MindCare.Migrations
 
             modelBuilder.Entity("MindCare.Models.Payment", b =>
                 {
-                    b.Property<int?>("PaymentId")
+                    b.Property<int>("PaymentId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int?>("PaymentId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PaymentId"));
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("numeric");
@@ -1036,7 +1039,7 @@ namespace MindCare.Migrations
                     b.Property<string>("MerchantRequestID")
                         .HasColumnType("text");
 
-                    b.Property<int?>("Method")
+                    b.Property<int>("Method")
                         .HasColumnType("integer");
 
                     b.Property<string>("MpesaReceiptNumber")
@@ -1048,8 +1051,12 @@ namespace MindCare.Migrations
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("text");
 
-                    b.Property<int?>("Status")
+                    b.Property<int>("Status")
                         .HasColumnType("integer");
+
+                    b.Property<string>("StudentId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("TransactionCode")
                         .HasColumnType("text");
@@ -1058,14 +1065,12 @@ namespace MindCare.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("TransactionId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("UserId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("PaymentId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("StudentId");
 
                     b.ToTable("Payments");
                 });
@@ -1692,9 +1697,11 @@ namespace MindCare.Migrations
 
             modelBuilder.Entity("MindCare.Models.Payment", b =>
                 {
-                    b.HasOne("MindCare.Models.ApplicationUser", "Student")
+                    b.HasOne("MindCare.Models.Student", "Student")
                         .WithMany()
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Student");
                 });

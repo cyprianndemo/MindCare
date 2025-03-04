@@ -138,13 +138,16 @@ namespace MindCare.ViewModel
     // View model for creating a new message
     public class CreateMessageViewModel
     {
+        [Required(ErrorMessage = "Conversation ID is required.")]
         public int ConversationId { get; set; }
+
+        [Required(ErrorMessage = "Recipient ID is required.")]
         public string RecipientId { get; set; }
 
-        [Required(ErrorMessage = "Message content is required")]
+        [Required(ErrorMessage = "Message content is required.")]
+        [StringLength(500, ErrorMessage = "Message cannot be longer than 500 characters.")]
         public string Content { get; set; }
     }
-
     // View model for messages page
     public class MessagesViewModel
     {

@@ -3,6 +3,7 @@
     public enum PaymentMethod
     {
         Stripe,
-        MPesa
+        MPesa,
+        Test
     }
 }

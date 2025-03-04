@@ -106,5 +106,6 @@ namespace MindCare.Data
         public DbSet<MentalHealthExercise> MentalHealthExercises { get; set; }
         public DbSet<ProfessionalResource> ProfessionalResources { get; set; }
         public DbSet<MentalHealthAssessment> MentalHealthAssessments { get; set; }
+        
     }
 }

@@ -97,3 +97,77 @@ body {
     right: 20px;
     z-index: 1060;
 }
+/* Resources Section Styles */
+.resources-container {
+    padding-bottom: 3rem;
+}
+
+.resource-category-card .category-icon {
+    margin-bottom: 1.5rem;
+    color: #5a67d8;
+}
+
+.resource-card .card-img-top {
+    height: 180px;
+    object-fit: cover;
+}
+
+.resource-article {
+    font-size: 1.1rem;
+    line-height: 1.7;
+}
+
+    .resource-article h2 {
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    .resource-article h3 {
+        margin-top: 1.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .resource-article p {
+        margin-bottom: 1.5rem;
+    }
+
+    .resource-article ul, .resource-article ol {
+        margin-bottom: 1.5rem;
+        padding-left: 1.5rem;
+    }
+
+.resources-header {
+    background-color: #f8f9fa;
+    padding: 3rem 0;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+/* Card Hover Effects */
+.resource-category-card, .resource-card, .reason-card {
+    transition: transform 0.3s;
+}
+
+    .resource-category-card:hover, .resource-card:hover, .reason-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+/* Why Seek Help Page */
+.reason-icon {
+    color: #5a67d8;
+}
+
+.when-to-seek-help li {
+    margin-bottom: 0.75rem;
+}
+
+/* Social Share Links */
+.social-share-link {
+    color: #6c757d;
+    transition: color 0.2s;
+}
+
+    .social-share-link:hover {
+        color: #0d6efd;
+    }

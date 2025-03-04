@@ -6,17 +6,19 @@ namespace MindCare.Models
     public class Payment
     {
         [Key]
-        public int PaymentId { get; set; }
-        public string TransactionId { get; set; }
+        public int? PaymentId { get; set; }
+        public string? TransactionId { get; set; }
 
         public decimal Amount { get; set; }
         public DateTime PaymentDate { get; set; }
-        public PaymentStatus Status { get; set; }
-        public PaymentMethod Method { get; set; }
-        public string? TenantId { get; set; }
-        [ForeignKey("StudentId")]
-        public Student Student { get; set; }
-        
+        public PaymentStatus? Status { get; set; }
+        public PaymentMethod? Method { get; set; }
+        public string? UserId { get; set; }
+
+        [ForeignKey("UserId")]
+        public virtual ApplicationUser? Student { get; set; }
+/*        public int? AppointmentId { get; set; }
+*/
         public string? TransactionCode { get; set; }
         public string? PhoneNumber { get; set; }
         public string? MpesaReceiptNumber { get; set; }

@@ -1,0 +1,217 @@
+﻿@model List<MindCare.MentalResources.TherapyReason>
+@{
+    ViewBag.Title = "Why Seek Professional Help";
+}
+
+<div class="container why-seek-help">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Resources")">Resources</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Why Seek Professional Help</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-lg-8 offset-lg-2 text-center">
+            <h1 class="mb-4">Why Seek Professional Mental Health Support</h1>
+            <p class="lead">
+                Taking the step to seek professional mental health support is a sign of strength, not weakness.
+                Professional help can provide benefits that self-help strategies alone may not offer.
+            </p>
+        </div>
+    </div>
+
+    <div class="row mb-5">
+        @foreach (var reason in Model)
+        {
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 reason-card">
+                    <div class="card-body text-center">
+                        <div class="reason-icon mb-3">
+                            <i class="fas @reason.IconClass fa-3x"></i>
+                        </div>
+                        <h4 class="card-title">@reason.Title</h4>
+                        <p class="card-text">@reason.Description</p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-lg-10 offset-lg-1">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">When to Consider Professional Help</h3>
+                </div>
+                <div class="card-body">
+                    <p>While everyone experiences ups and downs, there are certain signs that might indicate it's time to seek professional support:</p>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="when-to-seek-help">
+                                <li>Feeling sad, anxious, or "empty" for an extended period</li>
+                                <li>Experiencing overwhelming feelings of hopelessness or helplessness</li>
+                                <li>Withdrawing from things you used to enjoy</li>
+                                <li>Having difficulty concentrating or making decisions</li>
+                                <li>Changes in sleep patterns (sleeping too much or too little)</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="when-to-seek-help">
+                                <li>Significant changes in appetite or weight</li>
+                                <li>Having frequent thoughts about death or suicide</li>
+                                <li>Struggling to perform daily tasks or responsibilities</li>
+                                <li>Using substances to cope with emotional pain</li>
+                                <li>When mental health challenges interfere with relationships, work, or other important areas of life</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mt-4" role="alert">
+                        <strong>Important:</strong> If you're experiencing thoughts of harming yourself or others, seek help immediately by calling 988 (National Suicide Prevention Lifeline) or going to your nearest emergency room.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-lg-10 offset-lg-1">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">Types of Professional Mental Health Support</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <h4><i class="fas fa-user-md text-primary me-2"></i> Psychiatrists</h4>
+                            <p>
+                                Medical doctors who specialize in mental health. They can diagnose conditions,
+                                provide therapy, and prescribe medications when needed.
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <h4><i class="fas fa-brain text-primary me-2"></i> Psychologists</h4>
+                            <p>
+                                Mental health professionals with doctoral degrees who specialize in assessment,
+                                diagnosis, and therapy for mental health conditions. They cannot prescribe medication
+                                in most states.
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <h4><i class="fas fa-comments text-primary me-2"></i> Therapists & Counselors</h4>
+                            <p>
+                                Licensed professionals who provide talk therapy to help people work through their challenges.
+                                This includes Licensed Clinical Social Workers (LCSW), Licensed Professional Counselors (LPC),
+                                Marriage and Family Therapists (MFT), and others.
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <h4><i class="fas fa-hands-helping text-primary me-2"></i> Support Groups</h4>
+                            <p>
+                                Groups led by professionals or peers where people with similar experiences can share
+                                support, encouragement, and coping strategies.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-lg-10 offset-lg-1">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">Overcoming Barriers to Seeking Help</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <h4>Stigma</h4>
+                            <p>
+                                Mental health stigma can prevent people from seeking help. Remember that caring for your mental
+                                health is just as important as caring for your physical health. Many people receive mental health
+                                support at some point in their lives.
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <h4>Cost</h4>
+                            <p>
+                                Many insurance plans cover mental health services. Community mental health centers, training clinics,
+                                and telehealth options often offer more affordable options. Some therapists offer sliding scale fees
+                                based on income.
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <h4>Time</h4>
+                            <p>
+                                Many providers offer evening and weekend appointments. Telehealth options can also make it easier
+                                to fit therapy into a busy schedule by eliminating travel time.
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <h4>Not Knowing Where to Start</h4>
+                            <p>
+                                Talk to your primary care doctor for a referral, contact your insurance company for in-network providers,
+                                or use online directories like Psychology Today to find providers in your area.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-10 offset-lg-1">
+            <div class="text-center mb-5">
+                <h3>Ready to Take the Next Step?</h3>
+                <p class="lead">
+                    Explore our resources on finding a mental health professional and what to expect in therapy.
+                </p>
+                <a href="@Url.Action("Category", "Resources", new { id = 3 })" class="btn" style="background-color: #004085; color: #fff; btn-lg">
+                    Professional Help Resources
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <a href="@Url.Action("Index", "Resources")" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to All Resources
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .why-seek-help {
+            padding-bottom: 3rem;
+        }
+
+        .reason-icon {
+            color: #5a67d8;
+        }
+
+        .reason-card {
+            transition: transform 0.3s;
+        }
+
+            .reason-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            }
+
+        .when-to-seek-help li {
+            margin-bottom: 0.75rem;
+        }
+    </style>
+}

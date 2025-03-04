@@ -144,12 +144,14 @@ namespace MindCare.Controllers
                 }
             }
 
+            // Save the appointment
             _context.Add(appointment);
             await _context.SaveChangesAsync();
 
             await SendAppointmentConfirmationEmail(appointment);
 
-            return RedirectToAction(nameof(TherapySessions));
+            // Redirect to payment page with the newly created appointment ID
+            return RedirectToAction("Pay", "Checkout", new { appointmentId = appointment.AppointmentId });
         }
 
         // Check if the user already has an appointment at the same time or within an hour
@@ -316,6 +318,33 @@ namespace MindCare.Controllers
 
             return RedirectToAction(nameof(TherapySessions));
         }
+        // Add this method to your TherapyController class
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var appointment = await _context.Appointments.FindAsync(id);
+
+            if (appointment == null)
+            {
+                return NotFound();
+            }
+
+            // Make sure the current user is the one who booked the appointment or is an admin
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (appointment.StudentId != userId && !User.IsInRole("Admin"))
+            {
+                return Forbid(); // Users can only delete their own appointments
+            }
+
+            _context.Appointments.Remove(appointment);
+            await _context.SaveChangesAsync();
+
+            // Optionally send notification email about deletion
+            // await SendAppointmentDeletionEmail(appointment);
+
+            return RedirectToAction(nameof(TherapySessions));
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -344,13 +373,17 @@ namespace MindCare.Controllers
         {
             var appointment = await _context.Appointments
                 .Include(a => a.Therapist)
-                .Include(a => a.Psychiatrist)
                 .FirstOrDefaultAsync(a => a.AppointmentId == id);
 
             if (appointment == null)
             {
                 return NotFound();
             }
+
+            // Generate a video call link (using Jitsi Meet as an example)
+            // Customize the link generation logic if using other services
+            string videoCallRoom = $"MindCare_{appointment.AppointmentId}_{appointment.TherapistId}";
+            ViewBag.VideoCallLink = $"https://meet.jit.si/{videoCallRoom}";
 
             return View(appointment);
         }
@@ -481,5 +514,6 @@ namespace MindCare.Controllers
             mailMessage.To.Add(user.Email);
             await smtpClient.SendMailAsync(mailMessage);
         }
+
     }
 }

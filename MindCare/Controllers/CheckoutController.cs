@@ -40,52 +40,108 @@ namespace MindCare.Controllers
         }
 
         [HttpGet]
-        public IActionResult Pay()
+        public IActionResult Pay(int appointmentId)
         {
             var viewModel = new PaymentViewModel();
+            var appointment = _context.Appointments.FirstOrDefault(a => a.AppointmentId == appointmentId);
+            if (appointment == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.AppointmentId = appointmentId;
+            ViewBag.Amount = 1500;
+
             return View(viewModel);
         }
 
         [HttpPost]
-        public IActionResult TestPayment(PaymentViewModel model)
+        public async Task<IActionResult> TestPayment([FromForm] TestPaymentViewModel model)
         {
             if (!ModelState.IsValid)
             {
                 return Json(new { success = false, errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
             }
 
-            // Create receipt data
-            var receiptData = new ReceiptViewModel
+            try
             {
-                ReceiptNumber = GenerateReceiptNumber(),
-                TransactionId = Guid.NewGuid().ToString("N"),
-                PaymentDate = DateTime.UtcNow,
-                Amount = model.Amount,
-                PaymentMethod = "Test Payment",
-                Status = "Completed",
-                CustomerDetails = new CustomerDetails
+                // Get current user
+                var currentUser = await _userManager.GetUserAsync(User);
+                if (currentUser == null)
                 {
-                    Name = "Test Customer",
-                    Email = "test@example.com",
-                    PhoneNumber = model.PhoneNumber
+                    return Json(new { success = false, errors = new[] { "User not authenticated" } });
                 }
-            };
 
-            // Store receipt data in TempData for retrieval in receipt view
-            TempData["ReceiptData"] = System.Text.Json.JsonSerializer.Serialize(receiptData);
+                // Generate a unique transaction ID
+                string transactionId = Guid.NewGuid().ToString("N");
 
-            var response = new
+                // Create and save payment record
+                var payment = new Payment
+                {
+                    TransactionId = transactionId,
+                    Amount = model.Amount,
+                    PaymentDate = DateTime.UtcNow,
+                    Status = PaymentStatus.Completed,
+                    Method = MindCare.Models.PaymentMethod.Test,
+                    TransactionDate = DateTime.UtcNow,
+                    PhoneNumber = model.PhoneNumber ?? "N/A",
+                    TransactionCode = $"TEST-{DateTime.Now.ToString("yyyyMMddHHmmss")}",
+                    IsSuccessful = true,
+                    // Store the user ID directly instead of looking up a Student
+                    UserId = currentUser.Id // Assuming Payment has a UserId field
+                };
+
+                // Add and save to database
+                _context.Payments.Add(payment);
+                await _context.SaveChangesAsync();
+
+                // Create receipt data
+                var receiptData = new ReceiptViewModel
+                {
+                    ReceiptNumber = $"RCP-{DateTime.Now.ToString("yyyyMMdd-HHmmss")}",
+                    TransactionId = transactionId,
+                    PaymentDate = payment.PaymentDate,
+                    Amount = model.Amount,
+                    PaymentMethod = "Test Payment",
+                    Status = "Completed",
+                    CustomerDetails = new CustomerDetails
+                    {
+                        Name = $"{currentUser.FirstName} {currentUser.LastName}",
+                        Email = currentUser.Email,
+                        PhoneNumber = model.PhoneNumber ?? "N/A"
+                    }
+                };
+
+                // Store receipt data in TempData for retrieval in receipt view
+                TempData["ReceiptData"] = System.Text.Json.JsonSerializer.Serialize(receiptData);
+
+                _logger.LogInformation($"Test payment successful. Transaction ID: {transactionId}");
+
+                var response = new
+                {
+                    success = true,
+                    transactionId = transactionId,
+                    amount = model.Amount,
+                    date = payment.PaymentDate,
+                    message = "Test payment processed successfully",
+                    receiptUrl = Url.Action("Receipt", "Checkout", new { id = transactionId })
+                };
+
+                return Json(response);
+            }
+            catch (Exception ex)
             {
-                success = true,
-                transactionId = receiptData.TransactionId,
-                amount = model.Amount,
-                date = receiptData.PaymentDate,
-                message = "Test payment processed successfully",
-                receiptUrl = Url.Action("Receipt", "Payment", new { id = receiptData.TransactionId })
-            };
-
-            return Json(response);
+                _logger.LogError(ex, "Error processing test payment: " + ex.Message);
+                if (ex.InnerException != null)
+                {
+                    _logger.LogError("Inner exception: " + ex.InnerException.Message);
+                }
+                return Json(new { success = false, errors = new[] { "An error occurred while processing the payment." } });
+            }
         }
+
+        // Rest of the controller methods remain the same...
+
         public IActionResult PaymentSuccess(decimal amount)
         {
             return View(amount);
@@ -114,20 +170,38 @@ namespace MindCare.Controllers
                     return NotFound("Payment not found");
                 }
 
+                // Determine payment method name based on the Method enum
+                string paymentMethodName;
+                switch (payment.Method)
+                {
+                    case MindCare.Models.PaymentMethod.MPesa:
+                        paymentMethodName = "M-Pesa";
+                        break;
+                    case MindCare.Models.PaymentMethod.Stripe:
+                        paymentMethodName = "Visa";
+                        break;
+                    case MindCare.Models.PaymentMethod.Test:
+                        paymentMethodName = "Test Payment";
+                        break;
+                    default:
+                        paymentMethodName = "Other";
+                        break;
+                }
+
                 // Create receipt view model
                 var receiptData = new ReceiptViewModel
                 {
-                    ReceiptNumber = payment.MpesaReceiptNumber ?? $"RCP-{payment.TransactionId}",
+                    ReceiptNumber = payment.MpesaReceiptNumber ?? $"RCP-{payment.TransactionId.Substring(0, 8)}",
                     TransactionId = payment.TransactionId,
-                    PaymentDate = payment.TransactionDate,
+                    PaymentDate = payment.PaymentDate,
                     Amount = payment.Amount,
-                    PaymentMethod = "M-Pesa",
+                    PaymentMethod = paymentMethodName,
                     Status = payment.IsSuccessful ? "Completed" : "Failed",
                     CustomerDetails = new CustomerDetails
                     {
                         Name = $"{currentUser.FirstName} {currentUser.LastName}",
                         Email = currentUser.Email,
-                        PhoneNumber = payment.PhoneNumber 
+                        PhoneNumber = payment.PhoneNumber ?? "N/A"
                     }
                 };
 
@@ -142,14 +216,14 @@ namespace MindCare.Controllers
                 });
             }
         }
-    
 
-    private string GenerateReceiptNumber()
+
+        private string GenerateReceiptNumber()
         {
             return "RCP-" + DateTime.Now.ToString("yyyyMMdd-HHmmss");
         }
-    
-    [HttpPost]
+
+        [HttpPost]
         [ActionName("PayWithMpesa")]
         public async Task<IActionResult> PayWithMpesa(PaymentViewModel model)
         {

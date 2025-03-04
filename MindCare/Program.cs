@@ -7,16 +7,19 @@ using MindCare.Data;
 using MindCare.Hubs;
 using MindCare.Models;
 using MindCare.Services;
+using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
-    
+
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddRoles<IdentityRole>() 
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
+/*builder.Services.AddHangfire(config => config.UseSqlServerStorage(
+        Configuration.GetConnectionString("DefaultConnection")));*/
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
@@ -30,6 +33,12 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 /*builder.Services.Configure<NotificationConfiguration>(builder.Configuration.GetSection("NotificationConfiguration"));
 builder.Services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<NotificationConfiguration>>().Value);
 builder.Services.AddHostedService<NotificationCleanupService>();*/
+/*builder.Services.AddScoped<IReportExporter, ReportExporter>();
+builder.Services.AddScoped<StudentReportGenerator>();
+builder.Services.AddScoped<TherapistReportGenerator>();
+builder.Services.AddScoped<PsychiatristReportGenerator>();
+builder.Services.AddScoped<AdminReportGenerator>();
+builder.Services.AddScoped<ReportScheduler>();*/
 
 builder.Services.AddHttpClient("mpesa", c => {
     c.BaseAddress = new Uri("https://sandbox.safaricom.co.ke");
@@ -38,6 +47,7 @@ builder.Services.AddHttpClient("mpesa", c => {
 
 var app = builder.Build();
 
+// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -54,9 +64,7 @@ app.UseAuthorization();
 app.MapRazorPages();
 app.MapHub<ChatHub>("/chatHub");
 app.MapHub<NotificationHub>("/notificationHub");
-
-
-
+app.MapHub<MessageHub>("/messageHub");
 
 // Redirect unauthenticated users to the login page
 app.MapGet("/", async context =>
@@ -91,12 +99,25 @@ app.MapGet("/", async context =>
     //context.Response.Redirect("/Home/Index");
 });
 
-
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-
+// Seed database with initial data
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<ApplicationDbContext>();
+        DbInitializer.Initialize(context);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding the database.");
+    }
+}
 
 // Seed roles and admin user when the application starts
 await SeedRolesAndAdminUser(app.Services);
@@ -110,7 +131,7 @@ static async Task SeedRolesAndAdminUser(IServiceProvider serviceProvider)
     {
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-        
+
         var roles = new[] { "Admin", "Student", "Therapist", "Psychiatrist" };
 
         // Seed roles

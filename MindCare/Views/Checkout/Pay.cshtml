@@ -118,17 +118,22 @@
                     </div>
 
                     <div id="test-form" style="display: none;" class="payment-form">
-                        <form id="testPaymentForm" asp-action="TestPayment" method="post">
+                        <form id="testPaymentForm">
                             <h3 class="text-center mb-4" style="color: #004085; font-size: 24px;">Test Payment</h3>
-                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                            <div class="text-danger" id="validationErrors"></div>
 
                             <div class="form-group mb-3">
-                                <label asp-for="Amount" class="form-label fw-semibold">Amount (USD)</label>
+                                <label for="testAmount" class="form-label fw-semibold">Amount (USD)</label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input asp-for="Amount" class="form-control form-control-lg" />
+                                    <input id="testAmount" name="Amount" class="form-control form-control-lg" type="number" step="0.01" min="0.01" required />
                                 </div>
-                                <span asp-validation-for="Amount" class="text-danger"></span>
+                                <div class="invalid-feedback">Please enter a valid amount.</div>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label for="testPhoneNumber" class="form-label fw-semibold">Phone Number (Optional)</label>
+                                <input id="testPhoneNumber" name="PhoneNumber" class="form-control form-control-lg" placeholder="Enter phone number" />
                             </div>
 
                             <div class="d-grid">
@@ -149,8 +154,9 @@
                                     </div>
                                     <h4 class="mb-3">Payment Successful</h4>
                                     <p class="mb-4">Your payment of $<span id="paidAmount">0.00</span> was successfully completed.</p>
+                                    <p class="mb-2">Transaction ID: <span id="transactionId"></span></p>
                                     <div class="d-flex justify-content-center gap-2">
-                                        <button class="btn btn-outline-secondary" onclick="window.location.href='/Receipt'">View Receipt</button>
+                                        <button id="viewReceiptBtn" class="btn btn-outline-secondary">View Receipt</button>
                                         <button class="btn btn-primary" data-bs-dismiss="modal">Close</button>
                                     </div>
                                 </div>
@@ -177,10 +183,10 @@
             padding: 0.75rem 1rem;
         }
 
-        .form-control:focus {
-            border-color: #004085;
-            box-shadow: 0 0 0 0.2rem rgba(0, 64, 133, 0.25);
-        }
+            .form-control:focus {
+                border-color: #004085;
+                box-shadow: 0 0 0 0.2rem rgba(0, 64, 133, 0.25);
+            }
 
         .btn:hover {
             opacity: 0.9;
@@ -194,9 +200,17 @@
 
         /* Success icon animation */
         @@keyframes checkmark {
-            0% { transform: scale(0); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
+            0% {
+                transform: scale(0);
+            }
+
+            50% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1);
+            }
         }
 
         .fa-check-circle {
@@ -231,15 +245,55 @@
             testOption.addEventListener('change', togglePaymentForms);
 
             // Handle test payment form submission
-            const testPaymentForm = testForm.querySelector('form');
-            testPaymentForm.addEventListener('submit', function(e) {
+            const testPaymentForm = document.getElementById('testPaymentForm');
+            testPaymentForm.addEventListener('submit', function (e) {
                 e.preventDefault();
-                const amount = this.querySelector('input[asp-for="Amount"]').value;
-                document.getElementById('paidAmount').textContent = amount;
-                
-                // Show success modal
-                const successModal = new bootstrap.Modal(document.getElementById('successModal'));
-                successModal.show();
+
+                // Basic validation
+                const amount = document.getElementById('testAmount').value;
+                if (!amount || parseFloat(amount) <= 0) {
+                    document.getElementById('validationErrors').textContent = "Please enter a valid amount greater than 0";
+                    return;
+                }
+
+                const formData = new FormData(testPaymentForm);
+
+                fetch('/Checkout/TestPayment', {
+                    method: 'POST',
+                    body: new URLSearchParams(formData),
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById('paidAmount').textContent = amount;
+                            document.getElementById('transactionId').textContent = data.transactionId;
+
+                            // Set up the receipt button link
+                            const viewReceiptBtn = document.getElementById('viewReceiptBtn');
+                            viewReceiptBtn.onclick = function () {
+                                window.location.href = data.receiptUrl;
+                            };
+
+                            // Show success modal
+                            const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                            successModal.show();
+                        } else {
+                            // Handle errors
+                            const errorContainer = document.getElementById('validationErrors');
+                            if (data.errors && data.errors.length > 0) {
+                                errorContainer.innerHTML = data.errors.join('<br>');
+                            } else {
+                                errorContainer.textContent = "An error occurred while processing your payment.";
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        document.getElementById('validationErrors').textContent = "An error occurred while processing your payment.";
+                    });
             });
         });
     </script>
