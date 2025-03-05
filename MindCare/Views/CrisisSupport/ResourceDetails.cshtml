@@ -1,0 +1,41 @@
+﻿@model MindCare.Crisis.SupportResourceModel
+@{
+    ViewBag.Title = @Model.Name + " - Detailed Information";
+}
+
+<div class="resource-details-container">
+    <h1>@Model.Name</h1>
+
+    <div class="resource-info">
+        <div class="contact-info">
+            <h2>Contact Information</h2>
+            <p><strong>Phone:</strong> @Model.PhoneNumber</p>
+            @if (!string.IsNullOrEmpty(Model.Website))
+            {
+                <a href="@Model.Website" target="_blank" class="btn" style="background-color: #004085; color: #fff;">
+                    Official Website
+                </a>
+            }
+        </div>
+
+        <div class="description">
+            <h2>About This Resource</h2>
+            <p>@Model.Description</p>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.AdditionalInfo))
+        {
+            <div class="additional-info">
+                <h2>Additional Information</h2>
+                <p>@Model.AdditionalInfo</p>
+            </div>
+        }
+
+        <div class="category-info">
+            <h2>Service Category</h2>
+            <p>@Model.Category</p>
+        </div>
+    </div>
+
+    @Html.ActionLink("Back to Resources", "Index", null, new { @class = "btn btn-secondary" })
+</div>

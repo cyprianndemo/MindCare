@@ -18,6 +18,7 @@ namespace MindCare.Controllers
             _notificationService = notificationService;
             _userManager = userManager;
         }
+
         public IActionResult Index()
         {
             return View();
@@ -37,7 +38,14 @@ namespace MindCare.Controllers
             await _notificationService.MarkAsRead(notificationId);
             return Ok();
         }
-    }
 
-   
-   }
+        // New method to mark all notifications as read
+        [HttpPost]
+        public async Task<IActionResult> MarkAllAsRead()
+        {
+            var userId = _userManager.GetUserId(User);
+            await _notificationService.MarkAllAsRead(userId);
+            return Ok();
+        }
+    }
+}

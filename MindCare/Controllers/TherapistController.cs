@@ -126,39 +126,36 @@ namespace MindCare.Controllers
             {
                 // Get the logged-in Therapist's ID
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var Therapist = await _userManager.FindByIdAsync(userId);
 
-                if (Therapist == null)
-                {
-                    TempData["Error"] = "Therapist not found.";
-                    return RedirectToAction("Dashboard");
-                }
-
-                // Fetch pending appointments with related data
-                var appointments = await _context.Appointments
-                    .Include(a => a.Student)
-                    .Include(a => a.Therapist)
-                    .Where(a => a.TherapistId == Therapist.Id && a.Status == "Pending")
-                    .Select(a => new Appointment
-                    {
-                        AppointmentId = a.AppointmentId,
-                        Date = a.Date,
-                        Time = a.Time,
-                        StartTime = a.StartTime,
-                        EndTime = a.EndTime,
-                        Status = a.Status,
-                        TherapistId = a.TherapistId,
-                        StudentId = a.StudentId
-                    })
-                    .OrderByDescending(a => a.StartTime)
-                    .ToListAsync();
+                // Perform a more explicit join and mapping
+                var appointments = await (from appointment in _context.Appointments
+                                          join user in _context.Users on appointment.StudentId equals user.Id
+                                          where appointment.TherapistId == userId && appointment.Status == "Pending"
+                                          select new AppointmentViewModel
+                                          {
+                                              AppointmentId = appointment.AppointmentId,
+                                              Date = appointment.Date,
+                                              Time = appointment.Time,
+                                              StartTime = appointment.StartTime,
+                                              EndTime = appointment.EndTime,
+                                              Status = appointment.Status,
+                                              StudentId = user.Id,
+                                              StudentName = user.FirstName + " " + user.LastName,
+                                              StudentEmail = user.Email
+                                          })
+                                          .OrderByDescending(a => a.StartTime)
+                                          .ToListAsync();
 
                 return View(appointments);
             }
             catch (Exception ex)
             {
+                // Log the exception
+                Console.WriteLine($"Error in ManageSessions: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+
                 TempData["Error"] = "An error occurred while fetching appointments.";
-                return RedirectToAction("Dashboard");
+                return RedirectToAction("Index");
             }
         }
 
@@ -212,6 +209,83 @@ namespace MindCare.Controllers
                 Console.WriteLine($"Stack Trace: {ex.StackTrace}");
 
                 return Json(new { success = false, message = $"An error occurred: {ex.Message}" });
+            }
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Therapist")]
+        public async Task<IActionResult> DeleteAppointment(int id)
+        {
+            try
+            {
+                // Get the current user's ID
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                // Verify the user exists
+                var currentUser = await _userManager.FindByIdAsync(userId);
+                if (currentUser == null)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "User authentication failed."
+                    });
+                }
+
+                // Find the appointment with detailed logging
+                var appointment = await _context.Appointments
+                    .FirstOrDefaultAsync(a => a.AppointmentId == id);
+
+                // Log detailed information for debugging
+                if (appointment == null)
+                {
+                    Console.WriteLine($"Appointment not found. ID: {id}");
+                    return Json(new
+                    {
+                        success = false,
+                        message = $"Appointment with ID {id} not found."
+                    });
+                }
+
+                // Additional authorization check
+                if (appointment.TherapistId != userId)
+                {
+                    Console.WriteLine($"Unauthorized deletion attempt. " +
+                        $"Appointment TherapistId: {appointment.TherapistId}, " +
+                        $"Current User ID: {userId}");
+                    return Json(new
+                    {
+                        success = false,
+                        message = "You are not authorized to delete this appointment."
+                    });
+                }
+
+                // Remove the appointment
+                _context.Appointments.Remove(appointment);
+                int result = await _context.SaveChangesAsync();
+
+                // Log successful deletion
+                Console.WriteLine($"Appointment {id} deleted successfully. Rows affected: {result}");
+
+                return Json(new
+                {
+                    success = true,
+                    message = "Appointment deleted successfully.",
+                    appointmentId = id
+                });
+            }
+            catch (Exception ex)
+            {
+                // Comprehensive error logging
+                Console.WriteLine($"Exception in DeleteAppointment: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+
+                // Return more detailed error information
+                return Json(new
+                {
+                    success = false,
+                    message = $"Deletion failed: {ex.Message}"
+                });
             }
         }
 
@@ -462,39 +536,36 @@ namespace MindCare.Controllers
             {
                 // Get the logged-in Therapist's ID
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var Therapist = await _userManager.FindByIdAsync(userId);
 
-                if (Therapist == null)
-                {
-                    TempData["Error"] = "Therapist not found.";
-                    return RedirectToAction("Dashboard");
-                }
-
-                // Fetch pending appointments with related data
-                var appointments = await _context.Appointments
-                    .Include(a => a.Student)
-                    .Include(a => a.Therapist)
-                    .Where(a => a.TherapistId == Therapist.Id && a.Status == "Approved")
-                    .Select(a => new Appointment
-                    {
-                        AppointmentId = a.AppointmentId,
-                        Date = a.Date,
-                        Time = a.Time,
-                        StartTime = a.StartTime,
-                        EndTime = a.EndTime,
-                        Status = a.Status,
-                        TherapistId = a.TherapistId,
-                        StudentId = a.StudentId
-                    })
-                    .OrderByDescending(a => a.StartTime)
-                    .ToListAsync();
+                // Perform an explicit join to include student details
+                var appointments = await (from appointment in _context.Appointments
+                                          join user in _context.Users on appointment.StudentId equals user.Id
+                                          where appointment.TherapistId == userId && appointment.Status == "Approved"
+                                          select new AppointmentViewModel
+                                          {
+                                              AppointmentId = appointment.AppointmentId,
+                                              Date = appointment.Date,
+                                              Time = appointment.Time,
+                                              StartTime = appointment.StartTime,
+                                              EndTime = appointment.EndTime,
+                                              Status = appointment.Status,
+                                              StudentId = user.Id,
+                                              StudentName = user.FirstName + " " + user.LastName,
+                                              StudentEmail = user.Email
+                                          })
+                                          .OrderByDescending(a => a.StartTime)
+                                          .ToListAsync();
 
                 return View(appointments);
             }
             catch (Exception ex)
             {
+                // Log the exception
+                Console.WriteLine($"Error in ApprovedAppointments: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+
                 TempData["Error"] = "An error occurred while fetching appointments.";
-                return RedirectToAction("Dashboard");
+                return RedirectToAction("Index");
             }
         }
 

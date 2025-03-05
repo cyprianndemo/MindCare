@@ -14,6 +14,7 @@ namespace MindCare.Models
 
         [Required(ErrorMessage = "Please select an appointment time")]
         public string Time { get; set; }
+        public string StudentEmail { get; set; }
 
         public DateTime? CancellationTime { get; set; }
         public string? CancelledById { get; set; }
@@ -51,8 +52,7 @@ namespace MindCare.Models
         [Required]
         public DateTime EndTime { get; set; }
         // In MindCare.Models.Appointment
-        public string? StudentFirstName { get; set; }
-        public string? StudentLastName { get; set; }
+        public string? StudentName { get; set; }
         // Helper methods for timezone handling
         public void SetTimesInUtc(DateTime localStartTime, DateTime localEndTime)
         {

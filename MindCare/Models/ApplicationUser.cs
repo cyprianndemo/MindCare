@@ -5,16 +5,17 @@ namespace MindCare.Models
 {
     public class ApplicationUser : IdentityUser
     {
-        
-             [Required]
-            [StringLength(50)]
-            public string? FirstName { get; set; }
 
-            [Required]
-            [StringLength(50)]
-            public string? LastName { get; set; }
+        [Required]
+        [StringLength(50, MinimumLength = 3)]
+        public string? FirstName { get; set; }
 
-            [Required]
+        [Required]
+        [StringLength(50, MinimumLength = 3)]
+        public string? LastName { get; set; }
+
+
+        [Required]
             public string? Role { get; set; }
 
             public string? University { get; set; }

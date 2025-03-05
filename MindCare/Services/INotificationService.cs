@@ -9,6 +9,8 @@ namespace MindCare.Services
         Task CreateNotification(string userId, string message, string type);
         Task<List<Notification>> GetUserNotifications(string userId);
         Task MarkAsRead(int notificationId);
+        Task MarkAllAsRead(string userId);
+
         Task SendEmail(string email, string subject, string message);
     }
 }

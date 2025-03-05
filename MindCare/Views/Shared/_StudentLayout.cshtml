@@ -12,8 +12,6 @@
         /* General Styling */
         body {
             font-family: Arial, sans-serif;
-            background-color: #f5f8fa;
-            color: #333;
             overflow-x: hidden;
         }
 
@@ -26,6 +24,7 @@
             width: 100%;
             z-index: 1030;
             top: 0;
+            left: 0;
         }
 
         #sidebarToggle {
@@ -38,50 +37,59 @@
         }
 
         /* Sidebar Styling */
-        .side-nav {
-            position: fixed;
-            top: 56px; /* Height of navbar */
-            bottom: 0;
-            left: 0;
-            width: 250px;
+        .wrapper {
+            display: flex;
+            width: 100%;
+            align-items: stretch;
+            padding-top: 56px; /* Height of navbar */
+        }
+
+        .sidebar {
+            min-width: 250px;
+            max-width: 250px;
             background-color: #004085;
             color: white;
-            transition: transform 0.3s ease-in-out;
+            transition: all 0.3s;
+            position: fixed;
+            top: 56px;
+            bottom: 0;
+            left: 0;
             z-index: 1020;
             overflow-y: auto;
         }
 
-        .side-nav.collapsed {
-            transform: translateX(-250px);
-        }
+            .sidebar.collapsed {
+                margin-left: -250px;
+            }
 
-        .side-nav .nav-link {
-            color: white;
-            font-size: 1.1rem;
-            padding: 10px 20px;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-        }
+            .sidebar .nav-link {
+                color: white;
+                font-size: 1.1rem;
+                padding: 10px 20px;
+                text-decoration: none;
+                display: flex;
+                align-items: center;
+            }
 
-        .side-nav .nav-link:hover {
-            background-color: #003060;
-            border-radius: 5px;
-        }
+                .sidebar .nav-link:hover {
+                    background-color: #003060;
+                    border-radius: 5px;
+                }
 
         /* Main Content Styling */
-        .main-content {
-            margin-left: 250px;
-            margin-top: 56px; /* Height of navbar */
+        .content {
+            width: 100%;
             padding: 20px;
-            min-height: calc(100vh - 56px);
-            transition: margin-left 0.3s ease-in-out;
+            margin-top: 56px;
+            margin-left: 250px;
+            transition: all 0.3s;
             background-color: #ffffff;
+            min-height: calc(100vh - 56px);
         }
 
-        .main-content.expanded {
-            margin-left: 0;
-        }
+            .content.expanded {
+                margin-left: 0;
+            }
 
         /* Icons for Navigation Items */
         .nav-item-icon {
@@ -90,52 +98,7 @@
             text-align: center;
         }
 
-        /* Footer Styling */
-        .footer {
-            margin-left: 250px;
-            transition: margin-left 0.3s ease-in-out;
-            padding: 1rem;
-            background-color: #f8f9fa;
-        }
-
-        .footer.expanded {
-            margin-left: 0;
-        }
-
-        /* Responsive Design */
-        @@media (max-width: 768px) {
-            .side-nav {
-                transform: translateX(-250px);
-            }
-
-            .side-nav.show {
-                transform: translateX(0);
-            }
-
-            .main-content {
-                margin-left: 0;
-            }
-
-            .footer {
-                margin-left: 0;
-            }
-        }
-
-        /* Overlay for mobile */
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1015;
-        }
-
-        .sidebar-overlay.show {
-            display: block;
-        }
+        /* Hover Menu */
         .dropdown-hover {
             position: relative;
         }
@@ -175,6 +138,37 @@
                 color: #16181b;
                 text-decoration: none;
             }
+
+        /* Responsive Design */
+        @@media (max-width: 768px) {
+            .sidebar {
+                margin-left: -250px;
+            }
+
+                .sidebar.show {
+                    margin-left: 0;
+                }
+
+            .content {
+                margin-left: 0;
+            }
+        }
+
+        /* Overlay for mobile */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1015;
+        }
+
+            .sidebar-overlay.show {
+                display: block;
+            }
     </style>
 </head>
 <body>
@@ -195,6 +189,11 @@
                             <i class="fas fa-bell"></i> Notifications
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" asp-controller="PeerSupport" asp-action="DirectMessages">
+                            <i class="fas fa-comments"></i> Messages
+                        </a>
+                    </li>
 
                     <li class="nav-item">
                         <form id="logoutForm" class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
@@ -208,87 +207,89 @@
         </div>
     </nav>
 
-    <!-- Sidebar Overlay -->
-    <div class="sidebar-overlay"></div>
+    <div class="wrapper">
+        <!-- Sidebar Overlay -->
+        <div class="sidebar-overlay"></div>
 
-    <!-- Sidebar Navigation -->
-    <nav class="side-nav">
-        <div class="position-sticky">
-            <ul class="nav flex-column">
-                <li class="nav-item">
-                    <a class="nav-link" href="@Url.Action("Dashboard", "Student")">
-                        <span class="nav-item-icon"><i class="fas fa-home"></i></span> Dashboard
-                    </a>
-                </li>
-                <li class="nav-item dropdown-hover">
-                    <a class="nav-link" href="@Url.Action("TherapySessions", "Therapy")">
-                        <span class="nav-item-icon"><i class="fas fa-comments"></i></span> Therapy Sessions
-                    </a>
-                    <div class="hover-menu">
-                        <a class="hover-menu-item" href="@Url.Action("TherapySessions", "Therapy", new { status = "All" })">
-                            All Sessions
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="position-sticky">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("Dashboard", "Student")">
+                            <span class="nav-item-icon"><i class="fas fa-home"></i></span> Dashboard
                         </a>
-                        <a class="hover-menu-item" href="@Url.Action("TherapySessions", "Therapy", new { status = "Pending" })">
-                            Pending Sessions
+                    </li>
+                    <li class="nav-item dropdown-hover">
+                        <a class="nav-link" href="@Url.Action("TherapySessions", "Therapy")">
+                            <span class="nav-item-icon"><i class="fas fa-comments"></i></span> Therapy Sessions
                         </a>
-                        <a class="hover-menu-item" href="@Url.Action("TherapySessions", "Therapy", new { status = "Approved" })">
-                            Confirmed Sessions
+                        <div class="hover-menu">
+                            <a class="hover-menu-item" href="@Url.Action("TherapySessions", "Therapy", new { status = "All" })">
+                                All Sessions
+                            </a>
+                            <a class="hover-menu-item" href="@Url.Action("TherapySessions", "Therapy", new { status = "Pending" })">
+                                Pending Sessions
+                            </a>
+                            <a class="hover-menu-item" href="@Url.Action("TherapySessions", "Therapy", new { status = "Approved" })">
+                                Confirmed Sessions
+                            </a>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("Index", "Mood")">
+                            <span class="nav-item-icon"><i class="fas fa-smile"></i></span> Mood
                         </a>
-                    </div>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="@Url.Action("Index", "Mood")">
-                        <span class="nav-item-icon"><i class="fas fa-smile"></i></span> Mood
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="@Url.Action("PsychiatrySessions", "Psychiatry")">
-                        <span class="nav-item-icon"><i class="fas fa-user-md"></i></span> Psychiatry Sessions
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="@Url.Action("Index", "PeerSupport")">
-                        <span class="nav-item-icon"><i class="fas fa-user-friends"></i></span> Peer Support
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="@Url.Action("Index", "Resources")">
-                        <span class="nav-item-icon"><i class="fas fa-book"></i></span> Mental Health Resources
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="@Url.Action("MyPrescriptions", "Pharmacy")">
-                        <span class="nav-item-icon"><i class="fas fa-pills"></i></span> Pharmacy
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="@Url.Action("Index", "Cart")">
-                        <span class="nav-item-icon"><i class="fas fa-shopping-cart"></i></span> My Cart
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="@Url.Action("Index", "Chat")">
-                        <span class="nav-item-icon"><i class="fas fa-comment"></i></span> Chat with Us
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="@Url.Action("Create", "Feedback")">
-                        <span class="nav-item-icon"><i class="fas fa-pencil-alt"></i></span> Feedback
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="@Url.Page("/Account/Manage/Index", new { area = "Identity" })">
-                        <span class="nav-item-icon"><i class="fas fa-user"></i></span> Profile
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </nav>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("PsychiatrySessions", "Psychiatry")">
+                            <span class="nav-item-icon"><i class="fas fa-user-md"></i></span> Psychiatry Sessions
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("Index", "PeerSupport")">
+                            <span class="nav-item-icon"><i class="fas fa-user-friends"></i></span> Peer Support
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("Index", "Resources")">
+                            <span class="nav-item-icon"><i class="fas fa-book"></i></span> Mental Health Resources
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("MyPrescriptions", "Pharmacy")">
+                            <span class="nav-item-icon"><i class="fas fa-pills"></i></span> Pharmacy
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("Index", "Cart")">
+                            <span class="nav-item-icon"><i class="fas fa-shopping-cart"></i></span> My Cart
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("Index", "Chat")">
+                            <span class="nav-item-icon"><i class="fas fa-comment"></i></span> Chat with Us
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("Create", "Feedback")">
+                            <span class="nav-item-icon"><i class="fas fa-pencil-alt"></i></span> Feedback
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Page("/Account/Manage/Index", new { area = "Identity" })">
+                            <span class="nav-item-icon"><i class="fas fa-user"></i></span> Profile
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
 
-    <!-- Main Content Area -->
-    <main class="main-content">
-        @RenderBody()
-    </main>
+        <!-- Main Content Area -->
+        <main class="content">
+            @RenderBody()
+        </main>
+    </div>
 
     <footer class="border-top footer text-muted">
         <div class="container">
@@ -299,20 +300,18 @@
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const sidebarToggle = document.getElementById('sidebarToggle');
-            const sideNav = document.querySelector('.side-nav');
-            const mainContent = document.querySelector('.main-content');
-            const footer = document.querySelector('.footer');
+            const sidebar = document.querySelector('.sidebar');
+            const content = document.querySelector('.content');
             const overlay = document.querySelector('.sidebar-overlay');
 
             function toggleSidebar() {
-                sideNav.classList.toggle('collapsed');
-                mainContent.classList.toggle('expanded');
-                footer.classList.toggle('expanded');
-                
+                sidebar.classList.toggle('collapsed');
+                content.classList.toggle('expanded');
+
                 if (window.innerWidth <= 768) {
-                    sideNav.classList.toggle('show');
+                    sidebar.classList.toggle('show');
                     overlay.classList.toggle('show');
                 }
             }
@@ -321,10 +320,10 @@
             overlay.addEventListener('click', toggleSidebar);
 
             // Handle window resize
-            window.addEventListener('resize', function() {
+            window.addEventListener('resize', function () {
                 if (window.innerWidth > 768) {
                     overlay.classList.remove('show');
-                    sideNav.classList.remove('show');
+                    sidebar.classList.remove('show');
                 }
             });
         });

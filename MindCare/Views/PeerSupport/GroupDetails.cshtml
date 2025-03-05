@@ -77,7 +77,7 @@
                 <h2>Discussions</h2>
                 @if (Model.IsMember)
                 {
-                    <a asp-action="CreateDiscussion" asp-route-groupId="@Model.GroupId" class="btn btn-primary">
+                    <a asp-action="CreateDiscussion" asp-route-groupId="@Model.GroupId" class="btn" style="background-color: #004085; color: #fff;">
                         <i class="bi bi-plus-circle"></i> New Discussion
                     </a>
                 }

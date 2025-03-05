@@ -28,7 +28,7 @@
                     <p class="card-text">Record and monitor your daily mood to better understand your emotional patterns.</p>
                 </div>
                 <div class="card-footer bg-transparent">
-                    <a asp-action="UpdateMoodState" class="btn btn-primary w-100">Update My Mood</a>
+                    <a asp-action="UpdateMoodState" class="btn w-100" style="background-color: #004085; color: #fff; border-color: #004085;">Update My Mood</a>
                 </div>
             </div>
         </div>
@@ -42,7 +42,7 @@
                     <p class="card-text">Connect with others who understand what you're going through.</p>
                 </div>
                 <div class="card-footer bg-transparent">
-                    <a asp-action="FindPeers" class="btn btn-primary w-100">Find Peers</a>
+                    <a asp-action="FindPeers" class="btn w-100" style="background-color: #004085; color: #fff; border-color: #004085;">Find Peers</a>
                 </div>
             </div>
         </div>
@@ -56,7 +56,7 @@
                     <p class="card-text">Join group discussions focused on specific mental health topics and concerns.</p>
                 </div>
                 <div class="card-footer bg-transparent">
-                    <a asp-action="SupportGroups" class="btn btn-primary w-100">Browse Groups</a>
+                    <a asp-action="SupportGroups" class="btn w-100" style="background-color: #004085; color: #fff; border-color: #004085;">Browse Groups</a>
                 </div>
             </div>
         </div>
@@ -70,7 +70,7 @@
                     <p class="card-text">Send and receive private messages with peers in your support network.</p>
                 </div>
                 <div class="card-footer bg-transparent">
-                    <a asp-action="DirectMessages" class="btn btn-primary w-100">View Messages</a>
+                    <a asp-action="DirectMessages" class="btn w-100" style="background-color: #004085; color: #fff; border-color: #004085;">View Messages</a>
                 </div>
             </div>
         </div>
@@ -84,7 +84,7 @@
                     <p class="card-text">Access helpful articles, exercises, and professional resources.</p>
                 </div>
                 <div class="card-footer bg-transparent">
-                    <a href="#" class="btn btn-primary w-100">Browse Resources</a>
+                    <a asp-action="Index" asp-controller="Resources" class="btn w-100" style="background-color: #004085; color: #fff; border-color: #004085;">Browse Resources</a>
                 </div>
             </div>
         </div>
@@ -98,7 +98,7 @@
                     <p class="card-text">Need immediate help? Access emergency resources and support hotlines.</p>
                 </div>
                 <div class="card-footer bg-transparent">
-                    <a href="#" class="btn btn-danger w-100">Get Help Now</a>
+                    <a asp-action="Index" asp-controller="CrisisSupport" class="btn btn-danger w-100">Get Help Now</a>
                 </div>
             </div>
         </div>

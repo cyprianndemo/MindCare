@@ -10,6 +10,8 @@
         public string Status { get; set; }
         public string StudentFirstName { get; set; }
         public string StudentLastName { get; set; }
+        public string StudentName { get; set; }
+
         public string TherapistId { get; set; }
         public DateTime Date { get; set; }
         public string Time { get; set; }

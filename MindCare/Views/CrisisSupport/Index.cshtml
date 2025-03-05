@@ -1,0 +1,92 @@
+﻿@model List<MindCare.Crisis.SupportResourceModel>
+@{
+    ViewBag.Title = "Kenya Crisis Support Resources";
+}
+
+<div class="crisis-support-container">
+    <h1 class="text-center">Emergency Support Resources in Kenya</h1>
+    
+    <div class="alert alert-danger" role="alert">
+        <strong>In case of an immediate life-threatening emergency, call 999 or 112 immediately.</strong>
+    </div>
+
+    <div class="resource-categories">
+        @{
+            var categories = Model.Select(r => r.Category).Distinct().ToList();
+        }
+        <div class="category-filter">
+            <h3>Filter by Category:</h3>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn" style="background-color: #004085; color: #fff;
+                        active" data-filter="all">
+                    All Resources
+                </button>
+                @foreach (var category in categories)
+                {
+                    <button type="button" class="btn" style="background-color: #004085; color: #fff;"
+                            data-filter="@category.Replace(" ", "-").ToLower()">
+                        @category
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="resource-list">
+        @foreach (var resource in Model)
+        {
+            <div class="resource-card @resource.Category.Replace(" ", "-").ToLower()">
+                <h2>@resource.Name</h2>
+                <div class="resource-details">
+                    <p><strong>Phone:</strong> @resource.PhoneNumber</p>
+                    <p class="category"><strong>Category:</strong> @resource.Category</p>
+                    <p>@resource.Description</p>
+                    
+                    @if (!string.IsNullOrEmpty(resource.Website))
+                    {
+                        <a href="@resource.Website" target="_blank" class="btn" style="background-color: #004085; color: #fff;">
+                            Visit Website
+                        </a>
+                    }
+                    
+                    @Html.ActionLink("More Details", "ResourceDetails", new { name = resource.Name }, new { @class = "btn btn-secondary" })
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="additional-support">
+        <h3>Important Notes for Kenyan Residents</h3>
+        <ul>
+            <li>Most of these services are free and confidential</li>
+            <li>Support is available in multiple local languages</li>
+            <li>Services are designed to provide immediate and compassionate help</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    // Simple JavaScript to handle category filtering
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterButtons = document.querySelectorAll('.category-filter .btn');
+        const resourceCards = document.querySelectorAll('.resource-card');
+
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const filter = this.getAttribute('data-filter');
+                
+                // Remove active class from all buttons
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+
+                resourceCards.forEach(card => {
+                    if (filter === 'all' || card.classList.contains(filter)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+    });
+</script>

@@ -117,5 +117,18 @@ namespace MindCare.Services
                 await _context.SaveChangesAsync();
             }
         }
+        public async Task MarkAllAsRead(string userId)
+        {
+            var unreadNotifications = await _context.Notifications
+                .Where(n => n.UserId == userId && !n.IsRead)
+                .ToListAsync();
+
+            foreach (var notification in unreadNotifications)
+            {
+                notification.IsRead = true;
+            }
+
+            await _context.SaveChangesAsync();
+        }
     }
 }
