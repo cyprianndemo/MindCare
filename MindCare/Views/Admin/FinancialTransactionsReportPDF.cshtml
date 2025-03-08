@@ -1,0 +1,277 @@
+﻿@model MindCare.ViewModels.FinancialTransactionsReportViewModel
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Financial Transactions Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            color: #333;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+            .header h1 {
+                margin-bottom: 5px;
+                color: #2c3e50;
+            }
+
+            .header p {
+                color: #7f8c8d;
+                margin-top: 0;
+            }
+
+        .summary-cards {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+
+        .summary-card {
+            width: 22%;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .card-success {
+            background-color: #d4edda;
+            border-left: 5px solid #28a745;
+        }
+
+        .card-primary {
+            background-color: #cce5ff;
+            border-left: 5px solid #007bff;
+        }
+
+        .card-danger {
+            background-color: #f8d7da;
+            border-left: 5px solid #dc3545;
+        }
+
+        .card-info {
+            background-color: #d1ecf1;
+            border-left: 5px solid #17a2b8;
+        }
+
+        .card-title {
+            margin: 0;
+            font-size: 14px;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .card-value {
+            margin: 10px 0 0 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .card-footer {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+            .section h2 {
+                color: #2c3e50;
+                border-bottom: 1px solid #eee;
+                padding-bottom: 10px;
+                margin-bottom: 15px;
+            }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .status-badge {
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .status-completed {
+            background-color: #28a745;
+        }
+
+        .status-failed {
+            background-color: #dc3545;
+        }
+
+        .status-pending {
+            background-color: #ffc107;
+            color: #212529;
+        }
+
+        .status-unknown {
+            background-color: #6c757d;
+        }
+
+        .page-break {
+            page-break-after: always;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>Financial Transactions Report</h1>
+        <p>Generated on @DateTime.Now.ToString("MMMM dd, yyyy HH:mm:ss")</p>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+        <div class="summary-card card-success">
+            <p class="card-title">Total Revenue</p>
+            <p class="card-value">$@Model.TotalPaymentsReceived.ToString("N2")</p>
+            <p class="card-footer">From @Model.TotalTransactions transactions</p>
+        </div>
+        <div class="summary-card card-primary">
+            <p class="card-title">Successful</p>
+            <p class="card-value">@Model.SuccessfulTransactions</p>
+            <p class="card-footer">@(Model.TotalTransactions > 0 ? Math.Round((double)Model.SuccessfulTransactions / Model.TotalTransactions * 100, 1) : 0)% success rate</p>
+        </div>
+        <div class="summary-card card-danger">
+            <p class="card-title">Failed</p>
+            <p class="card-value">@Model.FailedTransactions</p>
+            <p class="card-footer">@(Model.TotalTransactions > 0 ? Math.Round((double)Model.FailedTransactions / Model.TotalTransactions * 100, 1) : 0)% failure rate</p>
+        </div>
+        <div class="summary-card card-info">
+            <p class="card-title">Avg. Transaction</p>
+            <p class="card-value">$@(Model.SuccessfulTransactions > 0 ? (Model.TotalPaymentsReceived / Model.SuccessfulTransactions).ToString("N2") : "0.00")</p>
+            <p class="card-footer">Per successful transaction</p>
+        </div>
+    </div>
+
+    <!-- Payment Method Breakdown -->
+    <div class="section">
+        <h2>Payment Method Breakdown</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Payment Method</th>
+                    <th>Count</th>
+                    <th>Total Amount</th>
+                    <th>Percentage</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var method in Model.PaymentMethodSummary)
+                {
+                    <tr>
+                        <td>@method.Method</td>
+                        <td>@method.Count</td>
+                        <td>$@method.Total.ToString("N2")</td>
+                        <td>@(Model.TotalPaymentsReceived > 0 ? Math.Round((double)(method.Total / Model.TotalPaymentsReceived) * 100, 1) : 0)%</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Monthly Revenue Data -->
+    <div class="section">
+        <h2>Monthly Revenue (Last 6 Months)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Month</th>
+                    <th>Revenue</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var month in Model.MonthlyPaymentData)
+                {
+                    <tr>
+                        <td>@month.Month</td>
+                        <td>$@month.Amount.ToString("N2")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Page Break -->
+    <div class="page-break"></div>
+
+    <!-- Recent Transactions -->
+    <div class="section">
+        <h2>Recent Transactions</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>User</th>
+                    <th>Amount</th>
+                    <th>Method</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var transaction in Model.RecentTransactions)
+                {
+                    <tr>
+                        <td>@transaction.PaymentDate.ToString("yyyy-MM-dd")</td>
+                        <td>@(transaction.Student?.UserName ?? "N/A")</td>
+                        <td>$@transaction.Amount.ToString("N2")</td>
+                        <td>@(transaction.Method.HasValue ? transaction.Method.Value.ToString() : "N/A")</td>
+                        <td>
+                            @if (transaction.Status.HasValue && transaction.Status.Value.ToString() == "Completed")
+                            {
+                                <span class="status-badge status-completed">Completed</span>
+                            }
+                            else if (transaction.Status.HasValue && transaction.Status.Value.ToString() == "Failed")
+                            {
+                                <span class="status-badge status-failed">Failed</span>
+                            }
+                            else if (transaction.Status.HasValue && transaction.Status.Value.ToString() == "Pending")
+                            {
+                                <span class="status-badge status-pending">Pending</span>
+                            }
+                            else
+                            {
+                                <span class="status-badge status-unknown">Unknown</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Footer Information -->
+    <div class="section">
+        <p style="text-align: center; font-size: 12px; color: #6c757d;">
+            This is a system-generated report from MindCare. For any discrepancies, please contact the administrator.
+        </p>
+    </div>
+</body>
+</html>

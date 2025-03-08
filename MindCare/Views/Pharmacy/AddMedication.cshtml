@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Add New Medication";
+    Layout = "_PsychiatristLayout";
 }
 
 <div class="container">
@@ -53,7 +54,7 @@
         </div>
 
         <div class="form-group mt-4">
-            <button type="submit" class="btn btn-primary">Create</button>
+            <button type="submit" class="btn" style="background-color: #004085; color: #fff;">Create</button>
             <a asp-action="MedicationList" class="btn btn-secondary">Back to List</a>
         </div>
     </form>

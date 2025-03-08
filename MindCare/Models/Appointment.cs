@@ -14,7 +14,6 @@ namespace MindCare.Models
 
         [Required(ErrorMessage = "Please select an appointment time")]
         public string Time { get; set; }
-        public string StudentEmail { get; set; }
 
         public DateTime? CancellationTime { get; set; }
         public string? CancelledById { get; set; }

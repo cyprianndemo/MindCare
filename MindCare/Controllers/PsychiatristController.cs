@@ -121,41 +121,38 @@ namespace MindCare.Controllers
         {
             try
             {
-                // Get the logged-in psychiatrist's ID
+                // Get the logged-in Psychiatrist's ID
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var psychiatrist = await _userManager.FindByIdAsync(userId);
 
-                if (psychiatrist == null)
-                {
-                    TempData["Error"] = "Psychiatrist not found.";
-                    return RedirectToAction("Dashboard");
-                }
-
-                // Fetch pending appointments with related data
-                var appointments = await _context.Appointments
-                    .Include(a => a.Student)
-                    .Include(a => a.Psychiatrist)
-                    .Where(a => a.PsychiatristId == psychiatrist.Id && a.Status == "Pending")
-                    .Select(a => new Appointment
-                    {
-                        AppointmentId = a.AppointmentId,
-                        Date = a.Date,
-                        Time = a.Time,
-                        StartTime = a.StartTime,
-                        EndTime = a.EndTime,
-                        Status = a.Status,
-                        PsychiatristId = a.PsychiatristId,
-                        StudentId = a.StudentId
-                    })
-                    .OrderByDescending(a => a.StartTime)
-                    .ToListAsync();
+                // Perform a more explicit join and mapping
+                var appointments = await (from appointment in _context.Appointments
+                                          join user in _context.Users on appointment.StudentId equals user.Id
+                                          where appointment.PsychiatristId == userId && appointment.Status == "Pending"
+                                          select new AppointmentViewModel
+                                          {
+                                              AppointmentId = appointment.AppointmentId,
+                                              Date = appointment.Date,
+                                              Time = appointment.Time,
+                                              StartTime = appointment.StartTime,
+                                              EndTime = appointment.EndTime,
+                                              Status = appointment.Status,
+                                              StudentId = user.Id,
+                                              StudentName = user.FirstName + " " + user.LastName,
+                                              StudentEmail = user.Email
+                                          })
+                                          .OrderByDescending(a => a.StartTime)
+                                          .ToListAsync();
 
                 return View(appointments);
             }
             catch (Exception ex)
             {
+                // Log the exception
+                Console.WriteLine($"Error in ManageSessions: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+
                 TempData["Error"] = "An error occurred while fetching appointments.";
-                return RedirectToAction("Dashboard");
+                return RedirectToAction("Index");
             }
         }
 
@@ -440,6 +437,46 @@ namespace MindCare.Controllers
                 return View(model);
             }
         }
+        [Authorize(Roles = "Psychiatrist")]
+        public async Task<IActionResult> ApprovedAppointments()
+        {
+            try
+            {
+                // Get the logged-in Psychiatrist's ID
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                // Perform an explicit join to include student details
+                var appointments = await (from appointment in _context.Appointments
+                                          join user in _context.Users on appointment.StudentId equals user.Id
+                                          where appointment.PsychiatristId == userId && appointment.Status == "Approved"
+                                          select new AppointmentViewModel
+                                          {
+                                              AppointmentId = appointment.AppointmentId,
+                                              Date = appointment.Date,
+                                              Time = appointment.Time,
+                                              StartTime = appointment.StartTime,
+                                              EndTime = appointment.EndTime,
+                                              Status = appointment.Status,
+                                              StudentId = user.Id,
+                                              StudentName = user.FirstName + " " + user.LastName,
+                                              StudentEmail = user.Email
+                                          })
+                                          .OrderByDescending(a => a.StartTime)
+                                          .ToListAsync();
+
+                return View(appointments);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                Console.WriteLine($"Error in ApprovedAppointments: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+
+                TempData["Error"] = "An error occurred while fetching appointments.";
+                return RedirectToAction("Index");
+            }
+        }
+
 
     }
 }

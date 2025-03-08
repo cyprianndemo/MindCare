@@ -1,30 +1,235 @@
-﻿@model MindCare.ViewModels.SystemSettingsViewModel
-
+﻿@model MindCare.ViewModel.SystemSettingsViewModel
 @{
-    Layout = "_AdminLayout";
     ViewData["Title"] = "System Settings";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="container">
-    <h2>System Settings</h2>
-    <p>Configure global settings for the application.</p>
+<div class="container-fluid px-4">
+    <h1 class="mt-4">System Settings</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a asp-action="Dashboard">Dashboard</a></li>
+        <li class="breadcrumb-item active">System Settings</li>
+    </ol>
 
-    <form asp-action="SystemSettings" method="post">
-        <div class="form-group">
-            <label asp-for="MaintenanceMode"></label>
-            <input type="checkbox" class="form-control" asp-for="MaintenanceMode" />
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
+    }
 
-        <div class="form-group mt-3">
-            <label asp-for="DefaultRole"></label>
-            <select class="form-control" asp-for="DefaultRole">
-                <option value="Student">Student</option>
-                <option value="Therapist">Therapist</option>
-                <option value="Psychiatrist">Psychiatrist</option>
-                <option value="Admin">Admin</option>
-            </select>
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-cogs me-1"></i>
+            Manage System Settings
         </div>
+        <div class="card-body">
+            <form method="post" asp-action="SystemSettings">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-        <button type="submit" class="btn btn-primary mt-4">Save Settings</button>
-    </form>
+                <ul class="nav nav-tabs" id="settingsTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab" aria-controls="general" aria-selected="true">General</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="appointments-tab" data-bs-toggle="tab" data-bs-target="#appointments" type="button" role="tab" aria-controls="appointments" aria-selected="false">Appointments</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="payments-tab" data-bs-toggle="tab" data-bs-target="#payments" type="button" role="tab" aria-controls="payments" aria-selected="false">Payments</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="notifications-tab" data-bs-toggle="tab" data-bs-target="#notifications" type="button" role="tab" aria-controls="notifications" aria-selected="false">Notifications</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content p-3 border border-top-0 rounded-bottom" id="settingsTabContent">
+                    <!-- General Settings Tab -->
+                    <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="ApplicationName" class="form-label">Application Name</label>
+                                    <input asp-for="ApplicationName" class="form-control" />
+                                    <span asp-validation-for="ApplicationName" class="text-danger"></span>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label asp-for="SupportEmail" class="form-label">Support Email</label>
+                                    <input asp-for="SupportEmail" class="form-control" type="email" />
+                                    <span asp-validation-for="SupportEmail" class="text-danger"></span>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label asp-for="SystemTimeZone" class="form-label">System Time Zone</label>
+                                    <select asp-for="SystemTimeZone" class="form-select">
+                                        <option value="UTC">UTC</option>
+                                        <option value="America/New_York">Eastern Time (ET)</option>
+                                        <option value="America/Chicago">Central Time (CT)</option>
+                                        <option value="America/Denver">Mountain Time (MT)</option>
+                                        <option value="America/Los_Angeles">Pacific Time (PT)</option>
+                                        <option value="Europe/London">London (GMT)</option>
+                                        <option value="Asia/Tokyo">Tokyo (JST)</option>
+                                    </select>
+                                    <span asp-validation-for="SystemTimeZone" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <div class="form-check form-switch">
+                                        <input asp-for="MaintenanceMode" class="form-check-input" type="checkbox" role="switch" />
+                                        <label asp-for="MaintenanceMode" class="form-check-label">Maintenance Mode</label>
+                                    </div>
+                                    <small class="text-muted">When enabled, only administrators can access the site.</small>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <div class="form-check form-switch">
+                                        <input asp-for="AllowSelfRegistration" class="form-check-input" type="checkbox" role="switch" />
+                                        <label asp-for="AllowSelfRegistration" class="form-check-label">Allow Self-Registration</label>
+                                    </div>
+                                    <small class="text-muted">When enabled, users can create their own accounts.</small>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label asp-for="VideoCallProvider" class="form-label">Video Call Provider</label>
+                                    <select asp-for="VideoCallProvider" class="form-select">
+                                        <option value="Zoom">Zoom</option>
+                                        <option value="Teams">Microsoft Teams</option>
+                                        <option value="MeetMindCare">MeetMindCare (Internal)</option>
+                                        <option value="GoogleMeet">Google Meet</option>
+                                    </select>
+                                    <span asp-validation-for="VideoCallProvider" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Appointments Settings Tab -->
+                    <div class="tab-pane fade" id="appointments" role="tabpanel" aria-labelledby="appointments-tab">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="SessionDurationMinutes" class="form-label">Default Session Duration (minutes)</label>
+                                    <input asp-for="SessionDurationMinutes" class="form-control" type="number" min="15" max="180" step="15" />
+                                    <span asp-validation-for="SessionDurationMinutes" class="text-danger"></span>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label asp-for="MaxAppointmentsPerDay" class="form-label">Maximum Appointments Per Day</label>
+                                    <input asp-for="MaxAppointmentsPerDay" class="form-control" type="number" min="1" max="20" />
+                                    <span asp-validation-for="MaxAppointmentsPerDay" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">Schedule Settings</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>Configure the working hours and availability settings from the <a href="#">Scheduling Settings</a> page.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payments Settings Tab -->
+                    <div class="tab-pane fade" id="payments" role="tabpanel" aria-labelledby="payments-tab">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="DefaultCurrencySymbol" class="form-label">Default Currency Symbol</label>
+                                    <input asp-for="DefaultCurrencySymbol" class="form-control" />
+                                    <span asp-validation-for="DefaultCurrencySymbol" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label class="form-label">Enabled Payment Methods</label>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="enableCreditCard" name="EnabledPaymentMethods" value="CreditCard" checked="@(Model.EnabledPaymentMethods?.Contains("CreditCard") ?? false)" />
+                                        <label class="form-check-label" for="enableCreditCard">Credit Card</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="enablePayPal" name="EnabledPaymentMethods" value="PayPal" checked="@(Model.EnabledPaymentMethods?.Contains("PayPal") ?? false)" />
+                                        <label class="form-check-label" for="enablePayPal">PayPal</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="enableBankTransfer" name="EnabledPaymentMethods" value="BankTransfer" checked="@(Model.EnabledPaymentMethods?.Contains("BankTransfer") ?? false)" />
+                                        <label class="form-check-label" for="enableBankTransfer">Bank Transfer</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="enableInsurance" name="EnabledPaymentMethods" value="Insurance" checked="@(Model.EnabledPaymentMethods?.Contains("Insurance") ?? false)" />
+                                        <label class="form-check-label" for="enableInsurance">Insurance</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">Payment Gateway Settings</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>Configure payment gateway credentials from the <a href="#">Payment Gateway Settings</a> page.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notifications Settings Tab -->
+                    <div class="tab-pane fade" id="notifications" role="tabpanel" aria-labelledby="notifications-tab">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-check form-switch mb-3">
+                                    <input type="checkbox" class="form-check-input" id="emailNotifications" name="NotificationSettings" value="EnableEmailNotifications" checked="@(Model.NotificationSettings?.Contains("EnableEmailNotifications") ?? false)" />
+                                    <label class="form-check-label" for="emailNotifications">Email Notifications</label>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input type="checkbox" class="form-check-input" id="smsNotifications" name="NotificationSettings" value="EnableSMSNotifications" checked="@(Model.NotificationSettings?.Contains("EnableSMSNotifications") ?? false)" />
+                                    <label class="form-check-label" for="smsNotifications">SMS Notifications</label>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input type="checkbox" class="form-check-input" id="appointmentReminders" name="NotificationSettings" value="EnableAppointmentReminders" checked="@(Model.NotificationSettings?.Contains("EnableAppointmentReminders") ?? false)" />
+                                    <label class="form-check-label" for="appointmentReminders">Appointment Reminders</label>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input type="checkbox" class="form-check-input" id="paymentNotifications" name="NotificationSettings" value="EnablePaymentNotifications" checked="@(Model.NotificationSettings?.Contains("EnablePaymentNotifications") ?? false)" />
+                                    <label class="form-check-label" for="paymentNotifications">Payment Notifications</label>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input type="checkbox" class="form-check-input" id="systemAlerts" name="NotificationSettings" value="EnableSystemAlerts" checked="@(Model.NotificationSettings?.Contains("EnableSystemAlerts") ?? false)" />
+                                    <label class="form-check-label" for="systemAlerts">System Alerts</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">Save Settings</button>
+                    <button type="reset" class="btn btn-secondary">Reset</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(function () {
+            // Initialize the tabs
+            var triggerTabList = [].slice.call(document.querySelectorAll('#settingsTabs a'))
+            triggerTabList.forEach(function (triggerEl) {
+                var tabTrigger = new bootstrap.Tab(triggerEl)
+                triggerEl.addEventListener('click', function (event) {
+                    event.preventDefault()
+                    tabTrigger.show()
+                })
+            });
+
+            // Auto-dismiss alerts after 5 seconds
+            setTimeout(function () {
+                $('.alert-dismissible').alert('close');
+            }, 5000);
+        });
+    </script>
+}

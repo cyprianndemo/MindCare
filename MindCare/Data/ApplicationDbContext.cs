@@ -81,6 +81,8 @@ namespace MindCare.Data
         public DbSet<Checkout> Checkouts { get; set; }
         public DbSet<Medication> Medications { get; set; }
         public DbSet<Prescription> Prescriptions { get; set; }
+        public DbSet<SystemSettings> SystemSettings { get; set; }
+
         public DbSet<MentalHealthResource> MentalHealthResources { get; set;}
         public DbSet<Appointment> Appointments { get; set; }
         public DbSet<Message> Messages { get; set; }

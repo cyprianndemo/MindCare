@@ -1,0 +1,93 @@
+﻿@model MindCare.ViewModels.CreateUserViewModel
+@{
+    ViewData["Title"] = "Create User";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid">
+    <h2 class="mt-4">Create New User</h2>
+    <p class="lead">Add a new user to the system and assign roles</p>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-user-plus me-1"></i>
+            New User Details
+        </div>
+        <div class="card-body">
+            <form asp-action="CreateUser" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="Email" class="control-label"></label>
+                            <input asp-for="Email" class="form-control" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Password" class="control-label"></label>
+                            <input asp-for="Password" class="form-control" />
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="ConfirmPassword" class="control-label"></label>
+                            <input asp-for="ConfirmPassword" class="form-control" />
+                            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="FirstName" class="control-label"></label>
+                            <input asp-for="FirstName" class="form-control" />
+                            <span asp-validation-for="FirstName" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="LastName" class="control-label"></label>
+                            <input asp-for="LastName" class="form-control" />
+                            <span asp-validation-for="LastName" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="PhoneNumber" class="control-label"></label>
+                            <input asp-for="PhoneNumber" class="form-control" />
+                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label class="control-label">Roles</label>
+                    <div class="row">
+                        @for (int i = 0; i < Model.Roles.Count; i++)
+                        {
+                            <div class="col-md-3 mb-2">
+                                <div class="form-check">
+                                    <input type="hidden" asp-for="@Model.Roles[i].RoleName" />
+                                    <input class="form-check-input" type="checkbox" asp-for="@Model.Roles[i].Selected" />
+                                    <label class="form-check-label" asp-for="@Model.Roles[i].Selected">
+                                        @Model.Roles[i].RoleName
+                                    </label>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="form-group mt-4">
+                    <button type="submit" class="btn btn-primary">Create User</button>
+                    <a asp-action="ManageUsers" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

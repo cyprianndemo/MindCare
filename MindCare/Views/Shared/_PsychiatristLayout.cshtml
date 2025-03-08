@@ -181,22 +181,29 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="@Url.Action("ApprovedAppointments", "Psychiatrist")">
+                        <span class="nav-item-icon"><i class="fas fa-calendar-alt"></i></span> Confirmed Appointments
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="@Url.Action("MedicationList", "Pharmacy")">
                         <span class="nav-item-icon"><i class="fas fa-pills"></i></span> View Drugs
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="@Url.Action("Prescriptions", "Pharmacy")">
+                        <span class="nav-item-icon"><i class="fas fa-prescription-bottle-alt"></i></span> Manage Prescription
+                    </a>
+                </li>
+
+                <li class="nav-item">
                     <a class="nav-link" href="@Url.Action("PatientList", "Psychiatrist")">
                         <span class="nav-item-icon"><i class="fas fa-users"></i></span> View Patients
                     </a>
                 </li>
+              
                 <li class="nav-item">
-                    <a class="nav-link" href="@Url.Action("Prescriptions", "Pharmacy")">
-                        <span class="nav-item-icon"><i class="fas fa-prescription"></i></span> Manage Prescriptions
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="@Url.Action("PatientFeedback", "Feedback")">
+                    <a class="nav-link" href="@Url.Action("ViewFeedback", "Feedback")">
                         <span class="nav-item-icon"><i class="fas fa-comment-alt"></i></span> View Feedback
                     </a>
                 </li>

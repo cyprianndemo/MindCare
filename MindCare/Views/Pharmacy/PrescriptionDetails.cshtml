@@ -1,0 +1,127 @@
+﻿@model MindCare.ViewModel.PrescriptionViewModel
+@{
+    ViewData["Title"] = "Prescription Details";
+    Layout = User.IsInRole("Psychiatrist") ? "_PsychiatristLayout" : "_Layout";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        @if (User.IsInRole("Psychiatrist"))
+                        {
+                            <a href="@Url.Action("Dashboard", "Psychiatrist")">Dashboard</a>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("Index", "Home")">Home</a>
+                        }
+                    </li>
+                    <li class="breadcrumb-item"><a href="@Url.Action("Prescriptions", "Pharmacy")">Prescriptions</a></li>
+                    <li class="breadcrumb-item active">Prescription Details</li>
+                </ol>
+            </nav>
+
+            <div class="card shadow">
+                <div class="card-header" style="background-color: #004085; color: #fff;">
+                    <h4 class="mb-0"><i class="fas fa-prescription-bottle-alt me-2"></i>Prescription Details</h4>
+                </div>
+                <div class="card-body">
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show">
+                            <i class="fas fa-exclamation-triangle me-2"></i> @TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p class="fw-bold">Medication:</p>
+                            <p>@Model.MedicationName</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="fw-bold">Status:</p>
+                            <p>
+                                @if (Model.Status == "Active")
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">@Model.Status</span>
+                                }
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p class="fw-bold">Patient:</p>
+                            <p>@(Model.Student?.FirstName) @(Model.Student?.LastName)</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="fw-bold">Prescribed By:</p>
+                            <p>Dr. @(Model.Psychiatrist?.FirstName) @(Model.Psychiatrist?.LastName)</p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <p class="fw-bold">Dosage:</p>
+                            <p>@Model.Dosage</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="fw-bold">Frequency:</p>
+                            <p>@Model.Frequency</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="fw-bold">Duration:</p>
+                            <p>@Model.Duration</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <p class="fw-bold">Special Instructions:</p>
+                        <p>@Model.Instructions</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <p class="fw-bold">Prescription Date:</p>
+                        <p>@Model.PrescriptionDate.ToShortDateString()</p>
+                    </div>
+
+                    @if (User.IsInRole("Psychiatrist"))
+                    {
+                        <div class="d-grid gap-2">
+                            <a href="@Url.Action("UpdatePrescriptionStatus", "Pharmacy", new { id = Model.PrescriptionId, status = "Inactive" })"
+                               class="btn btn-warning"
+                               onclick="return confirm('Are you sure you want to mark this prescription as inactive?');">
+                                <i class="fas fa-times-circle me-2"></i> Mark as Inactive
+                            </a>
+                        </div>
+                    }
+
+                    <div class="d-grid gap-2 mt-3">
+                        <a href="@Url.Action("Prescriptions", "Pharmacy")" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i> Back to Prescriptions
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Auto-hide alerts after 5 seconds
+            setTimeout(function () {
+                $(".alert-dismissible").fadeOut("slow");
+            }, 5000);
+        });
+    </script>
+}

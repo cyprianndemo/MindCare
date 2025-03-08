@@ -7,64 +7,99 @@
 <div class="container mt-4">
     <div class="row">
         <div class="col-md-8 offset-md-2">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">Prescribe Medication</h4>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard", "Psychiatrist")">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="@Url.Action("MedicationList", "Pharmacy")">Medications</a></li>
+                    <li class="breadcrumb-item active">Prescribe Medication</li>
+                </ol>
+            </nav>
+
+            <div class="card shadow">
+                <div class="card-header" style="background-color: #004085; color: #fff;">
+                    <h4 class="mb-0"><i class="fas fa-prescription-bottle-alt me-2"></i>Prescribe Medication</h4>
                 </div>
                 <div class="card-body">
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show">
+                            <i class="fas fa-exclamation-triangle me-2"></i> @TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    @if (TempData["Warning"] != null)
+                    {
+                        <div class="alert alert-warning alert-dismissible fade show">
+                            <i class="fas fa-exclamation-circle me-2"></i> @TempData["Warning"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
                     <form asp-action="PrescribeMedication" method="post">
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                         <input type="hidden" asp-for="MedicationId" />
 
                         <div class="mb-3">
-                            <label class="form-label">Medication Name</label>
+                            <label class="form-label fw-bold">Medication</label>
                             <input class="form-control" value="@Model.MedicationName" readonly />
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="StudentId" class="form-label">Student</label>
+                            <label asp-for="StudentId" class="form-label fw-bold">Patient</label>
                             <select asp-for="StudentId" asp-items="Model.Patients" class="form-select">
-                                <option value="">-- Select Student --</option>
+                                <option value="">-- Select Patient --</option>
                             </select>
                             <span asp-validation-for="StudentId" class="text-danger"></span>
+                            <small class="form-text text-muted">Select a patient from your patient list</small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Dosage" class="form-label fw-bold">Dosage</label>
+                                    <input asp-for="Dosage" class="form-control" placeholder="e.g., 10mg" />
+                                    <span asp-validation-for="Dosage" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Frequency" class="form-label fw-bold">Frequency</label>
+                                    <input asp-for="Frequency" class="form-control" placeholder="e.g., Twice daily" />
+                                    <span asp-validation-for="Frequency" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Duration" class="form-label fw-bold">Duration</label>
+                                    <input asp-for="Duration" class="form-control" placeholder="e.g., 7 days" />
+                                    <span asp-validation-for="Duration" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="PrescriptionDate" class="form-label fw-bold">Prescription Date</label>
+                                    <input asp-for="PrescriptionDate" class="form-control" type="date" value="@Model.PrescriptionDate.ToString("yyyy-MM-dd")" />
+                                    <span asp-validation-for="PrescriptionDate" class="text-danger"></span>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="Dosage" class="form-label">Dosage</label>
-                            <input asp-for="Dosage" class="form-control" />
-                            <span asp-validation-for="Dosage" class="text-danger"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="Frequency" class="form-label">Frequency</label>
-                            <input asp-for="Frequency" class="form-control" placeholder="e.g., Twice daily" />
-                            <span asp-validation-for="Frequency" class="text-danger"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="Duration" class="form-label">Duration</label>
-                            <input asp-for="Duration" class="form-control" placeholder="e.g., 7 days" />
-                            <span asp-validation-for="Duration" class="text-danger"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="Instructions" class="form-label">Special Instructions</label>
-                            <textarea asp-for="Instructions" class="form-control" rows="3"></textarea>
+                            <label asp-for="Instructions" class="form-label fw-bold">Special Instructions</label>
+                            <textarea asp-for="Instructions" class="form-control" rows="3" placeholder="Enter any special instructions for taking this medication"></textarea>
                             <span asp-validation-for="Instructions" class="text-danger"></span>
                         </div>
 
-                        <div class="mb-3">
-                            <label asp-for="PrescriptionDate" class="form-label">Prescription Date</label>
-                            <input asp-for="PrescriptionDate" class="form-control" type="date" />
-                            <span asp-validation-for="PrescriptionDate" class="text-danger"></span>
-                        </div>
-
                         <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-prescription"></i> Create Prescription
+                            <button type="submit" class="btn" style="background-color: #004085; color: #fff;">
+                                <i class="fas fa-prescription me-2"></i> Create Prescription
                             </button>
                             <a asp-action="MedicationList" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left"></i> Back to List
+                                <i class="fas fa-arrow-left me-2"></i> Back to Medications
                             </a>
                         </div>
                     </form>
@@ -78,4 +113,23 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+        $(document).ready(function () {
+            // Auto-hide alerts after 5 seconds
+            setTimeout(function () {
+                $(".alert-dismissible").fadeOut("slow");
+            }, 5000);
+
+            
+            
+            $("#searchPatient").on("keyup", function() {
+                var value = $(this).val().toLowerCase();
+                $("#StudentId option").filter(function() {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                });
+            });
+           
+        });
+    </script>
 }

@@ -1,0 +1,25 @@
+﻿@model IEnumerable<Feedback>
+@{
+    Layout = "_PsychiatristLayout";
+}
+
+<div class="container my-5">
+    <h1 class="text-center" style="color: #004085;">Feedback Received</h1>
+    <div class="row mt-4">
+        @foreach (var feedback in Model)
+        {
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Feedback from <strong>@($"{feedback.Student.FirstName} {feedback.Student.LastName}")</strong></h5>
+                        <p class="card-text">@feedback.Content</p>
+                        <div class="d-flex justify-content-between">
+                            <span class="badge badge-primary">Rating: @feedback.Rating/5</span>
+                            <small class="text-muted">@feedback.CreatedAt.ToString("MMM dd, yyyy")</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

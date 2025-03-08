@@ -59,7 +59,8 @@ namespace MindCare.Controllers
             var userEmail = User.FindFirstValue(ClaimTypes.Email);
 
             var prescriptions = await _context.Prescriptions
-                .Where(p => p.Student.Email == userEmail) // Ensure email matches the student
+                .Where(p => p.StudentId == userId)  // Primary filter by user ID
+                .Include(p => p.Medication)
                 .Select(p => new PrescriptionViewModel
                 {
                     PrescriptionId = p.PrescriptionId,
@@ -69,11 +70,11 @@ namespace MindCare.Controllers
                     PrescriptionDate = p.PrescriptionDate,
                     Status = p.Status
                 })
+                .OrderByDescending(p => p.PrescriptionDate)
                 .ToListAsync();
 
             return View(prescriptions);
         }
-
 
         // GET: Medication Details for a specific student
         [Authorize]
@@ -242,24 +243,15 @@ namespace MindCare.Controllers
 
                 var psychiatristId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-                // Get students assigned to the psychiatrist
-                var patients = await _context.Appointments
-                    .Where(a => a.PsychiatristId == psychiatristId)
-                    .Select(a => a.Student)
-                    .Distinct()
-                    .Select(s => new SelectListItem
-                    {
-                        Value = s.Id,
-                        Text = $"{s.FirstName} {s.LastName} ({s.Email})"
-                    })
-                    .ToListAsync();
+                // Get patients from the same logic as PatientList
+                var patients = await GetPsychiatristPatients(psychiatristId);
 
                 var viewModel = new PrescriptionViewModel
                 {
                     MedicationId = medication.MedicationId,
                     MedicationName = medication.Name,
                     Patients = patients,
-                    PrescriptionDate = DateTime.Today
+                    PrescriptionDate = DateTime.UtcNow
                 };
 
                 return View(viewModel);
@@ -271,52 +263,122 @@ namespace MindCare.Controllers
             }
         }
 
+        // Updated helper method to match the PatientList logic
+        private async Task<List<SelectListItem>> GetPsychiatristPatients(string psychiatristId)
+        {
+            // Use the same query logic as in PatientList
+            var patients = await _context.Appointments
+                .Where(a => a.PsychiatristId == psychiatristId)
+                .Join(
+                    _context.Users, // Join with AspNetUsers table
+                    appointment => appointment.StudentId,
+                    user => user.Id,
+                    (appointment, user) => new { Appointment = appointment, User = user }
+                )
+                .GroupBy(x => x.User.Id)
+                .Select(g => new
+                {
+                    StudentId = g.Key,
+                    Name = $"{g.First().User.FirstName} {g.First().User.LastName}",
+                    Email = g.First().User.Email
+                })
+                .Distinct()
+                .Select(p => new SelectListItem
+                {
+                    Value = p.StudentId,
+                    Text = $"{p.Name} ({p.Email})"
+                })
+                .ToListAsync();
+
+            return patients;
+        }
+
+        // Updated POST method for PrescribeMedication to ensure proper validation
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Psychiatrist")]
         public async Task<IActionResult> PrescribeMedication(PrescriptionViewModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                model.Patients = await GetPsychiatristPatients(User.FindFirstValue(ClaimTypes.NameIdentifier));
-                TempData["Error"] = "Please fill in all required fields correctly.";
-                return View(model);
-            }
-
             try
             {
-                var psychiatristId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                ModelState.Remove("Student");
+                ModelState.Remove("Medication");
+                ModelState.Remove("Psychiatrist");
+                ModelState.Remove("MedicationName");
+                ModelState.Remove("PsychiatristId");
+                ModelState.Remove("Status");
 
-                // Ensure valid patient selection
-                var isValidPatient = await _context.Appointments
-                    .AnyAsync(a => a.PsychiatristId == psychiatristId && a.StudentId == model.StudentId);
-
-                if (!isValidPatient)
-                {
-                    TempData["Error"] = "Invalid patient selection. Please select a valid patient.";
-                    model.Patients = await GetPsychiatristPatients(psychiatristId);
-                    return View(model);
-                }
+                string psychiatristId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                model.PsychiatristId = psychiatristId;
+                model.Status = "Active";
 
                 var medication = await _context.Medications.FindAsync(model.MedicationId);
                 if (medication == null)
                 {
                     TempData["Error"] = "Selected medication not found.";
-                    return RedirectToAction(nameof(MedicationList));
-                }
-
-                // Check for existing prescription
-                var existingPrescription = await _context.Prescriptions
-                    .AnyAsync(p => p.MedicationId == model.MedicationId && p.StudentId == model.StudentId && p.Status == "Active");
-
-                if (existingPrescription)
-                {
-                    TempData["Warning"] = "This medication is already prescribed to this student.";
                     model.Patients = await GetPsychiatristPatients(psychiatristId);
                     return View(model);
                 }
 
-                // Save new prescription
+                model.MedicationName = medication.Name;
+                model.Medication = medication;
+
+                var student = await _context.Users.FindAsync(model.StudentId);
+                if (student == null)
+                {
+                    TempData["Error"] = "Selected student not found.";
+                    model.Patients = await GetPsychiatristPatients(psychiatristId);
+                    return View(model);
+                }
+                model.Student = student;
+
+                var psychiatrist = await _context.Users.FindAsync(psychiatristId);
+                if (psychiatrist == null)
+                {
+                    TempData["Error"] = "Psychiatrist information not found.";
+                    model.Patients = await GetPsychiatristPatients(psychiatristId);
+                    return View(model);
+                }
+                model.Psychiatrist = psychiatrist;
+
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                         .Select(e => e.ErrorMessage)
+                                         .ToList();
+
+                    TempData["Error"] = $"Please fill in all required fields correctly. {string.Join(", ", errors)}";
+                    model.Patients = await GetPsychiatristPatients(psychiatristId);
+                    return View(model);
+                }
+
+                var isValidPatient = await _context.Appointments
+                    .AnyAsync(a => a.PsychiatristId == psychiatristId && a.StudentId == model.StudentId);
+
+                if (!isValidPatient)
+                {
+                    TempData["Error"] = "Selected patient is not in your patient list.";
+                    model.Patients = await GetPsychiatristPatients(psychiatristId);
+                    return View(model);
+                }
+
+                var existingPrescription = await _context.Prescriptions
+                    .AnyAsync(p => p.MedicationId == model.MedicationId &&
+                                  p.StudentId == model.StudentId &&
+                                  p.Status == "Active");
+
+                if (existingPrescription)
+                {
+                    TempData["Warning"] = "This medication is already actively prescribed to this patient.";
+                    model.Patients = await GetPsychiatristPatients(psychiatristId);
+                    return View(model);
+                }
+
+                // Ensure all DateTime fields are explicitly set to UTC
+                DateTime utcNow = DateTime.UtcNow;
+                // Convert any local dates to UTC
+                DateTime prescriptionDateUtc = DateTime.SpecifyKind(model.PrescriptionDate, DateTimeKind.Utc);
+
                 var prescription = new Prescription
                 {
                     MedicationId = model.MedicationId,
@@ -326,20 +388,22 @@ namespace MindCare.Controllers
                     Frequency = model.Frequency,
                     Duration = model.Duration,
                     Instructions = model.Instructions,
-                    PrescriptionDate = model.PrescriptionDate,
+                    PrescriptionDate = prescriptionDateUtc,
+                    PrescribedDate = prescriptionDateUtc,
                     Status = "Active",
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = utcNow,
+                    DatePrescribed = utcNow,
+                    Description = $"{medication.Name} - {model.Dosage}"
                 };
 
                 _context.Prescriptions.Add(prescription);
                 await _context.SaveChangesAsync();
 
-                // Create notification for student
                 var notification = new Notification
                 {
                     UserId = model.StudentId,
                     Message = $"New medication prescribed: {medication.Name} - {model.Dosage}",
-                    CreatedAt = DateTime.UtcNow,
+                    CreatedAt = utcNow,
                     IsRead = false,
                     Type = "Prescription",
                     Link = $"/Pharmacy/StudentMedicationDetails/{prescription.PrescriptionId}"
@@ -348,37 +412,16 @@ namespace MindCare.Controllers
                 _context.Notifications.Add(notification);
                 await _context.SaveChangesAsync();
 
-                TempData["SuccessMessage"] = "Medication prescribed successfully!";
+                TempData["Success"] = "Medication prescribed successfully!";
                 return RedirectToAction(nameof(PrescriptionList));
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", "An error occurred while prescribing the medication.");
-                TempData["Error"] = "Failed to prescribe medication. Please try again.";
+                var innerExceptionMessage = ex.InnerException != null ? ex.InnerException.Message : "";
+                ModelState.AddModelError("", "An error occurred while prescribing the medication: " + ex.Message + " - " + innerExceptionMessage);
                 model.Patients = await GetPsychiatristPatients(User.FindFirstValue(ClaimTypes.NameIdentifier));
                 return View(model);
             }
-        }
-
-
-        // Helper method to get psychiatrist's patients
-        private async Task<List<SelectListItem>> GetPsychiatristPatients(string psychiatristId)
-        {
-            return await _context.Appointments
-                .Where(a => a.PsychiatristId == psychiatristId)
-                .Join(
-                    _context.Users,
-                    appointment => appointment.StudentId,
-                    user => user.Id,
-                    (appointment, user) => new { User = user }
-                )
-                .Distinct()
-                .Select(x => new SelectListItem
-                {
-                    Value = x.User.Id,
-                    Text = $"{x.User.FirstName} {x.User.LastName} ({x.User.Email})"
-                })
-                .ToListAsync();
         }
 
         [Authorize]
@@ -428,7 +471,100 @@ namespace MindCare.Controllers
             ViewBag.UserRole = userRole;
             return View(prescriptions);
         }
+        // GET: Pharmacy/PrescriptionDetails/id
+        [Authorize]
+        public async Task<IActionResult> PrescriptionDetails(int id)
+        {
+            // Get current user's ID and role
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userRole = User.FindFirstValue(ClaimTypes.Role);
 
+            // Query to get the prescription with all related data
+            var prescriptionQuery = _context.Prescriptions
+                .Include(p => p.Medication)
+                .Include(p => p.Student)
+                .Include(p => p.Psychiatrist)
+                .AsQueryable();
+
+            // If student, only show their own prescriptions
+            if (userRole == "Student")
+            {
+                prescriptionQuery = prescriptionQuery.Where(p => p.StudentId == userId);
+            }
+            // If psychiatrist, only show prescriptions they created
+            else if (userRole == "Psychiatrist")
+            {
+                prescriptionQuery = prescriptionQuery.Where(p => p.PsychiatristId == userId);
+            }
+
+            var prescription = await prescriptionQuery
+                .FirstOrDefaultAsync(p => p.PrescriptionId == id);
+
+            if (prescription == null)
+            {
+                TempData["Error"] = "Prescription not found or you don't have access to view it.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var viewModel = new PrescriptionViewModel
+            {
+                PrescriptionId = prescription.PrescriptionId,
+                MedicationId = prescription.MedicationId,
+                StudentId = prescription.StudentId,
+                PsychiatristId = prescription.PsychiatristId,
+                Dosage = prescription.Dosage,
+                Frequency = prescription.Frequency,
+                Duration = prescription.Duration,
+                Instructions = prescription.Instructions,
+                PrescriptionDate = prescription.PrescriptionDate,
+                Status = prescription.Status,
+                Student = prescription.Student,
+                Psychiatrist = prescription.Psychiatrist,
+                Medication = prescription.Medication,
+                MedicationName = prescription.Medication.Name
+            };
+
+            return View(viewModel);
+        }
+
+        // GET: Pharmacy/UpdatePrescriptionStatus/id?status=Inactive
+        [Authorize(Roles = "Psychiatrist")]
+        public async Task<IActionResult> UpdatePrescriptionStatus(int id, string status)
+        {
+            // Get current user's ID
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // Find the prescription
+            var prescription = await _context.Prescriptions
+                .FirstOrDefaultAsync(p => p.PrescriptionId == id && p.PsychiatristId == userId);
+
+            if (prescription == null)
+            {
+                TempData["Error"] = "Prescription not found or you don't have permission to update it.";
+                return RedirectToAction("Prescriptions");
+            }
+
+            // Update the status
+            prescription.Status = status;
+            await _context.SaveChangesAsync();
+
+            // Create notification for the student
+            var notification = new Notification
+            {
+                UserId = prescription.StudentId,
+                Message = $"Your prescription for {prescription.Medication.Name} has been marked as {status}.",
+                CreatedAt = DateTime.UtcNow,
+                IsRead = false,
+                Type = "Prescription",
+                Link = $"/Pharmacy/StudentMedicationDetails/{prescription.PrescriptionId}"
+            };
+
+            _context.Notifications.Add(notification);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"Prescription status updated to {status}.";
+            return RedirectToAction("Prescriptions");
+        }
 
         public async Task<IActionResult> Edit(int? id)
         {

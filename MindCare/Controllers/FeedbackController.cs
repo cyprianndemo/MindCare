@@ -72,8 +72,22 @@ namespace MindCare.Controllers
         }
 
         // Action for therapists to view feedback
-        [Authorize(Roles = "Therapist,Psychiatrist")]
+
+        [Authorize(Roles = "Therapist")]
         public async Task<IActionResult> ViewFeedbacks()
+        {
+            var therapistId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var feedbacks = await _context.Feedback
+                .Include(f => f.Student)
+                .Where(f => f.TherapistId == therapistId)
+                .OrderByDescending(f => f.CreatedAt)
+                .ToListAsync();
+
+            return View(feedbacks);
+        }
+        [Authorize(Roles = "Psychiatrist")]
+        public async Task<IActionResult> ViewFeedback()
         {
             var therapistId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 

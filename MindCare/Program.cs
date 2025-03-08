@@ -8,7 +8,11 @@ using MindCare.Hubs;
 using MindCare.Models;
 using MindCare.Services;
 using Stripe;
+using System.Runtime.InteropServices;
+using System.Runtime.Loader;
+using System.Reflection;
 
+// Top-level statements must come before any namespace and type declarations
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
@@ -24,7 +28,19 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.R
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
+
+// Updated DinkToPdf configuration with CustomAssemblyLoadContext
+var architectureFolder = RuntimeInformation.ProcessArchitecture switch
+{
+    Architecture.X86 => "win-x86",
+    Architecture.X64 => "win-x64",
+    Architecture.Arm64 => "win-arm64",
+    _ => throw new NotSupportedException($"Architecture {RuntimeInformation.ProcessArchitecture} is not supported")
+};
+
+var libPath = Path.Combine(Directory.GetCurrentDirectory(), "lib", architectureFolder, "libwkhtmltox.dll");
 builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
+
 builder.Services.AddScoped<ChatbotService>();
 //builder.Services.Configure<OpenAISettings>(configuration.GetSection("OpenAI"));
 
@@ -109,8 +125,8 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     try
     {
-        var context = services.GetRequiredService<ApplicationDbContext>();
-        DbInitializer.Initialize(context);
+        var context1 = services.GetRequiredService<ApplicationDbContext>();
+        DbInitializer.Initialize(context1);
     }
     catch (Exception ex)
     {
@@ -124,7 +140,8 @@ await SeedRolesAndAdminUser(app.Services);
 
 app.Run();
 
-
+// Class and method declarations must come after top-level statements
+// Define the CustomAssemblyLoadContext class
 static async Task SeedRolesAndAdminUser(IServiceProvider serviceProvider)
 {
     using (var scope = serviceProvider.CreateScope())

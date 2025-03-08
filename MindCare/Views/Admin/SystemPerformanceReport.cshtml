@@ -1,0 +1,320 @@
+﻿@model MindCare.ViewModels.SystemPerformanceReportViewModel
+@{
+    ViewData["Title"] = "System Performance Report";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid" id="reportContent">
+    <div class="d-flex justify-content-between align-items-center">
+        <h2 class="mt-4">System Performance Report</h2>
+        <button id="exportPDF" class="btn btn-primary">
+            <i class="fas fa-file-pdf me-2"></i>Export to PDF
+        </button>
+    </div>
+    <p class="lead">Comprehensive overview of system activity, user engagement, and performance metrics</p>
+
+    <!-- Summary Cards -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-primary text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">Total Users</h5>
+                            <h2 class="mb-0">@Model.TotalUsers</h2>
+                        </div>
+                        <i class="fas fa-users fa-3x opacity-50"></i>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <span>@Model.MonthlyActiveUsers active this month</span>
+                    <div class="small text-white"><i class="fas fa-user-check"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">Total Sessions</h5>
+                            <h2 class="mb-0">@Model.TotalSessions</h2>
+                        </div>
+                        <i class="fas fa-calendar-check fa-3x opacity-50"></i>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <span>@Model.CompletedSessions completed</span>
+                    <div class="small text-white"><i class="fas fa-check-circle"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-info text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">System Uptime</h5>
+                            <h2 class="mb-0">@Model.SystemPerformance.Uptime%</h2>
+                        </div>
+                        <i class="fas fa-server fa-3x opacity-50"></i>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <span>Avg. Response: @Model.SystemPerformance.AverageResponseTime sec</span>
+                    <div class="small text-white"><i class="fas fa-tachometer-alt"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-warning text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">System Errors</h5>
+                            <h2 class="mb-0">@Model.SystemPerformance.ErrorCount</h2>
+                        </div>
+                        <i class="fas fa-exclamation-triangle fa-3x opacity-50"></i>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <span>@Model.SystemPerformance.CriticalErrors critical errors</span>
+                    <div class="small text-white"><i class="fas fa-bug"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Distribution Chart -->
+    <div class="row">
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-pie me-1"></i>
+                    User Distribution
+                </div>
+                <div class="card-body">
+                    <canvas id="userDistributionChart" width="100%" height="40"></canvas>
+                </div>
+                <div class="card-footer small text-muted">
+                    Total users: @Model.TotalUsers
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar me-1"></i>
+                    Monthly Session Bookings
+                </div>
+                <div class="card-body">
+                    <canvas id="sessionBookingsChart" width="100%" height="40"></canvas>
+                </div>
+                <div class="card-footer small text-muted">
+                    Last 6 months of activity
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Session Status -->
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-clipboard-list me-1"></i>
+                    Session Status Breakdown
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Count</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="badge bg-success">Completed</span></td>
+                                    <td>@Model.CompletedSessions</td>
+                                    <td>@(Math.Round((double)Model.CompletedSessions / Model.TotalSessions * 100, 1))%</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-primary">Upcoming</span></td>
+                                    <td>@Model.UpcomingSessions</td>
+                                    <td>@(Math.Round((double)Model.UpcomingSessions / Model.TotalSessions * 100, 1))%</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-danger">Cancelled</span></td>
+                                    <td>@Model.CancelledSessions</td>
+                                    <td>@(Math.Round((double)Model.CancelledSessions / Model.TotalSessions * 100, 1))%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Feedback -->
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-comment-alt me-1"></i>
+                    Common Technical Issues Reported
+                </div>
+                <div class="card-body">
+                    <canvas id="feedbackChart" width="100%" height="50"></canvas>
+                </div>
+                <div class="card-footer small text-muted">
+                    Based on user feedback and support tickets
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Add jsPDF and html2canvas libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        // User Distribution Chart
+        var userCtx = document.getElementById("userDistributionChart");
+        var userDistributionChart = new Chart(userCtx, {
+            type: 'pie',
+            data: {
+                labels: ["Students", "Therapists", "Psychiatrists"],
+                datasets: [{
+                    data: [@Model.StudentCount, @Model.TherapistCount, @Model.PsychiatristCount],
+                    backgroundColor: ['#007bff', '#28a745', '#17a2b8']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 0 // Set animation duration to 0 for PDF export
+                }
+            }
+        });
+
+        // Monthly Session Bookings Chart
+        var sessionCtx = document.getElementById("sessionBookingsChart");
+        var sessionBookingsChart = new Chart(sessionCtx, {
+            type: 'bar',
+            data: {
+                labels: [@Html.Raw(string.Join(",", Model.MonthlySessionData.Select(d => $"'{d.Month}'")))],
+                datasets: [{
+                    label: 'Session Count',
+                    data: [@string.Join(",", Model.MonthlySessionData.Select(d => d.SessionCount))],
+                    backgroundColor: '#007bff',
+                    borderColor: '#0056b3',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 0 // Set animation duration to 0 for PDF export
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Feedback Chart
+        var feedbackCtx = document.getElementById("feedbackChart");
+        var feedbackChart = new Chart(feedbackCtx, {
+            type: 'horizontalBar',
+            data: {
+                labels: [@Html.Raw(string.Join(",", Model.UserFeedback.Select(f => $"'{f.Issue}'")))],
+                datasets: [{
+                    label: 'Issue Count',
+                    data: [@string.Join(",", Model.UserFeedback.Select(f => f.Count))],
+                    backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                    borderColor: 'rgb(255, 99, 132)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 0 // Set animation duration to 0 for PDF export
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // PDF Export functionality
+        document.getElementById('exportPDF').addEventListener('click', function () {
+            // Show loading indicator
+            const button = this;
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating PDF...';
+            button.disabled = true;
+
+            // Wait for charts to render completely
+            setTimeout(function () {
+                // Get the content to convert
+                const element = document.getElementById('reportContent');
+
+                // Use html2canvas to convert the HTML to an image
+                html2canvas(element, {
+                    scale: 2, // Higher quality
+                    useCORS: true,
+                    logging: false
+                }).then(canvas => {
+                    // Initialize jsPDF
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF('p', 'mm', 'a4');
+
+                    // Get dimensions
+                    const imgData = canvas.toDataURL('image/png');
+                    const pageWidth = doc.internal.pageSize.getWidth();
+                    const pageHeight = doc.internal.pageSize.getHeight();
+                    const imgWidth = canvas.width;
+                    const imgHeight = canvas.height;
+                    const ratio = Math.min(pageWidth / imgWidth, pageHeight / imgHeight);
+                    const imgX = (pageWidth - imgWidth * ratio) / 2;
+
+                    doc.setFontSize(18);
+                    doc.text('MindCare System Performance Report', pageWidth / 2, 15, { align: 'center' });
+
+                    doc.setFontSize(10);
+                    doc.text('Generated on: ' + new Date().toLocaleDateString(), pageWidth / 2, 22, { align: 'center' });
+
+                    doc.addImage(
+                        imgData,
+                        'PNG',
+                        imgX,
+                        30,
+                        imgWidth * ratio,
+                        imgHeight * ratio
+                    );
+
+                    doc.save('MindCare_System_Report_' + new Date().toISOString().slice(0, 10) + '.pdf');
+
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                });
+            }, 500); // Small delay to ensure charts are rendered
+        });
+    </script>
+}

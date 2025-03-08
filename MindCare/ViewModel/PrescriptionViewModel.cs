@@ -6,31 +6,48 @@ namespace MindCare.ViewModel
 {
     public class PrescriptionViewModel
     {
-        public int MedicationId { get; set; }
-        public string MedicationName { get; set; }
-        public int PatientId { get; set; }
-        public string StudentId { get; set; }   
-        [Required]
-        public string Dosage { get; set; }
-        [Required]
-        public string Frequency { get; set; }
-        [Required]
-        public string Duration { get; set; }
-        [Required]
-        public string Instructions { get; set; }
-        public DateTime PrescriptionDate { get; set; }
-        public string Status { get; set; }
         public int PrescriptionId { get; set; }
-        public Medication Medication { get; set; }
-        public virtual ApplicationUser Student { get; set; }
-
-        public List<SelectListItem> Patients { get; set; }
-        public virtual ApplicationUser Psychiatrist { get; set; }
+        
+        [Required]
+        public int MedicationId { get; set; }
+        
+        public string MedicationName { get; set; }
+        
+        [Required(ErrorMessage = "Patient is required")]
+        public string StudentId { get; set; }
+        
         public string PsychiatristId { get; set; }
+        
+        [Required(ErrorMessage = "Dosage is required")]
+        public string Dosage { get; set; }
+        
+        [Required(ErrorMessage = "Frequency is required")]
+        public string Frequency { get; set; }
+        
+        [Required(ErrorMessage = "Duration is required")]
+        public string Duration { get; set; }
+        
+        [Required(ErrorMessage = "Instructions are required")]
+        public string Instructions { get; set; }
+        
+        [Required(ErrorMessage = "Prescription date is required")]
+        [DataType(DataType.Date)]
+        public DateTime PrescriptionDate { get; set; }
+        
+        public string Status { get; set; }
+        
+        // Navigation properties
+        public virtual Medication Medication { get; set; }
+        public virtual ApplicationUser Student { get; set; }
+        public virtual ApplicationUser Psychiatrist { get; set; }
+        
+        // For dropdown lists
+        public List<SelectListItem> Patients { get; set; }
 
         public PrescriptionViewModel()
         {
-            PrescriptionDate = DateTime.Now;
+            PrescriptionDate = DateTime.UtcNow;
+            Status = "Active";
             Patients = new List<SelectListItem>();
         }
     }

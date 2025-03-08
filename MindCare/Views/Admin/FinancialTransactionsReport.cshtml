@@ -1,0 +1,447 @@
+﻿@model MindCare.ViewModels.FinancialTransactionsReportViewModel
+@{
+    ViewData["Title"] = "Financial Transactions Report";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid" id="reportContent">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mt-2">Financial Transactions Report</h2>
+            <p class="lead">Comprehensive overview of payment activity and financial transactions</p>
+        </div>
+        <div>
+            <button id="generatePdfBtn" class="btn btn-primary">
+                <i class="fas fa-file-pdf me-2"></i>Export to PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">Total Revenue</h5>
+                            <h2 class="mb-0">$@Model.TotalPaymentsReceived.ToString("N2")</h2>
+                        </div>
+                        <i class="fas fa-dollar-sign fa-3x opacity-50"></i>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <span>From @Model.TotalTransactions transactions</span>
+                    <div class="small text-white"><i class="fas fa-receipt"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-primary text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">Successful</h5>
+                            <h2 class="mb-0">@Model.SuccessfulTransactions</h2>
+                        </div>
+                        <i class="fas fa-check-circle fa-3x opacity-50"></i>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <span>@(Model.TotalTransactions > 0 ? Math.Round((double)Model.SuccessfulTransactions / Model.TotalTransactions * 100, 1) : 0)% success rate</span>
+                    <div class="small text-white"><i class="fas fa-thumbs-up"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-danger text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">Failed</h5>
+                            <h2 class="mb-0">@Model.FailedTransactions</h2>
+                        </div>
+                        <i class="fas fa-times-circle fa-3x opacity-50"></i>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <span>@(Model.TotalTransactions > 0 ? Math.Round((double)Model.FailedTransactions / Model.TotalTransactions * 100, 1) : 0)% failure rate</span>
+                    <div class="small text-white"><i class="fas fa-exclamation-circle"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-info text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">Avg. Transaction</h5>
+                            <h2 class="mb-0">$@(Model.SuccessfulTransactions > 0 ? (Model.TotalPaymentsReceived / Model.SuccessfulTransactions).ToString("N2") : "0.00")</h2>
+                        </div>
+                        <i class="fas fa-calculator fa-3x opacity-50"></i>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <span>Per successful transaction</span>
+                    <div class="small text-white"><i class="fas fa-chart-line"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Charts -->
+    <div class="row">
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-pie me-1"></i>
+                    Payment Methods
+                </div>
+                <div class="card-body">
+                    <canvas id="paymentMethodChart" width="100%" height="40"></canvas>
+                </div>
+                <div class="card-footer small text-muted">
+                    Distribution of payment methods used
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-line me-1"></i>
+                    Monthly Revenue
+                </div>
+                <div class="card-body">
+                    <canvas id="monthlyRevenueChart" width="100%" height="40"></canvas>
+                </div>
+                <div class="card-footer small text-muted">
+                    Last 6 months of financial activity
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Payment Method Details -->
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-credit-card me-1"></i>
+                    Payment Method Breakdown
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="paymentMethodTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Payment Method</th>
+                                    <th>Count</th>
+                                    <th>Total Amount</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var method in Model.PaymentMethodSummary)
+                                {
+                                    <tr>
+                                        <td>@method.Method</td>
+                                        <td>@method.Count</td>
+                                        <td>$@method.Total.ToString("N2")</td>
+                                        <td>@(Model.TotalPaymentsReceived > 0 ? Math.Round((double)(method.Total / Model.TotalPaymentsReceived) * 100, 1) : 0)%</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-list-alt me-1"></i>
+                    Recent Transactions
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="recentTransactionsTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>User</th>
+                                    <th>Amount</th>
+                                    <th>Method</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var transaction in Model.RecentTransactions)
+                                {
+                                    <tr>
+                                        <td>@transaction.PaymentDate.ToString("yyyy-MM-dd")</td>
+                                        <td>@(transaction.Student?.UserName ?? "N/A")</td>
+                                        <td>$@transaction.Amount.ToString("N2")</td>
+                                        <td>@(transaction.Method.HasValue ? transaction.Method.Value.ToString() : "N/A")</td>
+                                        <td>
+                                            @if (transaction.Status.HasValue && transaction.Status.Value.ToString() == "Completed")
+                                            {
+                                                <span class="badge bg-success">Completed</span>
+                                            }
+                                            else if (transaction.Status.HasValue && transaction.Status.Value.ToString() == "Failed")
+                                            {
+                                                <span class="badge bg-danger">Failed</span>
+                                            }
+                                            else if (transaction.Status.HasValue && transaction.Status.Value.ToString() == "Pending")
+                                            {
+                                                <span class="badge bg-warning">Pending</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Unknown</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="@Url.Action("AllTransactions", "Admin")" class="btn btn-sm btn-primary">View All Transactions</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden PDF Rendering Area -->
+<div id="pdfRenderArea" style="display: none;"></div>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="pdfLoadingModal" tabindex="-1" aria-labelledby="pdfLoadingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5 id="pdfLoadingModalLabel">Generating PDF Report</h5>
+                <p class="text-muted">Please wait while we prepare your report...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+    <!-- Add html2pdf and html2canvas libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Initialize DataTables for better table interaction
+            $('#paymentMethodTable').DataTable({
+                paging: false,
+                searching: false,
+                info: false
+            });
+
+            $('#recentTransactionsTable').DataTable({
+                paging: false,
+                searching: false,
+                info: false
+            });
+
+            // PDF Generation handler
+            $('#generatePdfBtn').click(function () {
+                // Show loading modal
+                $('#pdfLoadingModal').modal('show');
+
+                // Create a clone of the report content
+                const element = document.getElementById('reportContent');
+                const clone = element.cloneNode(true);
+
+                // Add some additional styling for the PDF
+                // Apply consistent width to make it fit on PDF
+                clone.style.width = '100%';
+                clone.style.maxWidth = '1000px';
+                clone.style.margin = '0 auto';
+                clone.style.padding = '20px';
+
+                // Set up options for better PDF quality
+                const opt = {
+                    margin: [10, 10, 10, 10],
+                    filename: 'FinancialTransactionsReport_' + new Date().toISOString().slice(0, 10) + '.pdf',
+                    image: { type: 'jpeg', quality: 1.0 },
+                    html2canvas: {
+                        scale: 2,
+                        useCORS: true,
+                        logging: false,
+                        letterRendering: true,
+                        allowTaint: true,
+                        scrollX: 0,
+                        scrollY: 0
+                    },
+                    jsPDF: {
+                        unit: 'mm',
+                        format: 'a4',
+                        orientation: 'portrait',
+                        compress: true,
+                        hotfixes: ["px_scaling"]
+                    },
+                    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                };
+
+                // Wait for charts to fully render
+                setTimeout(function () {
+                    // First, convert charts to images to ensure they render properly in PDF
+                    const charts = document.querySelectorAll('canvas');
+                    const chartPromises = Array.from(charts).map(chart => {
+                        return new Promise(resolve => {
+                            const img = new Image();
+                            img.src = chart.toDataURL('image/png', 1.0);
+                            img.onload = function () {
+                                resolve();
+                            };
+                        });
+                    });
+
+                    // When all charts are converted, generate the PDF
+                    Promise.all(chartPromises).then(() => {
+                        // Add the clone to the render area
+                        document.getElementById('pdfRenderArea').innerHTML = '';
+                        document.getElementById('pdfRenderArea').appendChild(clone);
+
+                        // Generate the PDF
+                        html2pdf().from(clone).set(opt).save()
+                            .then(() => {
+                                // Hide loading modal when complete
+                                $('#pdfLoadingModal').modal('hide');
+
+                                // Clean up the render area
+                                document.getElementById('pdfRenderArea').innerHTML = '';
+                            })
+                            .catch(error => {
+                                console.error('PDF generation error:', error);
+                                $('#pdfLoadingModal').modal('hide');
+                                alert('There was a problem generating the PDF. Please try again.');
+                            });
+                    });
+                }, 1000); // Give time for all elements to render
+            });
+        });
+
+        // Payment Method Chart
+        var methodCtx = document.getElementById("paymentMethodChart");
+        var paymentMethodChart = new Chart(methodCtx, {
+            type: 'pie',
+            data: {
+                labels: [@Html.Raw(string.Join(",", Model.PaymentMethodSummary.Select(m => $"'{m.Method}'")))],
+                datasets: [{
+                    data: [@string.Join(",", Model.PaymentMethodSummary.Select(m => m.Total))],
+                    backgroundColor: ['#007bff', '#28a745', '#ffc107', '#17a2b8', '#6610f2', '#fd7e14']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 0 // Disable animations for better PDF export
+                },
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            boxWidth: 15,
+                            padding: 15,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                return context.label + ': $' + context.raw.toFixed(2);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Monthly Revenue Chart
+        var revenueCtx = document.getElementById("monthlyRevenueChart");
+        var monthlyRevenueChart = new Chart(revenueCtx, {
+            type: 'line',
+            data: {
+                labels: [@Html.Raw(string.Join(",", Model.MonthlyPaymentData.Select(d => $"'{d.Month}'")))],
+                datasets: [{
+                    label: 'Revenue',
+                    data: [@string.Join(",", Model.MonthlyPaymentData.Select(d => d.Amount))],
+                    backgroundColor: 'rgba(40, 167, 69, 0.2)',
+                    borderColor: '#28a745',
+                    borderWidth: 2,
+                    tension: 0.1,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 0 // Disable animations for better PDF export
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function (value) {
+                                return '$' + value;
+                            },
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            drawBorder: true,
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                return 'Revenue: $' + context.raw.toFixed(2);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}

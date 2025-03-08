@@ -2,43 +2,317 @@
     ViewData["Title"] = "Admin Dashboard";
     Layout = "_AdminLayout";
 }
-
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h2>Welcome, @User.Identity.Name</h2>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="@Url.Action("SystemPerformanceReport", "Admin")" class="btn btn-sm btn-outline-secondary">Performance Report</a>
+            <a href="@Url.Action("FinancialTransactionsReport", "Admin")" class="btn btn-sm btn-outline-secondary">Financial Report</a>
+        </div>
+    </div>
 </div>
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h3 class="mb-3">Dashboard Overview</h3>
+            <div class="row">
+                <!-- Quick Stats Cards -->
+                <div class="col-xl-3 col-md-6">
+                    <div class="card bg-primary text-white mb-4">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-0">Users</h5>
+                                    <h2 class="mb-0" id="totalUsersCount">--</h2>
+                                </div>
+                                <i class="fas fa-users fa-3x opacity-50"></i>
+                            </div>
+                        </div>
+                        <div class="card-footer d-flex align-items-center justify-content-between">
+                            <a class="small text-white stretched-link" href="@Url.Action("ManageUsers", "Admin")">View Details</a>
+                            <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="card bg-success text-white mb-4">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-0">Sessions</h5>
+                                    <h2 class="mb-0" id="totalSessionsCount">--</h2>
+                                </div>
+                                <i class="fas fa-calendar-check fa-3x opacity-50"></i>
+                            </div>
+                        </div>
+                        <div class="card-footer d-flex align-items-center justify-content-between">
+                            <a class="small text-white stretched-link" href="#">View Details</a>
+                            <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="card bg-warning text-white mb-4">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-0">Pending</h5>
+                                    <h2 class="mb-0" id="pendingSessionsCount">--</h2>
+                                </div>
+                                <i class="fas fa-clock fa-3x opacity-50"></i>
+                            </div>
+                        </div>
+                        <div class="card-footer d-flex align-items-center justify-content-between">
+                            <a class="small text-white stretched-link" href="#">View Details</a>
+                            <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="card bg-info text-white mb-4">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-0">Revenue</h5>
+                                    <h2 class="mb-0" id="totalRevenue">--</h2>
+                                </div>
+                                <i class="fas fa-dollar-sign fa-3x opacity-50"></i>
+                            </div>
+                        </div>
+                        <div class="card-footer d-flex align-items-center justify-content-between">
+                            <a class="small text-white stretched-link" href="@Url.Action("FinancialTransactionsReport", "Admin")">View Details</a>
+                            <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-<div class="container">
-    <h3 class="mb-4">Admin Services Overview</h3>
-    <p>Access tools to manage users, monitor system reports, and configure settings.</p>
+            <!-- Activity/Sessions Chart -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-area me-1"></i>
+                    System Activity
+                </div>
+                <div class="card-body">
+                    <canvas id="activityChart" width="100%" height="30"></canvas>
+                </div>
+                <div class="card-footer small text-muted">Updated as of @DateTime.Now.ToString("yyyy-MM-dd HH:mm")</div>
+            </div>
+        </div>
 
-    <!-- Service Buttons Section -->
+        <div class="col-md-4">
+            <!-- Recent Activity -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-history me-1"></i>
+                    Recent System Activity
+                </div>
+                <div class="card-body">
+                    <div id="recentActivities">
+                        <div class="list-group">
+                            <div class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">Loading recent activities...</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="@Url.Action("UserActivityReport", "Admin")" class="btn btn-sm btn-primary">View All Activity</a>
+                </div>
+            </div>
+
+            <!-- System Stats -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-server me-1"></i>
+                    System Status
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Server Uptime</span>
+                            <span class="text-success" id="uptimeValue">99.98%</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 99.98%" 
+                                 aria-valuenow="99.98" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Response Time</span>
+                            <span class="text-success" id="responseTimeValue">0.42s</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 85%" 
+                                 aria-valuenow="85" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>CPU Usage</span>
+                            <span class="text-warning" id="cpuUsageValue">68%</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: 68%" 
+                                 aria-valuenow="68" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Memory Usage</span>
+                            <span class="text-primary" id="memoryUsageValue">52%</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: 52%" 
+                                 aria-valuenow="52" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Access Buttons -->
     <div class="row">
-        <div class="col-md-4">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title">Manage Users</h5>
-                    <p class="card-text">Create, update, or delete user accounts and assign roles.</p>
-                    <a href="@Url.Action("ManageUsers", "Admin")" class="btn" style="background-color: #004085; color: #fff;">Go to User Management</a>
+        <div class="col-xl-12">
+            <h4 class="mb-3">Quick Actions</h4>
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <a href="@Url.Action("CreateUser", "Admin")" class="card text-center py-3 text-decoration-none">
+                        <div class="card-body">
+                            <i class="fas fa-user-plus fa-3x mb-3 text-primary"></i>
+                            <h5 class="card-title">Add New User</h5>
+                        </div>
+                    </a>
                 </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title">View Reports</h5>
-                    <p class="card-text">Access system usage and performance reports.</p>
-                    <a href="@Url.Action("ViewReports", "Admin")" class="btn" style="background-color: #004085; color: #fff;">View Reports</a>
+                <div class="col-md-3 mb-3">
+                    <a href="@Url.Action("ManageUsers", "Admin")" class="card text-center py-3 text-decoration-none">
+                        <div class="card-body">
+                            <i class="fas fa-users-cog fa-3x mb-3 text-success"></i>
+                            <h5 class="card-title">Manage Users</h5>
+                        </div>
+                    </a>
                 </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title">System Settings</h5>
-                    <p class="card-text">Adjust system configurations and settings.</p>
-                    <a href="@Url.Action("SystemSettings", "Admin")" class="btn" style="background-color: #004085; color: #fff;">System Settings</a>
+                <div class="col-md-3 mb-3">
+                    <a href="@Url.Action("ViewReports", "Admin")" class="card text-center py-3 text-decoration-none">
+                        <div class="card-body">
+                            <i class="fas fa-chart-line fa-3x mb-3 text-info"></i>
+                            <h5 class="card-title">View Reports</h5>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <a href="@Url.Action("SystemSettings", "Admin")" class="card text-center py-3 text-decoration-none">
+                        <div class="card-body">
+                            <i class="fas fa-cogs fa-3x mb-3 text-warning"></i>
+                            <h5 class="card-title">System Settings</h5>
+                        </div>
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Fetch dashboard data
+            loadDashboardData();
+
+            // Set up activity chart
+            setupActivityChart();
+        });
+
+        function loadDashboardData() {
+            // In a real application, this would be an AJAX call to get data from the server
+            // For demo purposes, we're setting static values
+            
+            // Update stats
+            $('#totalUsersCount').text('587');
+            $('#totalSessionsCount').text('1,254');
+            $('#pendingSessionsCount').text('32');
+            $('#totalRevenue').text('$25,840');
+            
+            // Update recent activities
+            var recentActivities = [
+                { user: 'John Doe', action: 'Created new user account', time: '2 minutes ago' },
+                { user: 'Jane Smith', action: 'Updated system settings', time: '45 minutes ago' },
+                { user: 'Mike Johnson', action: 'Generated financial report', time: '1 hour ago' },
+                { user: 'Sarah Williams', action: 'Login successful', time: '3 hours ago' },
+                { user: 'Robert Brown', action: 'Reset user password', time: '5 hours ago' }
+            ];
+            
+            var activitiesHtml = '';
+            recentActivities.forEach(function(activity) {
+                activitiesHtml += `
+                    <div class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">${activity.user}</h6>
+                            <small class="text-muted">${activity.time}</small>
+                        </div>
+                        <p class="mb-1">${activity.action}</p>
+                    </div>
+                `;
+            });
+            
+            $('#recentActivities .list-group').html(activitiesHtml);
+        }
+
+        function setupActivityChart() {
+            var ctx = document.getElementById("activityChart");
+            var myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+                    datasets: [
+                        {
+                            label: "Sessions",
+                            lineTension: 0.3,
+                            backgroundColor: "rgba(40, 167, 69, 0.2)",
+                            borderColor: "rgba(40, 167, 69, 1)",
+                            pointRadius: 5,
+                            pointBackgroundColor: "rgba(40, 167, 69, 1)",
+                            pointBorderColor: "rgba(255, 255, 255, 0.8)",
+                            pointHoverRadius: 5,
+                            pointHoverBackgroundColor: "rgba(40, 167, 69, 1)",
+                            pointHitRadius: 50,
+                            pointBorderWidth: 2,
+                            data: [65, 78, 90, 82, 96, 105, 115, 124, 142, 132, 158, 160],
+                        },
+                        {
+                            label: "Users",
+                            lineTension: 0.3,
+                            backgroundColor: "rgba(0, 123, 255, 0.2)",
+                            borderColor: "rgba(0, 123, 255, 1)",
+                            pointRadius: 5,
+                            pointBackgroundColor: "rgba(0, 123, 255, 1)",
+                            pointBorderColor: "rgba(255, 255, 255, 0.8)",
+                            pointHoverRadius: 5,
+                            pointHoverBackgroundColor: "rgba(0, 123, 255, 1)",
+                            pointHitRadius: 50,
+                            pointBorderWidth: 2,
+                            data: [256, 290, 330, 370, 410, 425, 450, 467, 487, 510, 535, 587],
+                        }
+                    ],
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+}
