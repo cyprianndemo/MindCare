@@ -40,6 +40,7 @@ namespace MindCare.ViewModel
         public virtual Medication Medication { get; set; }
         public virtual ApplicationUser Student { get; set; }
         public virtual ApplicationUser Psychiatrist { get; set; }
+        public string StudentName { get; set; }
         
         // For dropdown lists
         public List<SelectListItem> Patients { get; set; }

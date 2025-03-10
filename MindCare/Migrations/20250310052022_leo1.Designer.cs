@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MindCare.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MindCare.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250310052022_leo1")]
+    partial class leo1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1368,11 +1371,11 @@ namespace MindCare.Migrations
 
             modelBuilder.Entity("MindCare.Models.UserActivity", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("ActivityId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ActivityId"));
 
                     b.Property<string>("Action")
                         .IsRequired()
@@ -1382,30 +1385,14 @@ namespace MindCare.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("IPAddress")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("RelatedEntityId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("RelatedEntityType")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("UserAgent")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("Id");
+                    b.HasKey("ActivityId");
 
                     b.HasIndex("UserId");
 

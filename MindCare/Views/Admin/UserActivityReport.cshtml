@@ -1,5 +1,4 @@
 ﻿@model IEnumerable<MindCare.Models.UserActivity>
-
 @{
     ViewData["Title"] = "User Activity Report";
     Layout = "_AdminLayout";
@@ -7,68 +6,334 @@
 
 <div class="container">
     <h2>User Activity Report</h2>
-    <p>Monitor recent activities of users across the system, including logging in, session booking, editing, cancellations, and more.</p>
+    <p>Monitor real-time activities of users across the system.</p>
+
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5>Activity Dashboard</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="small-box bg-info p-3 text-center text-white rounded">
+                                <h3 id="totalActivities">@Model.Count()</h3>
+                                <p>Total Activities</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="small-box bg-success p-3 text-center text-white rounded">
+                                <h3 id="activeUsers">@Model.Select(a => a.UserId).Distinct().Count()</h3>
+                                <p>Active Users</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="small-box bg-warning p-3 text-center text-white rounded">
+                                <h3 id="todayActivities">@Model.Count(a => a.Timestamp.Date == DateTime.Today)</h3>
+                                <p>Today's Activities</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Filters</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <select id="actionFilter" class="form-select">
+                                <option value="">All Actions</option>
+                                <option value="Login">Login</option>
+                                <option value="Logout">Logout</option>
+                                <option value="Register">Register</option>
+                                <option value="BookSession">Book Session</option>
+                                <option value="EditSession">Edit Session</option>
+                                <option value="CancelAppointment">Cancel Appointment</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="text" id="userFilter" class="form-control" placeholder="Search by user...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="row">
         <div class="col-md-12">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Recent User Activities</h5>
-
-                    <table class="table table-bordered mt-4">
-                        <thead class="table-light">
-                            <tr>
-                                <th>User Name</th>
-                                <th>Action</th>
-                                <th>Description</th>
-                                <th>Timestamp</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (Model.Any())
-                            {
-                                @foreach (var activity in Model)
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title">Real-Time User Activities</h5>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="realTimeSwitch" checked>
+                            <label class="form-check-label" for="realTimeSwitch">Real-time updates</label>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered mt-4" id="activityTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>User</th>
+                                    <th>Action</th>
+                                    <th>Description</th>
+                                    <th>Timestamp</th>
+                                    <th>IP Address</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Any())
+                                {
+                                    @foreach (var activity in Model)
+                                    {
+                                        <tr data-action="@activity.Action" data-user="@activity.User.UserName">
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar-sm me-2 bg-light rounded-circle text-center" style="width: 32px; height: 32px; line-height: 32px;">
+                                                        @(activity.User.FirstName?.Substring(0, 1).ToUpper())@(activity.User.LastName?.Substring(0, 1).ToUpper())
+                                                    </div>
+                                                    <div>
+                                                        <span class="fw-bold">@activity.User.FirstName @activity.User.LastName</span><br>
+                                                        <small class="text-muted">@activity.User.UserName</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                @switch (activity.Action)
+                                                {
+                                                    case "Login":
+                                                        <span class="badge bg-success">Login</span>
+                                                        break;
+                                                    case "Logout":
+                                                        <span class="badge bg-secondary">Logout</span>
+                                                        break;
+                                                    case "Register":
+                                                        <span class="badge bg-info">Register</span>
+                                                        break;
+                                                    case "BookSession":
+                                                        <span class="badge bg-primary">Book Session</span>
+                                                        break;
+                                                    case "EditSession":
+                                                        <span class="badge bg-warning">Edit Session</span>
+                                                        break;
+                                                    case "CancelAppointment":
+                                                        <span class="badge bg-danger">Cancel</span>
+                                                        break;
+                                                    default:
+                                                        <span class="badge bg-info">@activity.Action</span>
+                                                        break;
+                                                }
+                                            </td>
+                                            <td>@activity.Description</td>
+                                            <td>
+                                                <span title="@activity.Timestamp.ToString("F")">
+                                                    @activity.Timestamp.ToString("g")
+                                                </span>
+                                            </td>
+                                            <td>@activity.IPAddress</td>
+                                            <td>
+                                                <button type="button" class="btn btn-sm btn-outline-info"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#activityDetailModal"
+                                                        data-activity-id="@activity.Id">
+                                                    Details
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
                                 {
                                     <tr>
-                                        <td>@activity.User.UserName</td>
-                                        <td>
-                                            @switch (activity.Action)
-                                            {
-                                                case "Login":
-                                                    <span class="badge bg-success">Login</span>
-                                                    ; break;
-                                                case "Logout":
-                                                    <span class="badge bg-secondary">Logout</span>
-                                                    ; break;
-                                                case "BookSession":
-                                                    <span class="badge bg-primary">Book Session</span>
-                                                    ; break;
-                                                case "EditSession":
-                                                    <span class="badge bg-warning">Edit Session</span>
-                                                    ; break;
-                                                case "CancelAppointment":
-                                                    <span class="badge bg-danger">Cancel Appointment</span>
-                                                    ; break;
-                                                default:
-                                                    <span class="badge bg-info">@activity.Action</span>
-                                                    ; break;
-                                            }
-                                        </td>
-                                        <td>@activity.Description</td>
-                                        <td>@activity.Timestamp.ToString("g")</td>
+                                        <td colspan="6" class="text-center">No recent activity found.</td>
                                     </tr>
                                 }
-                            }
-                            else
-                            {
-                                <tr>
-                                    <td colspan="4" class="text-center">No recent activity found.</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Activity Detail Modal -->
+<div class="modal fade" id="activityDetailModal" tabindex="-1" aria-labelledby="activityDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="activityDetailModalLabel">Activity Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="activityDetails">
+                    <div class="mb-3">
+                        <label class="fw-bold">User:</label>
+                        <div id="detailUser"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="fw-bold">Action:</label>
+                        <div id="detailAction"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="fw-bold">Description:</label>
+                        <div id="detailDescription"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="fw-bold">Timestamp:</label>
+                        <div id="detailTimestamp"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="fw-bold">IP Address:</label>
+                        <div id="detailIp"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="fw-bold">User Agent:</label>
+                        <div id="detailUserAgent"></div>
+                    </div>
+                    <div class="mb-3" id="relatedEntityContainer">
+                        <label class="fw-bold">Related Entity:</label>
+                        <div id="detailRelatedEntity"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/signalr/dist/browser/signalr.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Connect to SignalR hub
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/activityHub")
+                .build();
+
+            // Start the connection
+            connection.start().then(function () {
+                console.log("Connected to Activity Hub");
+            }).catch(function (err) {
+                console.error(err);
+            });
+
+            // Handle real-time activity updates
+            connection.on("ReceiveActivity", function (activity) {
+                if ($("#realTimeSwitch").prop("checked")) {
+                    // Update counters
+                    $("#totalActivities").text(parseInt($("#totalActivities").text()) + 1);
+
+                    if (activity.timestamp.substring(0, 10) === new Date().toISOString().substring(0, 10)) {
+                        $("#todayActivities").text(parseInt($("#todayActivities").text()) + 1);
+                    }
+
+                    // Add new row to table
+                    const newRow = createActivityRow(activity);
+                    $("#activityTable tbody").prepend(newRow);
+
+                    // Highlight the new row
+                    $("#activityTable tbody tr:first").addClass("table-info");
+                    setTimeout(function () {
+                        $("#activityTable tbody tr:first").removeClass("table-info");
+                    }, 3000);
+                }
+            });
+
+            // Filter functionality
+            $("#actionFilter, #userFilter").on("change keyup", function () {
+                const actionFilter = $("#actionFilter").val().toLowerCase();
+                const userFilter = $("#userFilter").val().toLowerCase();
+
+                $("#activityTable tbody tr").each(function () {
+                    const action = $(this).data("action").toLowerCase();
+                    const user = $(this).data("user").toLowerCase();
+
+                    const actionMatch = actionFilter === "" || action === actionFilter.toLowerCase();
+                    const userMatch = userFilter === "" || user.includes(userFilter);
+
+                    $(this).toggle(actionMatch && userMatch);
+                });
+            });
+
+            // Activity details modal
+            $("#activityDetailModal").on("show.bs.modal", function (event) {
+                const button = $(event.relatedTarget);
+                const activityId = button.data("activity-id");
+
+                // Fetch activity details via AJAX
+                $.ajax({
+                    url: `/Admin/GetActivityDetails/${activityId}`,
+                    type: "GET",
+                    success: function (data) {
+                        $("#detailUser").text(`${data.user.firstName} ${data.user.lastName} (${data.user.userName})`);
+                        $("#detailAction").html(getActionBadge(data.action));
+                        $("#detailDescription").text(data.description);
+                        $("#detailTimestamp").text(new Date(data.timestamp).toLocaleString());
+                        $("#detailIp").text(data.ipAddress);
+                        $("#detailUserAgent").text(data.userAgent);
+
+                        if (data.relatedEntityId && data.relatedEntityType) {
+                            $("#relatedEntityContainer").show();
+                            $("#detailRelatedEntity").text(`${data.relatedEntityType} (ID: ${data.relatedEntityId})`);
+                        } else {
+                            $("#relatedEntityContainer").hide();
+                        }
+                    },
+                    error: function (error) {
+                        console.error("Error fetching activity details:", error);
+                    }
+                });
+            });
+
+            // Helper function to create a new activity row
+            function createActivityRow(activity) {
+                const userInitials = `${activity.user.firstName.substring(0, 1)}${activity.user.lastName.substring(0, 1)}`;
+
+                return `<tr data-action="${activity.action}" data-user="${activity.user.userName}">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-sm me-2 bg-light rounded-circle text-center" style="width: 32px; height: 32px; line-height: 32px;">
+                                        ${userInitials.toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <span class="fw-bold">${activity.user.firstName} ${activity.user.lastName}</span><br>
+                                        <small class="text-muted">${activity.user.userName}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>${getActionBadge(activity.action)}</td>
+                            <td>${activity.description}</td>
+                            <td><span title="${new Date(activity.timestamp).toLocaleString()}">${new Date(activity.timestamp).toLocaleString()}</span></td>
+                            <td>${activity.ipAddress}</td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-outline-info"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#activityDetailModal"
+                                        data-activity-id="${activity.id}">
+                                    Details
+                                </button>
+                            </td>
+                        </tr>`;
+            }
+
+            // Helper function to get action badge HTML
+            function getActionBadge(action) {
+                switch (action) {
+                    case "Login": return '<span class="badge bg-success">Login</span>';
+                    case "Logout": return '<span class="badge bg-secondary">Logout</span>';
+                    case "Register": return '<span class="badge bg-info">Register</span>';
+                    case "BookSession": return '<span class="badge bg-primary">Book Session</span>';
+                    case "EditSession": return '<span class="badge bg-warning">Edit Session</span>';
+                    case "CancelAppointment": return '<span class="badge bg-danger">Cancel</span>';
+                    default: return `<span class="badge bg-info">${action}</span>`;
+                }
+            }
+        });
+    </script>
+}

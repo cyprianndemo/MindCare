@@ -4,24 +4,18 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MindCare.Models
 {
+    // Models/UserActivity.cs
     public class UserActivity
     {
-        [Key]
-        public int ActivityId { get; set; }
-
-        [Required]
+        public int Id { get; set; }
         public string UserId { get; set; }
-
-        [Required]
-        public string Action { get; set; } // E.g., "Logged In", "Viewed Report", "Updated Settings"
-
-        public string Description { get; set; } // Additional details about the action
-
-        [Required]
-        public DateTime Timestamp { get; set; } = DateTime.Now;
-
-        // Navigation property for linking with the user
-        [ForeignKey("UserId")]
         public ApplicationUser User { get; set; }
+        public string Action { get; set; }
+        public string Description { get; set; }
+        public DateTime Timestamp { get; set; }
+        public string IPAddress { get; set; }
+        public string UserAgent { get; set; }
+        public string RelatedEntityId { get; set; }
+        public string RelatedEntityType { get; set; }
     }
 }

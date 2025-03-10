@@ -9,6 +9,7 @@ namespace MindCare.Models
         [Required]
         [StringLength(50, MinimumLength = 3)]
         public string? FirstName { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         [Required]
         [StringLength(50, MinimumLength = 3)]

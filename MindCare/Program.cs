@@ -43,7 +43,8 @@ builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new 
 
 builder.Services.AddScoped<ChatbotService>();
 //builder.Services.Configure<OpenAISettings>(configuration.GetSection("OpenAI"));
-
+builder.Services.AddScoped<IActivityLogger, ActivityLoggerV2>();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<UserActivityService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 /*builder.Services.Configure<NotificationConfiguration>(builder.Configuration.GetSection("NotificationConfiguration"));
@@ -81,6 +82,7 @@ app.MapRazorPages();
 app.MapHub<ChatHub>("/chatHub");
 app.MapHub<NotificationHub>("/notificationHub");
 app.MapHub<MessageHub>("/messageHub");
+app.MapHub<ActivityHub>("/activityHub");
 
 // Redirect unauthenticated users to the login page
 app.MapGet("/", async context =>

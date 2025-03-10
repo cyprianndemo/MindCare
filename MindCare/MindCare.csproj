@@ -9,6 +9,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="wwwroot\js\pdfExport.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="wwwroot\js\pdfExport.js" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="DinkToPdf" Version="1.0.8" />
     <PackageReference Include="EPPlus" Version="6.2.4" />
     <PackageReference Include="Haukcode.WkHtmlToPdfDotNet" Version="1.5.95" />
@@ -38,9 +46,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Admin\" />
-    <Folder Include="Views\Reports\" />
     <Folder Include="Views\UserActivity\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\js\pdfExport.js" />
   </ItemGroup>
 
   <ItemGroup>

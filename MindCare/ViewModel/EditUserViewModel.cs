@@ -173,4 +173,54 @@ namespace MindCare.ViewModels
         public int CurrentMonthSessions { get; set; }
         public List<MonthlySession> MonthlySessionData { get; set; }
     }
+    public class DashboardViewModel
+    {
+        public int TotalUsers { get; set; }
+        public int TotalSessions { get; set; }
+        public int PendingSessions { get; set; }
+        public decimal TotalRevenue { get; set; }
+        public List<UserActivityViewModel> RecentActivities { get; set; }
+        public List<MonthlyDataPoint> MonthlySessions { get; set; }
+        public List<MonthlyDataPoint> MonthlyUsers { get; set; }
+        public SystemPerformanceViewModel SystemPerformance { get; set; }
+    }
+
+    public class UserActivityViewModel
+    {
+        public string UserName { get; set; }
+        public string Action { get; set; }
+        public string Details { get; set; }
+        public DateTime Timestamp { get; set; }
+
+        public string TimeAgo
+        {
+            get
+            {
+                var timeSpan = DateTime.Now - Timestamp;
+
+                if (timeSpan.TotalMinutes < 1)
+                    return "just now";
+                if (timeSpan.TotalMinutes < 60)
+                    return $"{(int)timeSpan.TotalMinutes} minute{((int)timeSpan.TotalMinutes == 1 ? "" : "s")} ago";
+                if (timeSpan.TotalHours < 24)
+                    return $"{(int)timeSpan.TotalHours} hour{((int)timeSpan.TotalHours == 1 ? "" : "s")} ago";
+
+                return $"{(int)timeSpan.TotalDays} day{((int)timeSpan.TotalDays == 1 ? "" : "s")} ago";
+            }
+        }
+    }
+
+    public class MonthlyDataPoint
+    {
+        public string Month { get; set; }
+        public int Count { get; set; }
+    }
+
+    public class SystemPerformanceViewModel
+    {
+        public double Uptime { get; set; }
+        public double ResponseTime { get; set; }
+        public int CpuUsage { get; set; }
+        public int MemoryUsage { get; set; }
+    }
 }

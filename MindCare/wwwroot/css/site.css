@@ -171,3 +171,136 @@ body {
     .social-share-link:hover {
         color: #0d6efd;
     }
+/* student-report.css */
+
+/* Report header styling */
+.report-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #eee;
+}
+
+.report-title {
+    color: #2c3e50;
+    font-weight: 700;
+}
+
+.report-subtitle {
+    color: #34495e;
+    font-weight: 600;
+}
+
+/* Statistics card styling */
+.stat-card {
+    border-radius: 0.5rem;
+    transition: transform 0.3s ease;
+    height: 100%;
+}
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .stat-card .card-header {
+        border-radius: 0.5rem 0.5rem 0 0;
+        font-weight: 600;
+    }
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px dashed #e9ecef;
+}
+
+    .stat-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+.stat-label {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.stat-value {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+/* Table styling */
+.table-section {
+    margin-bottom: 2rem;
+}
+
+    .table-section h5 {
+        margin-bottom: 1rem;
+        color: #495057;
+        font-weight: 600;
+    }
+
+.table-responsive {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    border-radius: 0.5rem;
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+    .table thead th {
+        background-color: #f8f9fa;
+        color: #495057;
+        font-weight: 600;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Status badges */
+.badge {
+    padding: 0.5em 0.75em;
+    font-weight: 500;
+}
+
+    .badge.bg-success {
+        background-color: #28a745 !important;
+    }
+
+    .badge.bg-warning {
+        background-color: #ffc107 !important;
+        color: #212529 !important;
+    }
+
+    .badge.bg-danger {
+        background-color: #dc3545 !important;
+    }
+
+    .badge.bg-secondary {
+        background-color: #6c757d !important;
+    }
+
+    @media print {
+    .btn-export {
+        display: none;
+    }
+
+    .card {
+        break-inside: avoid;
+        border: 1px solid #dee2e6 !important;
+        box-shadow: none !important;
+    }
+
+    .table-responsive {
+        overflow: visible !important;
+    }
+
+    .stat-card:hover {
+        transform: none;
+    }
+}
