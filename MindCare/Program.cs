@@ -139,7 +139,7 @@ using (var scope = app.Services.CreateScope())
 
 // Seed roles and admin user when the application starts
 await SeedRolesAndAdminUser(app.Services);
-
+app.UseActivityTracking();
 app.Run();
 
 // Class and method declarations must come after top-level statements

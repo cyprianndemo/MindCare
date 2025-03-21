@@ -40,9 +40,9 @@ namespace MindCare.Controllers
         }
 
         [HttpGet]
-        public IActionResult Pay(int appointmentId)
+        public IActionResult Pay(/*int appointmentId*/)
         {
-            var viewModel = new PaymentViewModel();
+            /*var viewModel = new PaymentViewModel();
             var appointment = _context.Appointments.FirstOrDefault(a => a.AppointmentId == appointmentId);
             if (appointment == null)
             {
@@ -50,9 +50,9 @@ namespace MindCare.Controllers
             }
 
             ViewBag.AppointmentId = appointmentId;
-            ViewBag.Amount = 1500;
+            ViewBag.Amount = 1500;*/
 
-            return View(viewModel);
+            return View();
         }
 
         [HttpPost]
@@ -227,31 +227,87 @@ namespace MindCare.Controllers
         [ActionName("PayWithMpesa")]
         public async Task<IActionResult> PayWithMpesa(PaymentViewModel model)
         {
-            if (model.Amount <= 0)
+            if (model.Amount <= 0 || string.IsNullOrEmpty(model.PhoneNumber))
             {
-                ModelState.AddModelError("Amount", "Amount must be greater than 0.");
+                ModelState.AddModelError("Error", "Invalid amount or phone number.");
                 return View("Pay", model);
             }
 
-            if (model.PhoneNumber.StartsWith("254"))
+            // Get current user
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
             {
-                var response = await InitiateStkPush(model.PhoneNumber, model.Amount.ToString());
-                if (response.IsSuccessStatusCode)
+                return RedirectToAction("Login", "Account");
+            }
+
+            var response = await InitiateStkPush(model.PhoneNumber, model.Amount.ToString());
+
+            if (response.IsSuccessStatusCode)
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                _logger.LogInformation($"M-Pesa API response: {responseContent}");
+
+                // Parse the response more safely
+                dynamic mpesaResponseDynamic = JsonConvert.DeserializeObject<dynamic>(responseContent);
+
+                // Generate a unique transaction ID
+                string transactionId = Guid.NewGuid().ToString("N");
+
+                // Safely get the CheckoutRequestID or use a default empty string
+                string checkoutRequestId = "";
+                try
                 {
-                    return RedirectToAction(nameof(PaymentResult), new { paymentId = "MPesaPaymentId" });
+                    checkoutRequestId = mpesaResponseDynamic.CheckoutRequestID?.ToString() ?? "";
+                    // If your response structure is different, adjust the property path
+                    // For example: checkoutRequestId = mpesaResponseDynamic.Body.stkCallback.CheckoutRequestID?.ToString() ?? "";
                 }
-                else
+                catch (Exception ex)
                 {
-                    ModelState.AddModelError("PhoneNumber", "M-Pesa payment initiation failed.");
-                    return View("Pay", model);
+                    _logger.LogError($"Error parsing CheckoutRequestID: {ex.Message}");
                 }
+
+                // Store transaction details in the database
+                var payment = new Payment
+                {
+                    TransactionId = transactionId,
+                    PhoneNumber = model.PhoneNumber,
+                    Amount = model.Amount,
+                    PaymentDate = DateTime.UtcNow,
+                    TransactionDate = DateTime.UtcNow,
+                    CheckoutRequestID = checkoutRequestId,
+                    Status = PaymentStatus.Pending,
+                    Method = MindCare.Models.PaymentMethod.MPesa,
+                    UserId = currentUser.Id,
+                    IsSuccessful = false // Will be updated when callback is received
+                };
+
+                _context.Payments.Add(payment);
+                await _context.SaveChangesAsync();
+
+                // Redirect to waiting page with a timeout for 45 seconds
+                return RedirectToAction("WaitForMpesaPayment", new { paymentId = payment.PaymentId });
             }
             else
             {
-                ModelState.AddModelError("PhoneNumber", "Invalid M-Pesa phone number.");
-                return View("Pay", model);
+                var responseContent = await response.Content.ReadAsStringAsync();
+                _logger.LogError($"M-Pesa API error: {responseContent}");
+                return RedirectToAction("Fail", new { reason = "api_error" });
             }
         }
+
+        [HttpGet]
+        public async Task<IActionResult> WaitForMpesaPayment(int paymentId)
+        {
+            var payment = await _context.Payments.FindAsync(paymentId);
+            if (payment == null)
+            {
+                return NotFound();
+            }
+
+            // Return the payment object as the model instead of just using ViewBag
+            return View(payment);
+        }
+
 
         [HttpPost]
         [ActionName("PayWithVisa")]
@@ -341,38 +397,21 @@ namespace MindCare.Controllers
         }
 
         [HttpPost]
-        [Route("/callback")]
-        [Produces("application/json")]
+        [Route("/mpesa/callback")]
         public async Task<IActionResult> MpesaCallback([FromBody] MpesaResponse response)
         {
-            if (response.Body.stkCallback.ResultCode == 0)
+            var metadata = response.Body.stkCallback.CallbackMetadata;
+            var transactionCode = metadata.Item.FirstOrDefault(i => i.Name == "MpesaReceiptNumber")?.Value;
+            var status = response.Body.stkCallback.ResultCode == 0 ? "Successful" : "Failed";
+
+            var payment = _context.Payments
+                .FirstOrDefault(p => p.CheckoutRequestID == response.Body.stkCallback.CheckoutRequestID);
+
+            if (payment != null)
             {
-                var metadata = response.Body.stkCallback.CallbackMetadata;
-                var amount = metadata.Item.FirstOrDefault(i => i.Name == "Amount")?.Value;
-                var phoneNumber = metadata.Item.FirstOrDefault(i => i.Name == "PhoneNumber")?.Value;
-                var mpesaReceiptNumber = metadata.Item.FirstOrDefault(i => i.Name == "MpesaReceiptNumber")?.Value;
-                var transactionDate = metadata.Item.FirstOrDefault(i => i.Name == "TransactionDate")?.Value;
-
-
-                var payment = new Payment
-                {
-                    PhoneNumber = phoneNumber,
-                    Amount = Convert.ToDecimal(amount),
-                    MpesaReceiptNumber = mpesaReceiptNumber,
-                    TransactionDate = DateTime.ParseExact(transactionDate, "yyyyMMddHHmmss", null),
-                    MerchantRequestID = response.Body.stkCallback.MerchantRequestID,
-                    CheckoutRequestID = response.Body.stkCallback.CheckoutRequestID,
-                    IsSuccessful = true
-                };
-
-                _context.Payments.Add(payment);
+                payment.Status = PaymentStatus.Completed;
+                payment.MpesaReceiptNumber = transactionCode;
                 await _context.SaveChangesAsync();
-
-                _logger.LogInformation("Transaction successful and saved to the database.");
-            }
-            else
-            {
-                _logger.LogError("Transaction failed.");
             }
 
             return Ok();
@@ -386,6 +425,37 @@ namespace MindCare.Controllers
             string plainText = shortCode + passkey + timestamp;
             byte[] plainTextBytes = Encoding.UTF8.GetBytes(plainText);
             return Convert.ToBase64String(plainTextBytes);
+        }
+        [HttpGet]
+        public async Task<IActionResult> Fail(string transactionId, string reason)
+        {
+            // Update payment status if needed
+            if (!string.IsNullOrEmpty(transactionId))
+            {
+                var payment = await _context.Payments
+                    .FirstOrDefaultAsync(p => p.TransactionId == transactionId && p.Status == PaymentStatus.Pending);
+
+                if (payment != null)
+                {
+                    payment.Status = PaymentStatus.Failed;
+
+                    if (reason == "timeout")
+                    {
+                        payment.FailureReason = "Payment request timed out";
+                    }
+                    else
+                    {
+                        payment.FailureReason = "Payment failed or was cancelled";
+                    }
+
+                    await _context.SaveChangesAsync();
+                }
+            }
+
+            ViewBag.TransactionId = transactionId;
+            ViewBag.Reason = reason;
+
+            return View();
         }
     }
 }

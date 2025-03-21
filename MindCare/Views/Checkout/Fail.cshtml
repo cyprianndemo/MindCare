@@ -1,0 +1,77 @@
+﻿@{
+    ViewData["Title"] = "Payment Failed";
+    var transactionId = Context.Request.Query["transactionId"].ToString();
+    var reason = Context.Request.Query["reason"].ToString();
+
+    string failureMessage = "Your payment could not be processed.";
+
+    if (reason == "timeout")
+    {
+        failureMessage = "Your payment request has timed out. Please try again.";
+    }
+    else if (reason == "failed")
+    {
+        failureMessage = "Your M-Pesa payment was declined or could not be completed.";
+    }
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow border-danger">
+                <div class="card-body text-center p-5">
+                    <div class="mb-4">
+                        <i class="fas fa-times-circle text-danger" style="font-size: 5rem;"></i>
+                    </div>
+                    <h2 class="mb-4">Payment Failed</h2>
+
+                    <div class="alert alert-danger mb-4">
+                        <p>@failureMessage</p>
+                    </div>
+
+                    <p class="mb-4">Transaction Reference: <span class="fw-bold">@transactionId</span></p>
+
+                    <p class="mb-4">If you were charged but are seeing this error, please contact our support team with your transaction reference.</p>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-center gap-3">
+                        <a href="@Url.Action("Pay", "Checkout")" class="btn btn-primary">
+                            <i class="fas fa-redo me-2"></i>Try Again
+                        </a>
+                        <a href="/" class="btn btn-outline-secondary">
+                            <i class="fas fa-home me-2"></i>Return Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Add Font Awesome for icons if not already included -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* Failed payment icon animation */
+        @@keyframes shake {
+            0%, 100% {
+                transform: translateX(0);
+            }
+
+            10%, 30%, 50%, 70%, 90% {
+                transform: translateX(-5px);
+            }
+
+            20%, 40%, 60%, 80% {
+                transform: translateX(5px);
+            }
+        }
+
+        .fa-times-circle {
+            animation: shake 1s ease-in-out;
+        }
+
+        .border-danger {
+            border-width: 2px;
+        }
+    </style>
+}

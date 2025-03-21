@@ -8,7 +8,7 @@ namespace MindCare.Models
         [Key]
         public int? PaymentId { get; set; }
         public string? TransactionId { get; set; }
-
+        public string? FailureReason { get; set; }   
         public decimal Amount { get; set; }
         public DateTime PaymentDate { get; set; }
         public PaymentStatus? Status { get; set; }
@@ -17,8 +17,8 @@ namespace MindCare.Models
 
         [ForeignKey("UserId")]
         public virtual ApplicationUser? Student { get; set; }
-/*        public int? AppointmentId { get; set; }
-*/
+        public int? AppointmentId { get; set; }
+
         public string? TransactionCode { get; set; }
         public string? PhoneNumber { get; set; }
         public string? MpesaReceiptNumber { get; set; }

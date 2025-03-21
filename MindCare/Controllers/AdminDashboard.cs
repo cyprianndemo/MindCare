@@ -52,7 +52,7 @@ namespace MindCare.Controllers
                 TotalUsers = await _userManager.Users.CountAsync(),
                 TotalSessions = await _context.Appointments.CountAsync(),
                 PendingSessions = await _context.Appointments.CountAsync(a => a.Status == "Pending"),
-                // Fix: Compare to the enum value directly instead of using ToString()
+                // Get the total revenue from completed payments
                 TotalRevenue = await _context.Payments
                     .Where(p => p.Status.HasValue && p.Status.Value == PaymentStatus.Completed)
                     .SumAsync(p => p.Amount),
@@ -82,6 +82,10 @@ namespace MindCare.Controllers
                     MemoryUsage = 52
                 }
             };
+
+            // Log the admin viewing the dashboard
+            await _activityService.LogActivity(User.Identity.Name, "View Dashboard", "Admin viewed the dashboard");
+
             return View("Dashboard", dashboardData);
         }
         private async Task<List<MonthlyDataPoint>> GetMonthlySessionsData()
@@ -361,7 +365,7 @@ namespace MindCare.Controllers
                     FirstName = model.FirstName,
                     LastName = model.LastName,
                     PhoneNumber = model.PhoneNumber,
-                   
+                    Role = "User" // Add a default role value here
                 };
 
                 var result = await _userManager.CreateAsync(user, model.Password);
@@ -391,14 +395,25 @@ namespace MindCare.Controllers
 
             return View(model);
         }
-
-        public async Task<IActionResult> UserActivityReport()
+        public async Task<IActionResult> UserActivityReport(string username = null)
         {
-            // Retrieve all user activities, including user info, ordered by the latest timestamp
-            var activities = await _context.UserActivities
+            // Start with the base query
+            var activitiesQuery = _context.UserActivities
                 .Include(a => a.User)
-                .OrderByDescending(a => a.Timestamp)
-                .Take(100) // Limit to recent activities for performance
+                .OrderByDescending(a => a.Timestamp);
+
+            // Apply username filter if provided
+            if (!string.IsNullOrEmpty(username))
+            {
+                activitiesQuery = (IOrderedQueryable<UserActivity>)activitiesQuery
+                    .Where(a => a.User.UserName == username);
+                ViewData["FilteredUser"] = username;
+            }
+
+
+            // Execute query with appropriate limit
+            var activities = await activitiesQuery
+                .Take(string.IsNullOrEmpty(username) ? 100 : 500) // Show more results when filtering
                 .ToListAsync();
 
             return View(activities);
@@ -416,6 +431,7 @@ namespace MindCare.Controllers
                 return NotFound();
             }
 
+            // Make sure to return the full IP address and all details
             var result = new
             {
                 id = activity.Id,
@@ -423,20 +439,21 @@ namespace MindCare.Controllers
                 {
                     userName = activity.User.UserName,
                     firstName = activity.User.FirstName,
-                    lastName = activity.User.LastName
+                    lastName = activity.User.LastName,
+                    email = activity.User.Email
                 },
                 action = activity.Action,
                 description = activity.Description,
                 timestamp = activity.Timestamp,
-                ipAddress = activity.IPAddress,
+                ipAddress = activity.IPAddress, // Full IP address
                 userAgent = activity.UserAgent,
                 relatedEntityId = activity.RelatedEntityId,
-                relatedEntityType = activity.RelatedEntityType
+                relatedEntityType = activity.RelatedEntityType,
+                fullDetails = true // Flag to indicate this is the full view
             };
 
             return Json(result);
         }
-
         // REPORTS SECTION
         public IActionResult ViewReports()
         {
@@ -656,6 +673,15 @@ namespace MindCare.Controllers
 
             return View(model);
         }
+        public async Task<IActionResult> AllTransactions()
+        {
+            // Get all payment transactions
+            var transactions = await _context.Payments
+                .OrderByDescending(p => p.PaymentDate)
+                .ToListAsync();
+
+            return View(transactions);
+        }
         public async Task<IActionResult> SystemUsageReport()
         {
             // Get total sessions
@@ -707,5 +733,7 @@ namespace MindCare.Controllers
 
             return View(viewModel);
         }
+
     }
+    
 }

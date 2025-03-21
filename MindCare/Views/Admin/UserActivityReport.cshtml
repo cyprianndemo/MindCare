@@ -2,12 +2,24 @@
 @{
     ViewData["Title"] = "User Activity Report";
     Layout = "_AdminLayout";
+    var filteredUser = ViewData["FilteredUser"] as string;
+
 }
 
 <div class="container">
     <h2>User Activity Report</h2>
     <p>Monitor real-time activities of users across the system.</p>
-
+    @if (!string.IsNullOrEmpty(filteredUser))
+    {
+        <div class="alert alert-info d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-filter me-2"></i> Showing activities for user: <strong>@filteredUser</strong>
+            </div>
+            <a href="@Url.Action("UserActivityReport")" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-times me-1"></i> Clear Filter
+            </a>
+        </div>
+    }
     <div class="row mb-3">
         <div class="col-md-6">
             <div class="card bg-light">
@@ -161,46 +173,57 @@
 </div>
 
 <!-- Activity Detail Modal -->
+<!-- Activity Detail Modal -->
 <div class="modal fade" id="activityDetailModal" tabindex="-1" aria-labelledby="activityDetailModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-light">
                 <h5 class="modal-title" id="activityDetailModalLabel">Activity Details</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div id="activityDetails">
-                    <div class="mb-3">
-                        <label class="fw-bold">User:</label>
-                        <div id="detailUser"></div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="fw-bold text-muted small">User Information:</label>
+                                <div id="detailUser" class="border-start ps-2 py-1"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="fw-bold text-muted small">Action:</label>
+                                <div id="detailAction" class="border-start ps-2 py-1"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="fw-bold text-muted small">Description:</label>
+                                <div id="detailDescription" class="border-start ps-2 py-1"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="fw-bold text-muted small">Timestamp:</label>
+                                <div id="detailTimestamp" class="border-start ps-2 py-1"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="fw-bold text-muted small">IP Address:</label>
+                                <div id="detailIp" class="border-start ps-2 py-1 text-monospace"></div>
+                            </div>
+                            <div class="mb-3" id="relatedEntityContainer">
+                                <label class="fw-bold text-muted small">Related Entity:</label>
+                                <div id="detailRelatedEntity" class="border-start ps-2 py-1"></div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="fw-bold">Action:</label>
-                        <div id="detailAction"></div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="fw-bold">Description:</label>
-                        <div id="detailDescription"></div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="fw-bold">Timestamp:</label>
-                        <div id="detailTimestamp"></div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="fw-bold">IP Address:</label>
-                        <div id="detailIp"></div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="fw-bold">User Agent:</label>
-                        <div id="detailUserAgent"></div>
-                    </div>
-                    <div class="mb-3" id="relatedEntityContainer">
-                        <label class="fw-bold">Related Entity:</label>
-                        <div id="detailRelatedEntity"></div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label class="fw-bold text-muted small">User Agent:</label>
+                                <div id="detailUserAgent" class="border-start ps-2 py-1 text-wrap small" style="word-break: break-all;"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer" id="activityDetailFooter">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
@@ -259,37 +282,7 @@
 
                     $(this).toggle(actionMatch && userMatch);
                 });
-            });
-
-            // Activity details modal
-            $("#activityDetailModal").on("show.bs.modal", function (event) {
-                const button = $(event.relatedTarget);
-                const activityId = button.data("activity-id");
-
-                // Fetch activity details via AJAX
-                $.ajax({
-                    url: `/Admin/GetActivityDetails/${activityId}`,
-                    type: "GET",
-                    success: function (data) {
-                        $("#detailUser").text(`${data.user.firstName} ${data.user.lastName} (${data.user.userName})`);
-                        $("#detailAction").html(getActionBadge(data.action));
-                        $("#detailDescription").text(data.description);
-                        $("#detailTimestamp").text(new Date(data.timestamp).toLocaleString());
-                        $("#detailIp").text(data.ipAddress);
-                        $("#detailUserAgent").text(data.userAgent);
-
-                        if (data.relatedEntityId && data.relatedEntityType) {
-                            $("#relatedEntityContainer").show();
-                            $("#detailRelatedEntity").text(`${data.relatedEntityType} (ID: ${data.relatedEntityId})`);
-                        } else {
-                            $("#relatedEntityContainer").hide();
-                        }
-                    },
-                    error: function (error) {
-                        console.error("Error fetching activity details:", error);
-                    }
-                });
-            });
+            });          
 
             // Helper function to create a new activity row
             function createActivityRow(activity) {
@@ -320,6 +313,98 @@
                                 </button>
                             </td>
                         </tr>`;
+            }
+            // Activity details modal
+            $("#activityDetailModal").on("show.bs.modal", function (event) {
+                const button = $(event.relatedTarget);
+                const activityId = button.data("activity-id");
+
+                // Fetch activity details via AJAX
+                $.ajax({
+                    url: `/Admin/GetActivityDetails/${activityId}`,
+                    type: "GET",
+                    success: function (data) {
+                        // Display user info with email
+                        $("#detailUser").html(`
+                        <strong>${data.user.firstName} ${data.user.lastName}</strong><br>
+                        <span>${data.user.userName}</span><br>
+                        <span class="text-muted">${data.user.email}</span>
+                    `);
+
+                        // Display action with badge
+                        $("#detailAction").html(getActionBadge(data.action));
+
+                        // Show full description
+                        $("#detailDescription").text(data.description);
+
+                        // Format timestamp properly
+                        const timestamp = new Date(data.timestamp);
+                        $("#detailTimestamp").text(timestamp.toLocaleString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                        }));
+
+                        // Display the full IP address
+                        $("#detailIp").text(data.ipAddress);
+
+                        // Show full user agent
+                        $("#detailUserAgent").html(`<div class="text-wrap">${data.userAgent}</div>`);
+
+                        // Show related entity information if available
+                        if (data.relatedEntityId && data.relatedEntityType) {
+                            $("#relatedEntityContainer").show();
+                            $("#detailRelatedEntity").html(`
+                            <div>${data.relatedEntityType} (ID: ${data.relatedEntityId})</div>
+                            <button type="button" class="btn btn-sm btn-outline-primary mt-2"
+                                onclick="viewRelatedEntity('${data.relatedEntityType}', '${data.relatedEntityId}')">
+                                View Related Entity
+                            </button>
+                        `);
+                        } else {
+                            $("#relatedEntityContainer").hide();
+                        }
+
+                        // Add view activity history button
+                        $("#activityDetailFooter").html(`
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" onclick="viewUserActivityHistory('${data.user.userName}')">
+                            View User's Activity History
+                        </button>
+                    `);
+                    },
+                    error: function (error) {
+                        console.error("Error fetching activity details:", error);
+                        $("#activityDetails").html('<div class="alert alert-danger">Error loading activity details</div>');
+                    }
+                });
+            });
+
+            // Function to redirect to a filtered view of this user's activities
+            // Add these functions to the global scope outside any other function:
+            function viewUserActivityHistory(username) {
+                window.location.href = `/Admin/UserActivityReport?username=${encodeURIComponent(username)}`;
+            }
+
+            function viewRelatedEntity(entityType, entityId) {
+                let url;
+
+                switch (entityType) {
+                    case "Appointment":
+                        url = `/Admin/AppointmentDetails/${entityId}`;
+                        break;
+                    case "Payment":
+                        url = `/Admin/PaymentDetails/${entityId}`;
+                        break;
+                    default:
+                        alert(`View for ${entityType} not implemented`);
+                        return;
+                }
+
+                window.open(url, '_blank');
             }
 
             // Helper function to get action badge HTML

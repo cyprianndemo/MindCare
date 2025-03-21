@@ -270,17 +270,23 @@
             button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating PDF...';
             button.disabled = true;
 
-            // Wait for charts to render completely
-            setTimeout(function () {
-                // Get the content to convert
-                const element = document.getElementById('reportContent');
+            // Create a promise-based function to handle PDF generation
+            const generatePDF = async () => {
+                try {
+                    // Get the content to convert
+                    const element = document.getElementById('reportContent');
 
-                // Use html2canvas to convert the HTML to an image
-                html2canvas(element, {
-                    scale: 2, // Higher quality
-                    useCORS: true,
-                    logging: false
-                }).then(canvas => {
+                    // Get document title for the PDF name
+                    const title = document.title || 'MindCare_System_Report';
+
+                    // Use html2canvas to convert the HTML to an image
+                    const canvas = await html2canvas(element, {
+                        scale: 2, // Higher quality
+                        useCORS: true,
+                        logging: false,
+                        backgroundColor: '#ffffff' // Ensure white background
+                    });
+
                     // Initialize jsPDF
                     const { jsPDF } = window.jspdf;
                     const doc = new jsPDF('p', 'mm', 'a4');
@@ -291,29 +297,104 @@
                     const pageHeight = doc.internal.pageSize.getHeight();
                     const imgWidth = canvas.width;
                     const imgHeight = canvas.height;
-                    const ratio = Math.min(pageWidth / imgWidth, pageHeight / imgHeight);
-                    const imgX = (pageWidth - imgWidth * ratio) / 2;
 
+                    // Calculate the number of pages needed
+                    const ratio = pageWidth / imgWidth;
+                    const totalPages = Math.ceil(imgHeight * ratio / pageHeight);
+
+                    // Add header to first page
                     doc.setFontSize(18);
                     doc.text('MindCare System Performance Report', pageWidth / 2, 15, { align: 'center' });
 
                     doc.setFontSize(10);
-                    doc.text('Generated on: ' + new Date().toLocaleDateString(), pageWidth / 2, 22, { align: 'center' });
+                    const currentDate = new Date().toLocaleDateString();
+                    doc.text('Generated on: ' + currentDate, pageWidth / 2, 22, { align: 'center' });
 
-                    doc.addImage(
-                        imgData,
-                        'PNG',
-                        imgX,
-                        30,
-                        imgWidth * ratio,
-                        imgHeight * ratio
-                    );
+                    // If content fits on one page
+                    if (totalPages === 1) {
+                        doc.addImage(
+                            imgData,
+                            'PNG',
+                            0,
+                            30,
+                            pageWidth,
+                            (imgHeight * ratio)
+                        );
+                    } else {
+                        // Handle multi-page content
+                        let remainingHeight = imgHeight;
+                        let currentPosition = 0;
 
-                    doc.save('MindCare_System_Report_' + new Date().toISOString().slice(0, 10) + '.pdf');
+                        for (let i = 0; i < totalPages; i++) {
+                            if (i > 0) {
+                                doc.addPage();
+                            }
 
-                    button.innerHTML = originalText;
-                    button.disabled = false;
-                });
+                            // How much of the image to take for this page
+                            const pageHeightInPx = (pageHeight - (i === 0 ? 30 : 10)) / ratio;
+
+                            doc.addImage(
+                                imgData,
+                                'PNG',
+                                0,
+                                i === 0 ? 30 : 10,
+                                pageWidth,
+                                Math.min(pageHeightInPx * ratio, remainingHeight * ratio)
+                            );
+
+                            // Update position and remaining height
+                            currentPosition += pageHeightInPx;
+                            remainingHeight -= pageHeightInPx;
+                        }
+                    }
+
+                    // Add page numbers
+                    const pageCount = doc.internal.getNumberOfPages();
+                    for (let i = 1; i <= pageCount; i++) {
+                        doc.setPage(i);
+                        doc.setFontSize(10);
+                        doc.text('Page ' + i + ' of ' + pageCount, pageWidth - 20, pageHeight - 10);
+                    }
+
+                    // Save the PDF
+                    const filename = title.replace(/\s+/g, '_') + '_' + new Date().toISOString().slice(0, 10) + '.pdf';
+                    doc.save(filename);
+
+                    return true;
+                } catch (error) {
+                    console.error('PDF generation failed:', error);
+                    return false;
+                }
+            };
+
+            // Execute PDF generation with proper error handling
+            setTimeout(async function () {
+                try {
+                    const result = await generatePDF();
+                    if (result) {
+                        // Success - reset button with check mark for 2 seconds
+                        button.innerHTML = '<i class="fas fa-check me-2"></i>PDF Generated';
+                        button.classList.replace('btn-primary', 'btn-success');
+
+                        setTimeout(() => {
+                            button.innerHTML = originalText;
+                            button.classList.replace('btn-success', 'btn-primary');
+                            button.disabled = false;
+                        }, 2000);
+                    } else {
+                        throw new Error('PDF generation returned false');
+                    }
+                } catch (error) {
+                    // Error - show error message
+                    button.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Failed';
+                    button.classList.replace('btn-primary', 'btn-danger');
+
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.classList.replace('btn-danger', 'btn-primary');
+                        button.disabled = false;
+                    }, 2000);
+                }
             }, 500); // Small delay to ensure charts are rendered
         });
     </script>
