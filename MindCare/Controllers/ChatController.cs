@@ -31,23 +31,31 @@ namespace MindCare.Controllers
             if (string.IsNullOrEmpty(message.Content))
                 return BadRequest("Message content cannot be empty.");
 
-            // Process the message with the chatbot
-            var response = await _chatbotService.ProcessMessage(message.Content, message.SenderId);
-
-            // Create bot response message
-            var botResponse = new Message
+            try
             {
-                Content = response,
-                SenderId = "bot",
-                ReceiverId = message.SenderId,
-                Timestamp = DateTime.UtcNow,
-                IsFromBot = true
-            };
+                // Process the message with the chatbot that now uses Claude AI
+                var response = await _chatbotService.ProcessMessage(message.Content, message.SenderId);
 
-            // Send bot response to user via SignalR
-            await _hubContext.Clients.User(message.SenderId).SendAsync("ReceiveMessage", botResponse);
+                // Create bot response message
+                var botResponse = new Message
+                {
+                    Content = response,
+                    SenderId = "bot",
+                    ReceiverId = message.SenderId,
+                    Timestamp = DateTime.UtcNow,
+                    IsFromBot = true
+                };
 
-            return Ok(new { message = response }); // Return the bot's response
+                // Send bot response to user via SignalR
+                await _hubContext.Clients.User(message.SenderId).SendAsync("ReceiveMessage", botResponse);
+
+                return Ok(new { message = response }); // Return the bot's response
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error processing message: {ex.Message}");
+                return StatusCode(500, new { message = "Sorry, I encountered an error processing your message." });
+            }
         }
     }
 }

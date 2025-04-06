@@ -3,42 +3,159 @@
     Layout = "_TherapistLayout";
 }
 
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h2>Welcome, @User.Identity.Name</h2>
+<!-- Welcome message at very top with 2px padding -->
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-1 pb-2 mb-3 border-bottom" style="padding-top: 2px;">
+    <h2>Welcome back, Dr. @ViewData["LastName"] <span class="wave">👋</span></h2>
+    <div class="btn-toolbar">
+        <button type="button" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-calendar-check"></i> Today: @DateTime.Now.ToString("MMM d, yyyy")
+        </button>
+    </div>
 </div>
 
 <div class="container">
-    <h3 class="mb-4">Therapist Services Overview</h3>
-    <p>Access tools and features to manage your sessions, view patient information, and provide prescriptions.</p>
+    <!-- Overview Section -->
+    <div class="bg-light p-3 rounded mb-3 shadow-sm">
+        <h3 class="mb-2">Therapist Services Overview</h3>
+        <p>Access tools and features to manage your sessions, view patient information, and provide prescriptions.</p>
+    </div>
 
-    <!-- Service Buttons Section -->
-    <div class="row">
+    <!-- Service Cards Section -->
+    <h4 class="mb-2">Quick Access</h4>
+    <div class="row g-3">
+        <!-- Pending Appointments Card -->
         <div class="col-md-4">
-            <div class="card text-center">
+            <div class="card shadow-sm border-0 rounded-3 hover-shadow">
                 <div class="card-body">
-                    <h5 class="card-title">Manage Appointments</h5>
-                    <p class="card-text">View and manage your scheduled therapy sessions with patients.</p>
-                    <a href="@Url.Action("ManageSessions", "Therapist")" class="btn" style="background-color: #004085; color: #fff;">Go to Appointments</a>
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="icon-square bg-light text-dark flex-shrink-0 me-2">
+                            <i class="bi bi-calendar-plus text-primary"></i>
+                        </div>
+                        <h5 class="card-title mb-0">Manage Pending Appointments</h5>
+                    </div>
+                    <p class="card-text">View and manage your scheduled therapy sessions with students.</p>
+                    <a href="@Url.Action("ManageSessions", "Therapist")" class="btn w-100" style="background-color: #004085; color: #fff;">
+                        Pending Appointments
+                    </a>
                 </div>
             </div>
         </div>
+
+        <!-- Confirmed Appointments Card -->
         <div class="col-md-4">
-            <div class="card text-center">
+            <div class="card shadow-sm border-0 rounded-3 hover-shadow">
                 <div class="card-body">
-                    <h5 class="card-title">View Patients</h5>
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="icon-square bg-light text-dark flex-shrink-0 me-2">
+                            <i class="bi bi-calendar-check text-primary"></i>
+                        </div>
+                        <h5 class="card-title mb-0">Confirmed Appointments</h5>
+                    </div>
+                    <p class="card-text">View and manage your approved therapy sessions with students.</p>
+                    <a href="@Url.Action("ApprovedAppointments", "Therapist")" class="btn w-100" style="background-color: #004085; color: #fff;">
+                        Confirmed Appointments
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- View Patients Card -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 rounded-3 hover-shadow">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="icon-square bg-light text-dark flex-shrink-0 me-2">
+                            <i class="bi bi-people text-primary"></i>
+                        </div>
+                        <h5 class="card-title mb-0">View Patients</h5>
+                    </div>
                     <p class="card-text">Access a list of your assigned patients and their details.</p>
-                    <a href="@Url.Action("PatientList", "Therapist")" class="btn" style="background-color: #004085; color: #fff;">View Patients</a>
+                    <a href="@Url.Action("PatientList", "Therapist")" class="btn w-100" style="background-color: #004085; color: #fff;">
+                        View Patients
+                    </a>
                 </div>
             </div>
         </div>
+
+        <!-- Patient Feedback Card -->
         <div class="col-md-4">
-            <div class="card text-center">
+            <div class="card shadow-sm border-0 rounded-3 hover-shadow">
                 <div class="card-body">
-                    <h5 class="card-title">Patient Feedback</h5>
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="icon-square bg-light text-dark flex-shrink-0 me-2">
+                            <i class="bi bi-chat-quote text-primary"></i>
+                        </div>
+                        <h5 class="card-title mb-0">Patient Feedback</h5>
+                    </div>
                     <p class="card-text">Read feedback provided by patients on their therapy experience.</p>
-                    <a href="@Url.Action("ViewFeedbacks", "Feedback")" class="btn" style="background-color: #004085; color: #fff;">View Feedback</a>
+                    <a href="@Url.Action("ViewFeedbacks", "Feedback")" class="btn w-100" style="background-color: #004085; color: #fff;">
+                        View Feedback
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Add this to your stylesheet or in a style tag in your header -->
+<style>
+    .hover-shadow:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 .25rem .5rem rgba(0,0,0,.15) !important;
+        transition: all .3s ease;
+    }
+
+    .wave {
+        animation-name: wave-animation;
+        animation-duration: 2.5s;
+        animation-iteration-count: 1;
+        transform-origin: 70% 70%;
+        display: inline-block;
+    }
+
+    @@keyframes wave-animation {
+        0%
+
+    {
+        transform: rotate( 0.0deg)
+    }
+
+    10% {
+        transform: rotate(14.0deg)
+    }
+
+    20% {
+        transform: rotate(-8.0deg)
+    }
+
+    30% {
+        transform: rotate(14.0deg)
+    }
+
+    40% {
+        transform: rotate(-4.0deg)
+    }
+
+    50% {
+        transform: rotate(10.0deg)
+    }
+
+    60% {
+        transform: rotate( 0.0deg)
+    }
+
+    100% {
+        transform: rotate( 0.0deg)
+    }
+
+    }
+
+    .icon-square {
+        width: 36px;
+        height: 36px;
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>

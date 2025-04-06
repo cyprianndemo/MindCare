@@ -65,10 +65,13 @@ namespace MindCare.Areas.Identity.Pages.Account
         {
             [Required]
             [Display(Name = "First Name")]
+            [StringLength(50, MinimumLength = 3)]
             public string FirstName { get; set; }
 
             [Required]
             [Display(Name = "Last Name")]
+            [StringLength(50, MinimumLength = 3)]
+
             public string LastName { get; set; }
 
             [Required]

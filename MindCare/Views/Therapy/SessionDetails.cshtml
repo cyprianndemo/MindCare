@@ -22,7 +22,6 @@
                 <div class="mt-4 text-right">
                     <!-- Edit Appointment Button -->
                     <a href="@Url.Action("Edit", "Therapy", new { id = Model.AppointmentId })" class="btn" style="background-color: #004085; color: #fff;">Edit Appointment</a>
-                    <a href="@Url.Action("Pay", "Checkout", new { id = Model.AppointmentId })" class="btn" style="background-color: #004085; color: #fff;">Pay Session</a>
 
                     <!-- Cancel Appointment Button -->
                     <form action="@Url.Action("Cancel", "Therapy", new { id = Model.AppointmentId })" method="post" class="d-inline">
@@ -34,14 +33,14 @@
                 @if (Model.Status == "Approved")
                 {
                     <div class="mt-3">
-                        <a href="@ViewBag.VideoCallLink" target="_blank" class="btn" style="background-color: #004085; color: #fff;">
-                            <i class="bi bi-camera-video"></i> Start Video Call
+                        <a href="@ViewBag.VideoCallLink" target="_blank" class="btn btn-success">
+                            <i class="bi bi-camera-video"></i> Join Session (Google Meet)
                         </a>
                     </div>
                 }
                 else
                 {
-                    <p class="text-danger mt-3">The session must be confirmed to start a video call.</p>
+                    <p class="text-danger mt-3">The session must be approved to join the video call.</p>
                 }
             </div>
         </div>

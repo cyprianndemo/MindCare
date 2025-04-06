@@ -1,29 +1,71 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewData["Title"] - Therapist Dashboard</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    @await RenderSectionAsync("Styles", required: false)
+
     <style>
+        /* Theme Variables */
+        :root {
+            /* Light Theme Colors */
+            --bg-color: #ffffff;
+            --text-color: #212529;
+            --sidebar-bg: #004085; /* Navy blue in light mode */
+            --sidebar-hover: #003060;
+            --app-bar-bg: #004085; /* Navy blue in light mode */
+            --hover-menu-bg: #fff;
+            --hover-item-hover: #f8f9fa;
+            --hover-item-text: #212529;
+            --border-color: rgba(0,0,0,0.15);
+            --footer-bg: #f8f9fa;
+            --footer-text: #6c757d;
+            --card-bg: #fff;
+            --card-border: rgba(0,0,0,0.125);
+        }
+
+        /* Dark Theme Colors */
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --text-color: #e4e6eb;
+            --sidebar-bg: rgba(0,0,0,0.15);
+            --sidebar-hover: #2d3748;
+            --app-bar-bg: rgba(0,0,0,0.15);
+            --hover-menu-bg: #2d3748;
+            --hover-item-hover: rgba(0,0,0,0.15);
+            --hover-item-text: rgba(0,0,0,0.15);
+            --border-color: rgba(255,255,255,0.15);
+            --footer-bg: rgba(0,0,0,0.15);
+            --footer-text: rgba(0,0,0,0.15);
+            --card-bg: rgba(0,0,0,0.15);
+            --card-border: rgba(255,255,255,0.125);
+        }
+
         /* General Styling */
         body {
             font-family: Arial, sans-serif;
-            background-color: #f5f8fa;
-            color: #333;
             overflow-x: hidden;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
         }
 
         /* Top Navigation Bar */
         .app-bar {
-            background-color: #004085;
+            background-color: var(--app-bar-bg);
             color: white;
             padding: 0.5rem 1rem;
             position: fixed;
             width: 100%;
             z-index: 1030;
             top: 0;
+            left: 0;
+            transition: background-color 0.3s;
         }
 
         #sidebarToggle {
@@ -35,53 +77,112 @@
             cursor: pointer;
         }
 
-        /* Sidebar Styling */
+        /* Theme Toggle Switch */
+        .theme-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 26px;
+            margin: 0 10px;
+        }
+
+            .theme-switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+            .slider:before {
+                position: absolute;
+                content: "";
+                height: 20px;
+                width: 20px;
+                left: 4px;
+                bottom: 3px;
+                background-color: white;
+                transition: .4s;
+                border-radius: 50%;
+            }
+
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+
+            input:checked + .slider:before {
+                transform: translateX(32px);
+            }
+
+        .theme-icon {
+            margin-right: 5px;
+            color: white;
+        }
+
+        /* Wrapper and Sidebar Styling */
+        .wrapper {
+            display: flex;
+            width: 100%;
+            align-items: stretch;
+            padding-top: 56px; /* Height of navbar */
+        }
+
         .side-nav {
+            min-width: 250px;
+            max-width: 250px;
+            background-color: var(--sidebar-bg);
+            color: white;
+            transition: all 0.3s;
             position: fixed;
-            top: 56px; /* Height of navbar */
+            top: 56px;
             bottom: 0;
             left: 0;
-            width: 250px;
-            background-color: #004085;
-            color: white;
-            transition: transform 0.3s ease-in-out;
             z-index: 1020;
             overflow-y: auto;
         }
 
-        .side-nav.collapsed {
-            transform: translateX(-250px);
-        }
+            .side-nav.collapsed {
+                margin-left: -250px;
+            }
 
-        .side-nav .nav-link {
-            color: white;
-            font-size: 1.1rem;
-            padding: 10px 20px;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-        }
+            .side-nav .nav-link {
+                color: white;
+                font-size: 1.1rem;
+                padding: 10px 20px;
+                text-decoration: none;
+                display: flex;
+                align-items: center;
+            }
 
-        .side-nav .nav-link:hover {
-            background-color: #003060;
-            border-radius: 5px;
-        }
+                .side-nav .nav-link:hover {
+                    background-color: var(--sidebar-hover);
+                    border-radius: 5px;
+                }
 
         /* Main Content Styling */
         .main-content {
-            margin-left: 250px;
-            margin-top: 56px; /* Height of navbar */
+            width: 100%;
             padding: 20px;
+            margin-top: 56px;
+            margin-left: 250px;
+            transition: all 0.3s;
+            background-color: var(--bg-color);
             min-height: calc(100vh - 56px);
-            transition: margin-left 0.3s ease-in-out;
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
-        .main-content.expanded {
-            margin-left: 0;
-        }
+            .main-content.expanded {
+                margin-left: 0;
+            }
 
         /* Icons for Navigation Items */
         .nav-item-icon {
@@ -93,32 +194,52 @@
         /* Footer Styling */
         .footer {
             margin-left: 250px;
-            transition: margin-left 0.3s ease-in-out;
+            transition: margin-left 0.3s;
             padding: 1rem;
-            background-color: #f8f9fa;
+            background-color: var(--footer-bg);
+            color: var(--footer-text);
         }
 
-        .footer.expanded {
-            margin-left: 0;
+            .footer.expanded {
+                margin-left: 0;
+            }
+
+        /* Card styling for dark mode compatibility */
+        .card {
+            background-color: var(--card-bg);
+            border-color: var(--card-border);
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        .card-header, .card-footer {
+            background-color: rgba(0, 0, 0, 0.03);
+            border-color: var(--card-border);
+        }
+
+        [data-theme="dark"] .card-header, [data-theme="dark"] .card-footer {
+            background-color: rgba(255, 255, 255, 0.03);
         }
 
         /* Responsive Design */
         @@media (max-width: 768px) {
-            .side-nav {
-                transform: translateX(-250px);
-            }
+            .side-nav
 
-            .side-nav.show {
-                transform: translateX(0);
-            }
+        {
+            margin-left: -250px;
+        }
 
-            .main-content {
-                margin-left: 0;
-            }
+        .side-nav.show {
+            margin-left: 0;
+        }
 
-            .footer {
-                margin-left: 0;
-            }
+        .main-content {
+            margin-left: 0;
+        }
+
+        .footer {
+            margin-left: 0;
+        }
+
         }
 
         /* Overlay for mobile */
@@ -133,9 +254,9 @@
             z-index: 1015;
         }
 
-        .sidebar-overlay.show {
-            display: block;
-        }
+            .sidebar-overlay.show {
+                display: block;
+            }
     </style>
 </head>
 <body>
@@ -151,6 +272,15 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ml-auto">
+                    <!-- Theme Toggle -->
+                    <li class="nav-item d-flex align-items-center">
+                        <i class="fas fa-sun theme-icon" id="lightIcon"></i>
+                        <label class="theme-switch">
+                            <input type="checkbox" id="themeToggle">
+                            <span class="slider"></span>
+                        </label>
+                        <i class="fas fa-moon theme-icon" id="darkIcon"></i>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link text-white" asp-controller="Notification" asp-action="Index">
                             <i class="fas fa-bell"></i> Notifications
@@ -168,56 +298,58 @@
         </div>
     </nav>
 
-    <!-- Sidebar Overlay -->
-    <div class="sidebar-overlay"></div>
+    <div class="wrapper">
+        <!-- Sidebar Overlay -->
+        <div class="sidebar-overlay"></div>
 
-    <!-- Sidebar Navigation -->
-    <nav class="side-nav">
-        <div class="position-sticky">
-            <ul class="nav flex-column">
-                <li class="nav-item">
-                    <a class="nav-link" href="@Url.Action("Index", "Therapist")">
-                        <span class="nav-item-icon"><i class="fas fa-home"></i></span> Home
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="@Url.Action("ManageSessions", "Therapist")">
-                        <span class="nav-item-icon"><i class="fas fa-calendar-alt"></i></span> Manage Appointments
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="@Url.Action("ApprovedAppointments", "Therapist")">
-                        <span class="nav-item-icon"><i class="fas fa-calendar-alt"></i></span> Confirmed Appointments
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="@Url.Action("PatientList", "Therapist")">
-                        <span class="nav-item-icon"><i class="fas fa-users"></i></span> View Patients
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="@Url.Action("Report", "Reports")">
-                        <span class="nav-item-icon"><i class="fas fa-chart-line"></i></span> View Report
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="@Url.Action("ViewFeedbacks", "Feedback")">
-                        <span class="nav-item-icon"><i class="fas fa-comment-alt"></i></span> View Feedback
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="@Url.Page("/Account/Manage/Index", new { area = "Identity" })">
-                        <span class="nav-item-icon"><i class="fas fa-user"></i></span> Profile
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </nav>
+        <!-- Sidebar Navigation -->
+        <nav class="side-nav">
+            <div class="position-sticky">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("Index", "Therapist")">
+                            <span class="nav-item-icon"><i class="fas fa-home"></i></span> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("ManageSessions", "Therapist")">
+                            <span class="nav-item-icon"><i class="fas fa-calendar-alt"></i></span> Pending Appointments
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("ApprovedAppointments", "Therapist")">
+                            <span class="nav-item-icon"><i class="fas fa-calendar-alt"></i></span> Confirmed Appointments
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("PatientList", "Therapist")">
+                            <span class="nav-item-icon"><i class="fas fa-users"></i></span> View Patients
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("Report", "Reports")">
+                            <span class="nav-item-icon"><i class="fas fa-chart-line"></i></span> View Report
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("ViewFeedbacks", "Feedback")">
+                            <span class="nav-item-icon"><i class="fas fa-comment-alt"></i></span> View Feedback
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Page("/Account/Manage/Index", new { area = "Identity" })">
+                            <span class="nav-item-icon"><i class="fas fa-user"></i></span> Profile
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
 
-    <!-- Main Content Area -->
-    <main class="main-content">
-        @RenderBody()
-    </main>
+        <!-- Main Content Area -->
+        <main class="main-content">
+            @RenderBody()
+        </main>
+    </div>
 
     <footer class="border-top footer text-muted">
         <div class="container">
@@ -234,20 +366,58 @@
             const mainContent = document.querySelector('.main-content');
             const footer = document.querySelector('.footer');
             const overlay = document.querySelector('.sidebar-overlay');
+            const themeToggle = document.getElementById('themeToggle');
+            const htmlElement = document.documentElement;
+            const lightIcon = document.getElementById('lightIcon');
+            const darkIcon = document.getElementById('darkIcon');
 
+            // Check for saved theme preference or respect OS preference
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                htmlElement.setAttribute('data-theme', 'dark');
+                themeToggle.checked = true;
+                updateThemeIcons(true);
+            } else {
+                updateThemeIcons(false);
+            }
+
+            // Toggle sidebar
             function toggleSidebar() {
                 sideNav.classList.toggle('collapsed');
                 mainContent.classList.toggle('expanded');
                 footer.classList.toggle('expanded');
-                
+
                 if (window.innerWidth <= 768) {
                     sideNav.classList.toggle('show');
                     overlay.classList.toggle('show');
                 }
             }
 
+            // Update theme icons visibility based on current theme
+            function updateThemeIcons(isDark) {
+                if (isDark) {
+                    lightIcon.style.opacity = "0.5";
+                    darkIcon.style.opacity = "1";
+                } else {
+                    lightIcon.style.opacity = "1";
+                    darkIcon.style.opacity = "0.5";
+                }
+            }
+
+            // Toggle theme
+            function toggleTheme() {
+                const isDark = themeToggle.checked;
+                htmlElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                updateThemeIcons(isDark);
+            }
+
+            // Event listeners
             sidebarToggle.addEventListener('click', toggleSidebar);
             overlay.addEventListener('click', toggleSidebar);
+            themeToggle.addEventListener('change', toggleTheme);
 
             // Handle window resize
             window.addEventListener('resize', function() {

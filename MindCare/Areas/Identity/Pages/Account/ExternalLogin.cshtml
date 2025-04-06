@@ -1,33 +1,49 @@
 ﻿@page
 @model ExternalLoginModel
 @{
-    ViewData["Title"] = "Register";
+    ViewData["Title"] = "Login with External Providers";
 }
 
-<h1>@ViewData["Title"]</h1>
-<h2 id="external-login-title">Associate your @Model.ProviderDisplayName account.</h2>
-<hr />
+<div class="container mt-5 animate__animated animate__fadeIn">
+    <h1 class="text-center mb-4">@ViewData["Title"]</h1>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg">
+                <div class="card-body p-4">
+                    <h2 class="card-title text-center mb-4">Sign in with your account</h2>
+                    <hr />
 
-<p id="external-login-description" class="text-info">
-    You've successfully authenticated with <strong>@Model.ProviderDisplayName</strong>.
-    Please enter an email address for this site below and click the Register button to finish
-    logging in.
-</p>
+                    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            @Model.ErrorMessage
+                        </div>
+                    }
 
-<div class="row">
-    <div class="col-md-4">
-        <form asp-page-handler="Confirmation" asp-route-returnUrl="@Model.ReturnUrl" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.Email" class="form-control" autocomplete="email" placeholder="Please enter your email."/>
-                <label asp-for="Input.Email" class="form-label"></label>
-                <span asp-validation-for="Input.Email" class="text-danger"></span>
+                    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
+                        <div class="d-grid gap-3">
+                            <button type="submit" class="btn btn-outline-dark btn-lg d-flex align-items-center justify-content-center gap-2" name="provider" value="Google" title="Log in using your Google account">
+                                <img src="~/images/google-logo.png" alt="Google" width="24" height="24" />
+                                <span>Sign in with Google</span>
+                            </button>
+
+                            <button type="submit" class="btn btn-outline-dark btn-lg d-flex align-items-center justify-content-center gap-2" name="provider" value="GitHub" title="Log in using your GitHub account">
+                                <img src="~/images/github-logo.png" alt="GitHub" width="24" height="24" />
+                                <span>Sign in with GitHub</span>
+                            </button>
+
+                            <button type="submit" class="btn btn-success btn-lg d-flex align-items-center justify-content-center gap-2" name="provider" value="Safaricom" title="Log in using your Safaricom account">
+                                <img src="~/images/safaricom-logo.png" alt="Safaricom" width="24" height="24" />
+                                <span>Sign in with Safaricom</span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="mt-4 text-center">
+                        <p>Don't have an account? <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Register</a></p>
+                    </div>
+                </div>
             </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
-        </form>
+        </div>
     </div>
 </div>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}

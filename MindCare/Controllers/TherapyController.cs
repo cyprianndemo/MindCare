@@ -380,14 +380,11 @@ namespace MindCare.Controllers
                 return NotFound();
             }
 
-            // Generate a video call link (using Jitsi Meet as an example)
-            // Customize the link generation logic if using other services
-            string videoCallRoom = $"MindCare_{appointment.AppointmentId}_{appointment.TherapistId}";
-            ViewBag.VideoCallLink = $"https://meet.jit.si/{videoCallRoom}";
+            // Set the Google Meet link for approved appointments
+            ViewBag.VideoCallLink = "https://meet.google.com/kew-aktu-udt";
 
             return View(appointment);
         }
-
         private async Task SendAppointmentConfirmationEmail(Appointment appointment)
         {
             var user = await _userManager.FindByIdAsync(appointment.StudentId);

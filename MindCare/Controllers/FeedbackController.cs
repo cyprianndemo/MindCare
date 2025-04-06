@@ -99,7 +99,34 @@ namespace MindCare.Controllers
 
             return View(feedbacks);
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteFeedback(int id)
+        {
+            var feedback = await _context.Feedback.FindAsync(id);
 
+            if (feedback == null)
+            {
+                return NotFound();
+            }
+
+            // Optional: Add security check to ensure this therapist owns this feedback
+            
+
+            try
+            {
+                _context.Feedback.Remove(feedback);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Feedback deleted successfully.";
+            }
+            catch (Exception ex)
+            {
+                // Log the error
+                return StatusCode(500, new { message = "An error occurred while deleting the feedback" });
+            }
+
+            return RedirectToAction(nameof(Feedback));
+        }
         public IActionResult Thanks()
         {
             return View();

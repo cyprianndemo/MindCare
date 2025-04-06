@@ -20,6 +20,7 @@ namespace MindCare.Models
 
         [Required]
         public DateTime LastModified { get; set; }
+        public string? MeetLink { get; set; }
 
         [Required]
         public DateTime CreatedAt { get; set; }

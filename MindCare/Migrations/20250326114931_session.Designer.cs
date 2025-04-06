@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MindCare.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MindCare.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250326114931_session")]
+    partial class session
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -312,6 +315,7 @@ namespace MindCare.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("MeetLink")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("PsychiatristId")
@@ -934,9 +938,6 @@ namespace MindCare.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int?>("MoodScore")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
@@ -1004,10 +1005,6 @@ namespace MindCare.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("text");
 

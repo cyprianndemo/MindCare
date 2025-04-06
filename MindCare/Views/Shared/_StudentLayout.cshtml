@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,15 +11,53 @@
     @await RenderSectionAsync("Styles", required: false)
 
     <style>
+        /* Theme Variables */
+        :root {
+            /* Light Theme Colors */
+            --bg-color: #ffffff;
+            --text-color: #212529;
+            --sidebar-bg: #004085; /* Navy blue in light mode */
+            --sidebar-hover: #003060;
+            --app-bar-bg: #004085; /* Navy blue in light mode */
+            --hover-menu-bg: #fff;
+            --hover-item-hover: #f8f9fa;
+            --hover-item-text: #212529;
+            --border-color: rgba(0,0,0,0.15);
+            --footer-bg: #f8f9fa;
+            --footer-text: #6c757d;
+            --card-bg: #fff;
+            --card-border: rgba(0,0,0,0.125);
+        }
+
+        /* Dark Theme Colors */
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --text-color: #e4e6eb;
+            --sidebar-bg: rgba(0,0,0,0.15);
+            --sidebar-hover: #2d3748;
+            --app-bar-bg: rgba(0,0,0,0.15);
+            --hover-menu-bg: #2d3748;
+            --hover-item-hover: rgba(0,0,0,0.15);
+            --hover-item-text: rgba(0,0,0,0.15);
+            --border-color: rgba(255,255,255,0.15);
+            --footer-bg: rgba(0,0,0,0.15);
+            --footer-text: rgba(0,0,0,0.15);
+            --card-bg: rgba(0,0,0,0.15);
+            --card-border: rgba(255,255,255,0.125);
+        }
+
         /* General Styling */
         body {
             font-family: Arial, sans-serif;
             overflow-x: hidden;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
         }
 
         /* Top Navigation Bar */
         .app-bar {
-            background-color: #004085;
+            background-color: var(--app-bar-bg);
             color: white;
             padding: 0.5rem 1rem;
             position: fixed;
@@ -27,6 +65,7 @@
             z-index: 1030;
             top: 0;
             left: 0;
+            transition: background-color 0.3s;
         }
 
         #sidebarToggle {
@@ -36,6 +75,58 @@
             font-size: 1.5rem;
             padding: 0.25rem 0.75rem;
             cursor: pointer;
+        }
+
+        /* Theme Toggle Switch */
+        .theme-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 26px;
+            margin: 0 10px;
+        }
+
+            .theme-switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+            .slider:before {
+                position: absolute;
+                content: "";
+                height: 20px;
+                width: 20px;
+                left: 4px;
+                bottom: 3px;
+                background-color: white;
+                transition: .4s;
+                border-radius: 50%;
+            }
+
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+
+            input:checked + .slider:before {
+                transform: translateX(32px);
+            }
+
+        .theme-icon {
+            margin-right: 5px;
+            color: white;
         }
 
         /* Sidebar Styling */
@@ -49,7 +140,7 @@
         .sidebar {
             min-width: 250px;
             max-width: 250px;
-            background-color: #004085;
+            background-color: var(--sidebar-bg);
             color: white;
             transition: all 0.3s;
             position: fixed;
@@ -74,7 +165,7 @@
             }
 
                 .sidebar .nav-link:hover {
-                    background-color: #003060;
+                    background-color: var(--sidebar-hover);
                     border-radius: 5px;
                 }
 
@@ -85,7 +176,7 @@
             margin-top: 56px;
             margin-left: 250px;
             transition: all 0.3s;
-            background-color: #ffffff;
+            background-color: var(--bg-color);
             min-height: calc(100vh - 56px);
         }
 
@@ -111,11 +202,11 @@
             left: 100%;
             top: 0;
             min-width: 150px;
-            background-color: #fff;
+            background-color: var(--hover-menu-bg);
             box-shadow: 0 8px 16px rgba(0,0,0,0.1);
             z-index: 100;
             border-radius: 4px;
-            border: 1px solid rgba(0,0,0,0.15);
+            border: 1px solid var(--border-color);
         }
 
         .dropdown-hover:hover .hover-menu {
@@ -127,7 +218,7 @@
             padding: 0.5rem 1rem;
             clear: both;
             font-weight: 400;
-            color: #212529;
+            color: var(--hover-item-text);
             text-align: inherit;
             white-space: nowrap;
             background-color: transparent;
@@ -136,24 +227,54 @@
         }
 
             .hover-menu-item:hover {
-                background-color: #f8f9fa;
-                color: #16181b;
+                background-color: var(--hover-item-hover);
+                color: var(--hover-item-text);
                 text-decoration: none;
             }
 
+        /* Footer */
+        footer {
+            background-color: var(--footer-bg);
+            color: var(--footer-text);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+            footer a {
+                color: inherit;
+            }
+
+        /* Card styling for dark mode compatibility */
+        .card {
+            background-color: var(--card-bg);
+            border-color: var(--card-border);
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        .card-header, .card-footer {
+            background-color: rgba(0, 0, 0, 0.03);
+            border-color: var(--card-border);
+        }
+
+        [data-theme="dark"] .card-header, [data-theme="dark"] .card-footer {
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+
         /* Responsive Design */
         @@media (max-width: 768px) {
-            .sidebar {
-                margin-left: -250px;
-            }
+            .sidebar
 
-                .sidebar.show {
-                    margin-left: 0;
-                }
+        {
+            margin-left: -250px;
+        }
 
-            .content {
-                margin-left: 0;
-            }
+        .sidebar.show {
+            margin-left: 0;
+        }
+
+        .content {
+            margin-left: 0;
+        }
+
         }
 
         /* Overlay for mobile */
@@ -186,6 +307,15 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ml-auto">
+                    <!-- Theme Toggle -->
+                    <li class="nav-item d-flex align-items-center">
+                        <i class="fas fa-sun theme-icon" id="lightIcon"></i>
+                        <label class="theme-switch">
+                            <input type="checkbox" id="themeToggle">
+                            <span class="slider"></span>
+                        </label>
+                        <i class="fas fa-moon theme-icon" id="darkIcon"></i>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link text-white" asp-controller="Notification" asp-action="Index">
                             <i class="fas fa-bell"></i> Notifications
@@ -196,7 +326,6 @@
                             <i class="fas fa-comments"></i> Messages
                         </a>
                     </li>
-
                     <li class="nav-item">
                         <form id="logoutForm" class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
                             <button id="logout" type="submit" class="nav-link btn btn-link text-white border-0">
@@ -307,7 +436,24 @@
             const sidebar = document.querySelector('.sidebar');
             const content = document.querySelector('.content');
             const overlay = document.querySelector('.sidebar-overlay');
+            const themeToggle = document.getElementById('themeToggle');
+            const htmlElement = document.documentElement;
+            const lightIcon = document.getElementById('lightIcon');
+            const darkIcon = document.getElementById('darkIcon');
 
+            // Check for saved theme preference or respect OS preference
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                htmlElement.setAttribute('data-theme', 'dark');
+                themeToggle.checked = true;
+                updateThemeIcons(true);
+            } else {
+                updateThemeIcons(false);
+            }
+
+            // Toggle sidebar
             function toggleSidebar() {
                 sidebar.classList.toggle('collapsed');
                 content.classList.toggle('expanded');
@@ -318,8 +464,29 @@
                 }
             }
 
+            // Update theme icons visibility based on current theme
+            function updateThemeIcons(isDark) {
+                if (isDark) {
+                    lightIcon.style.opacity = "0.5";
+                    darkIcon.style.opacity = "1";
+                } else {
+                    lightIcon.style.opacity = "1";
+                    darkIcon.style.opacity = "0.5";
+                }
+            }
+
+            // Toggle theme
+            function toggleTheme() {
+                const isDark = themeToggle.checked;
+                htmlElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                updateThemeIcons(isDark);
+            }
+
+            // Event listeners
             sidebarToggle.addEventListener('click', toggleSidebar);
             overlay.addEventListener('click', toggleSidebar);
+            themeToggle.addEventListener('change', toggleTheme);
 
             // Handle window resize
             window.addEventListener('resize', function () {

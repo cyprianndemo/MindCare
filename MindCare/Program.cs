@@ -11,6 +11,9 @@ using Stripe;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Reflection;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Polly;
 
 // Top-level statements must come before any namespace and type declarations
 var builder = WebApplication.CreateBuilder(args);
@@ -47,15 +50,45 @@ builder.Services.AddScoped<IActivityLogger, ActivityLoggerV2>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<UserActivityService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddSingleton<ClaudeAiService>();
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddHttpClient("ClaudeAPI")
+    .AddPolicyHandler(GetRetryPolicy());
+
+
 /*builder.Services.Configure<NotificationConfiguration>(builder.Configuration.GetSection("NotificationConfiguration"));
 builder.Services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<NotificationConfiguration>>().Value);
 builder.Services.AddHostedService<NotificationCleanupService>();*/
-/*builder.Services.AddScoped<IReportExporter, ReportExporter>();
-builder.Services.AddScoped<StudentReportGenerator>();
-builder.Services.AddScoped<TherapistReportGenerator>();
-builder.Services.AddScoped<PsychiatristReportGenerator>();
-builder.Services.AddScoped<AdminReportGenerator>();
-builder.Services.AddScoped<ReportScheduler>();*/
+builder.Services.AddAuthentication()
+        .AddGoogle(options =>
+        {
+            options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+            options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+        })
+        .AddGitHub(options =>
+        {
+            options.ClientId = builder.Configuration["Authentication:GitHub:ClientId"];
+            options.ClientSecret = builder.Configuration["Authentication:GitHub:ClientSecret"];
+            options.Scope.Add("user:email");
+        })
+        .AddOAuth("Safaricom", options =>
+        {
+            options.ClientId = builder.Configuration["Authentication:Safaricom:ClientId"];
+            options.ClientSecret = builder.Configuration["Authentication:Safaricom:ClientSecret"];
+            options.CallbackPath = new PathString("/signin-safaricom");
+
+            options.AuthorizationEndpoint = builder.Configuration["Authentication:Safaricom:AuthorizationEndpoint"];
+            options.TokenEndpoint = builder.Configuration["Authentication:Safaricom:TokenEndpoint"];
+            options.UserInformationEndpoint = builder.Configuration["Authentication:Safaricom:UserInformationEndpoint"];
+
+            // Use MapJsonElement instead of MapJsonKey
+            options.ClaimActions.MapJsonSubKey(ClaimTypes.Email, "user", "email");
+          
+
+            options.SaveTokens = true;
+        });
+
 
 builder.Services.AddHttpClient("mpesa", c => {
     c.BaseAddress = new Uri("https://sandbox.safaricom.co.ke");
@@ -65,9 +98,14 @@ builder.Services.AddHttpClient("mpesa", c => {
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
 {
     app.UseExceptionHandler("/Home/Error");
+    app.UseStatusCodePagesWithReExecute("/Error/{0}");
     app.UseHsts();
 }
 
@@ -77,7 +115,7 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication(); // Add authentication middleware
 app.UseAuthorization();
-
+app.UseStatusCodePagesWithReExecute("/Error/{0}");
 app.MapRazorPages();
 app.MapHub<ChatHub>("/chatHub");
 app.MapHub<NotificationHub>("/notificationHub");
@@ -184,4 +222,12 @@ static async Task SeedRolesAndAdminUser(IServiceProvider serviceProvider)
             }
         }
     }
+}
+static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+{
+    return Policy<HttpResponseMessage>
+        .Handle<HttpRequestException>()
+        .OrResult(response => !response.IsSuccessStatusCode)
+        .WaitAndRetryAsync(3, retryAttempt =>
+            TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))); // Exponential backoff
 }

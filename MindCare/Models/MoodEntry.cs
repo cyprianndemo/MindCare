@@ -10,6 +10,7 @@ namespace MindCare.Models
 
         [Required(ErrorMessage = "Please select a mood")]
         public string Mood { get; set; }
+        public int? MoodScore { get; set; }
 
         [Required(ErrorMessage = "Please select an intensity level")]
         [Range(1, 10, ErrorMessage = "Intensity must be between 1 and 10")]

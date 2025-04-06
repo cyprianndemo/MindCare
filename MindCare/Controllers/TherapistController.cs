@@ -6,6 +6,8 @@ using MindCare.Data;
 using MindCare.Models;
 using MindCare.Services;
 using MindCare.ViewModel;
+using System.Net.Mail;
+using System.Net;
 using System.Security.Claims;
 
 namespace MindCare.Controllers
@@ -24,9 +26,11 @@ namespace MindCare.Controllers
             _configuration = configuration;
             _notificationService = notificationService;
         }
-        public IActionResult Index()
+        public async Task <IActionResult> Index()
         {
-            return View("Index");
+            var user = await _userManager.GetUserAsync(User);
+            ViewData["LastName"] = user?.LastName;
+            return View();
         }
 
         public async Task<IActionResult> PatientList()
@@ -35,9 +39,7 @@ namespace MindCare.Controllers
             {
                 // Get the logged-in Therapist's ID
                 var TherapistId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-                // Get all unique patients who have appointments with this Therapist
-                // Explicitly join with AspNetUsers table
+                                
                 var patients = await _context.Appointments
                     .Where(a => a.TherapistId == TherapistId)
                     .Join(
@@ -175,9 +177,10 @@ namespace MindCare.Controllers
 
                 // Find the appointment
                 var appointment = await _context.Appointments.FindAsync(appointmentId);
+
                 if (appointment == null)
                 {
-                    return Json(new { success = false, message = $"Appointment with ID {appointmentId} not found." });
+                    return Json(new { success = false, message = "Appointment not found." });
                 }
 
                 // Verify the appointment belongs to the current Therapist
@@ -193,6 +196,7 @@ namespace MindCare.Controllers
 
                 // Save changes
                 await _context.SaveChangesAsync();
+                await SendAppointmentConfirmationEmail(appointment);
 
                 return Json(new
                 {
@@ -211,6 +215,69 @@ namespace MindCare.Controllers
                 return Json(new { success = false, message = $"An error occurred: {ex.Message}" });
             }
         }
+
+        private async Task SendAppointmentConfirmationEmail(Appointment appointment)
+        {
+            var user = await _userManager.FindByIdAsync(appointment.StudentId);
+            var therapist = await _userManager.FindByIdAsync(appointment.TherapistId);
+
+            var emailSettings = _configuration.GetSection("EmailSettings");
+
+            // Validate Email Settings
+            var host = emailSettings["Host"];
+            var portString = emailSettings["Port"];
+            var username = emailSettings["Username"];
+            var password = emailSettings["Password"];
+            var fromAddress = emailSettings["FromAddress"];
+
+            if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(portString) || string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(fromAddress))
+            {
+                throw new InvalidOperationException("Email settings are incomplete. Please check your configuration.");
+            }
+
+            // Parse port if valid
+            if (!int.TryParse(portString, out var port))
+            {
+                throw new InvalidOperationException($"Invalid port value: {portString}");
+            }
+
+            var smtpClient = new SmtpClient(host)
+            {
+                Port = port,
+                Credentials = new NetworkCredential(username, password),
+                EnableSsl = true,
+            };
+
+            var localStartTime = appointment.GetLocalStartTime();
+            var localEndTime = appointment.GetLocalEndTime();
+
+            var mailMessage = new MailMessage
+            {
+                From = new MailAddress(fromAddress),
+                Subject = "Appointment Approval",
+                Body = $@"Dear {user.FirstName},
+
+                    Your appointment has been approved successfully.
+
+                    Details:
+                    Date: {localStartTime:dd/MM/yyyy}
+                    Time: {localStartTime:HH:mm} - {localEndTime:HH:mm}
+                    Therapist: {therapist.FirstName} {therapist.LastName}
+
+                    Please join the meeting on time using this Google Meet link:
+                    https://meet.google.com/kew-aktu-udt
+
+                    Please note that punctuality is important for your session to be effective.
+
+                    Best regards,
+                    MindCare Team",
+                IsBodyHtml = false
+            };
+
+            mailMessage.To.Add(user.Email);
+            await smtpClient.SendMailAsync(mailMessage);
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Therapist")]
@@ -291,7 +358,7 @@ namespace MindCare.Controllers
 
 
 
-        [HttpGet]
+       /* [HttpGet]
         [Authorize(Roles = "Therapist")]
         public async Task<IActionResult> CancelAppointment(int id)
         {
@@ -324,44 +391,79 @@ namespace MindCare.Controllers
                 TempData["Error"] = "An error occurred while processing the request.";
                 return RedirectToAction("ManageSessions");
             }
-        }
+        }*/
 
         [HttpPost]
-        [Authorize(Roles = "Therapist")]
-        public async Task<IActionResult> CancelAppointment(AppointmentCancelViewModel model)
+[ValidateAntiForgeryToken]
+[Authorize(Roles = "Therapist")]
+public async Task<IActionResult> CancelAppointment(int id)
+{
+    try
+    {
+        // Get the current user's ID
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Find the appointment
+        var appointment = await _context.Appointments
+            .FirstOrDefaultAsync(a => a.AppointmentId == id && a.TherapistId == userId);
+
+        if (appointment == null)
         {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    return View(model);
-                }
-
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var appointment = await _context.Appointments
-                    .FirstOrDefaultAsync(a => a.AppointmentId == model.AppointmentId && a.TherapistId == userId);
-
-                if (appointment == null)
-                {
-                    TempData["Error"] = "Appointment not found or unauthorized access.";
-                    return RedirectToAction("ManageSessions");
-                }
-
-                appointment.Status = "Cancelled";
-                appointment.LastModified = DateTime.Now;
-                appointment.UpdatedBy = userId;
-
-                await _context.SaveChangesAsync();
-
-                TempData["Success"] = "Appointment cancelled successfully.";
-                return RedirectToAction("ManageSessions");
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = "An error occurred while cancelling the appointment.";
-                return View(model);
-            }
+            return Json(new { success = false, message = "Appointment not found or unauthorized access." });
         }
+
+        // Update appointment status
+        appointment.Status = "Cancelled";
+        appointment.LastModified = DateTime.UtcNow;
+        appointment.UpdatedBy = userId;
+        appointment.CancellationTime = DateTime.UtcNow;
+
+        // Save changes
+        await _context.SaveChangesAsync();
+
+        // Notify the student about cancellation
+        try
+        {
+            // Create notification for student
+            var notification = new Notification
+            {
+                UserId = appointment.StudentId,
+                Message = $"Your appointment scheduled for {appointment.StartTime:g} has been cancelled by the therapist.",
+                CreatedAt = DateTime.UtcNow,
+                IsRead = false
+            };
+
+            _context.Notifications.Add(notification);
+            await _context.SaveChangesAsync();
+
+            await _notificationService.SendAppointmentNotification(
+                appointment.StudentId,
+                appointment.StartTime,
+                "CANCELLED"
+            );
+        }
+        catch (Exception ex)
+        {
+            // Log notification error but don't fail the whole operation
+            Console.WriteLine($"Error sending notification: {ex.Message}");
+        }
+
+        return Json(new 
+        { 
+            success = true, 
+            message = "Appointment cancelled successfully.", 
+            meetingLink = "https://meet.google.com/kew-aktu-udt" // Return meeting link for UI to disable it
+        });
+    }
+    catch (Exception ex)
+    {
+        // Log the exception details
+        Console.WriteLine($"Error in CancelAppointment: {ex.Message}");
+        Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+
+        return Json(new { success = false, message = $"An error occurred: {ex.Message}" });
+    }
+}
 
         [HttpGet]
         [Authorize(Roles = "Therapist")]
@@ -529,6 +631,7 @@ namespace MindCare.Controllers
                 return View(model);
             }
         }
+
         [Authorize(Roles = "Therapist")]
         public async Task<IActionResult> ApprovedAppointments()
         {
@@ -551,7 +654,8 @@ namespace MindCare.Controllers
                                               Status = appointment.Status,
                                               StudentId = user.Id,
                                               StudentName = user.FirstName + " " + user.LastName,
-                                              StudentEmail = user.Email
+                                              StudentEmail = user.Email,
+                                              MeetingLink = "https://meet.google.com/kew-aktu-udt" // Add meeting link
                                           })
                                           .OrderByDescending(a => a.StartTime)
                                           .ToListAsync();
@@ -563,6 +667,7 @@ namespace MindCare.Controllers
                 // Log the exception
                 Console.WriteLine($"Error in ApprovedAppointments: {ex.Message}");
                 Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+
 
                 TempData["Error"] = "An error occurred while fetching appointments.";
                 return RedirectToAction("Index");

@@ -36,14 +36,14 @@
             <label asp-for="Date" class="control-label">Appointment Date</label>
             <input asp-for="Date" class="form-control" type="date"
                    min="@DateTime.Today.ToString("yyyy-MM-dd")"
-                   required />
+                   required id="appointmentDate" />
             <span asp-validation-for="Date" class="text-danger"></span>
         </div>
         <div class="form-group mb-3">
             <label asp-for="Time" class="control-label">Appointment Time</label>
             <input asp-for="Time" class="form-control" type="time"
                    min="09:00" max="17:00" step="3600"
-                   required />
+                   required id="appointmentTime" />
             <span asp-validation-for="Time" class="text-danger"></span>
             <small class="form-text text-muted">Available hours: 9 AM - 5 PM, weekdays only</small>
         </div>
@@ -53,18 +53,69 @@
         </div>
     </form>
 </div>
+
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
         $(document).ready(function () {
+            // Function to update time input minimum value based on current time
+            function updateTimeMinValue() {
+                const dateInput = document.getElementById('appointmentDate');
+                const timeInput = document.getElementById('appointmentTime');
+
+                const selectedDate = new Date(dateInput.value);
+                const today = new Date();
+
+                // If selected date is today
+                if (selectedDate.toDateString() === today.toDateString()) {
+                    // Get current time plus 1 hour (to prevent booking too close to current time)
+                    const currentHours = today.getHours();
+                    const currentMinutes = today.getMinutes();
+
+                    // Calculate minimum time (current time + 1 hour, rounded up)
+                    let minHours = currentHours + 1;
+                    if (currentMinutes > 0) minHours += 1;
+
+                    // Ensure it's within business hours (9 AM - 5 PM)
+                    minHours = Math.max(minHours, 9); // No earlier than 9 AM
+                    minHours = Math.min(minHours, 17); // No later than 5 PM
+
+                    // Format as HH:MM
+                    const minTime = `${minHours.toString().padStart(2, '0')}:00`;
+
+                    // Set the min attribute
+                    timeInput.min = minTime;
+
+                    // If current time is after 5 PM, disable time selection
+                    if (currentHours >= 17) {
+                        timeInput.disabled = true;
+                        timeInput.value = '';
+                        alert('No available times left for today. Please select another date.');
+                    } else {
+                        timeInput.disabled = false;
+                    }
+                } else {
+                    // For future dates, reset to default business hours
+                    timeInput.min = '09:00';
+                    timeInput.disabled = false;
+                }
+            }
+
+            // Initial call to set proper min time
+            updateTimeMinValue();
+
+            // Update min time whenever date changes
+            $('#appointmentDate').change(updateTimeMinValue);
+
             // Client-side validation
             $("#bookingForm").submit(function (e) {
                 var Therapist = $("#TherapistId").val();
                 var date = $("#Date").val();
                 var time = $("#Time").val();
                 var isValid = true;
+
                 if (!Therapist) {
                     alert("Please select a Therapist");
                     isValid = false;
@@ -77,6 +128,7 @@
                     alert("Please select a time");
                     isValid = false;
                 }
+
                 // Validate business hours (9 AM - 5 PM)
                 if (time) {
                     var hours = parseInt(time.split(":")[0]);
@@ -85,6 +137,7 @@
                         isValid = false;
                     }
                 }
+
                 // Validate weekdays only
                 if (date) {
                     var selectedDate = new Date(date);
@@ -93,6 +146,28 @@
                         isValid = false;
                     }
                 }
+
+                // Validate time is not in the past for today
+                if (date && time) {
+                    var selectedDate = new Date(date);
+                    var today = new Date();
+
+                    if (selectedDate.toDateString() === today.toDateString()) {
+                        var selectedTime = new Date();
+                        selectedTime.setHours(parseInt(time.split(":")[0]));
+                        selectedTime.setMinutes(parseInt(time.split(":")[1]));
+
+                        // Add buffer of 1 hour
+                        var bufferTime = new Date();
+                        bufferTime.setHours(bufferTime.getHours() + 1);
+
+                        if (selectedTime < bufferTime) {
+                            alert("Please select a time at least 1 hour from now");
+                            isValid = false;
+                        }
+                    }
+                }
+
                 if (!isValid) {
                     e.preventDefault();
                 }
