@@ -24,20 +24,20 @@
                                 <strong>Email:</strong> @appointment.StudentEmail<br />
                                 <strong>Date:</strong> @appointment.Date.ToShortDateString()<br />
                                 <strong>Time:</strong> @appointment.Time<br />
-                                <strong>Status:</strong> <span class="status-badge badge bg-success">@appointment.Status</span>
+                                <strong>Status:</strong> <span class="status-badge badge bg-success" id="status-@appointment.AppointmentId">@appointment.Status</span>
                             </p>
                         </div>
                         <div class="btn-group">
-                            <button type="button" class="btn btn-sm btn-danger delete-appointment me-1"
+                            <a href="@appointment.MeetingLink" target="_blank" class="btn btn-sm me-2" style="color: #fff; background-color: #004085; border-radius: 4px;">
+                                <i class="fas fa-video"></i> Start Session
+                            </a>
+                            <button type="button" class="btn btn-sm btn-danger delete-appointment me-2"
                                     data-appointment-id="@appointment.AppointmentId">
                                 <i class="fas fa-trash"></i> Delete
                             </button>
-                            <a href="@Url.Action("CancelAppointment", new { id = appointment.AppointmentId })" class="btn btn-sm btn-warning me-1">
+                            <button type="button" class="btn btn-sm btn-warning cancel-appointment me-2" data-appointment-id="@appointment.AppointmentId">
                                 <i class="fas fa-times"></i> Cancel
-                            </a>
-                            <a href="@Url.Action("EditAppointment", new { id = appointment.AppointmentId })" class="btn btn-sm btn-secondary">
-                                <i class="fas fa-edit"></i> Edit
-                            </a>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -54,6 +54,7 @@
 @section Scripts {
     <script>
         $(document).ready(function () {
+            // Delete appointment functionality
             $('.delete-appointment').click(function (e) {
                 e.preventDefault();
                 var appointmentId = $(this).data('appointment-id');
@@ -78,6 +79,44 @@
                         },
                         error: function () {
                             alert('An error occurred while deleting the appointment.');
+                        }
+                    });
+                }
+            });
+
+            // Cancel appointment functionality
+            $('.cancel-appointment').click(function (e) {
+                e.preventDefault();
+                var appointmentId = $(this).data('appointment-id');
+                var statusBadge = $('#status-' + appointmentId);
+
+                if (confirm('Are you sure you want to cancel this appointment?')) {
+                    $.ajax({
+                        url: '@Url.Action("CancelAppointment", "Psychiatrist")',
+                        type: 'POST',
+                        data: {
+                            id: appointmentId,
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function (result) {
+                            if (result.success) {
+                                // Update the status badge to show cancelled
+                                statusBadge.removeClass('bg-success').addClass('bg-secondary');
+                                statusBadge.text('Cancelled');
+
+                                // Disable the cancel button
+                                $('button.cancel-appointment[data-appointment-id="' + appointmentId + '"]').prop('disabled', true);
+
+                                // Optional: Disable the meeting link button as well
+                                $('a[href="' + result.meetingLink + '"]').addClass('disabled');
+
+                                alert('Appointment cancelled successfully.');
+                            } else {
+                                alert(result.message || 'Failed to cancel appointment.');
+                            }
+                        },
+                        error: function () {
+                            alert('An error occurred while cancelling the appointment.');
                         }
                     });
                 }

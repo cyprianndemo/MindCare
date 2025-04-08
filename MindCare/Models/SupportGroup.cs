@@ -163,6 +163,8 @@ namespace MindCare.Models
         public string User2Id { get; set; }
 
         public DateTime CreatedAt { get; set; }
+        public DateTime LastActivityAt { get; set; }
+
 
         // Navigation properties
         [ForeignKey("User1Id")]

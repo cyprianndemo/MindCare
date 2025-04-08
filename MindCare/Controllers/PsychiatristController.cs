@@ -4,7 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MindCare.Data;
 using MindCare.Models;
+using MindCare.Services;
 using MindCare.ViewModel;
+using System.Net.Mail;
+using System.Net;
 using System.Security.Claims;
 
 namespace MindCare.Controllers
@@ -14,16 +17,20 @@ namespace MindCare.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration _configuration;
+        private readonly INotificationService _notificationService;
 
-        public PsychiatristController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IConfiguration configuration)
+        public PsychiatristController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IConfiguration configuration, INotificationService notificationService)
         {
             _context = context;
             _userManager = userManager;
             _configuration = configuration;
+            _notificationService = notificationService;
         }
-        public IActionResult Dashboard()
+        public async Task <IActionResult> Dashboard()
         {
-            return View("Dashboard");
+            var user = await _userManager.GetUserAsync(User);
+            ViewData["LastName"] = user?.LastName;
+            return View();
         }
         // Update the PsychiatristController.cs
         public async Task<IActionResult> PatientList()
@@ -190,7 +197,7 @@ namespace MindCare.Controllers
 
                 // Save changes
                 await _context.SaveChangesAsync();
-
+                await SendAppointmentConfirmationEmail(appointment);
                 return Json(new
                 {
                     success = true,
@@ -209,77 +216,251 @@ namespace MindCare.Controllers
             }
         }
 
+        private async Task SendAppointmentConfirmationEmail(Appointment appointment)
+        {
+            var user = await _userManager.FindByIdAsync(appointment.StudentId);
+            var psychiatrist = await _userManager.FindByIdAsync(appointment.PsychiatristId);
+
+            var emailSettings = _configuration.GetSection("EmailSettings");
+
+            // Validate Email Settings
+            var host = emailSettings["Host"];
+            var portString = emailSettings["Port"];
+            var username = emailSettings["Username"];
+            var password = emailSettings["Password"];
+            var fromAddress = emailSettings["FromAddress"];
+
+            if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(portString) || string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(fromAddress))
+            {
+                throw new InvalidOperationException("Email settings are incomplete. Please check your configuration.");
+            }
+
+            // Parse port if valid
+            if (!int.TryParse(portString, out var port))
+            {
+                throw new InvalidOperationException($"Invalid port value: {portString}");
+            }
+
+            var smtpClient = new SmtpClient(host)
+            {
+                Port = port,
+                Credentials = new NetworkCredential(username, password),
+                EnableSsl = true,
+            };
+
+            var localStartTime = appointment.GetLocalStartTime();
+            var localEndTime = appointment.GetLocalEndTime();
+
+            var mailMessage = new MailMessage
+            {
+                From = new MailAddress(fromAddress),
+                Subject = "Appointment Approval",
+                Body = $@"Dear {user.FirstName},
+
+                    Your appointment has been approved successfully.
+
+                    Details:
+                    Date: {localStartTime:dd/MM/yyyy}
+                    Time: {localStartTime:HH:mm} - {localEndTime:HH:mm}
+                    Psychiatrist: {psychiatrist.FirstName} {psychiatrist.LastName}
+
+                    Please join the meeting on time using this Google Meet link:
+                    https://meet.google.com/kew-aktu-udt
+
+                    Please note that punctuality is important for your session to be effective.
+
+                    Best regards,
+                    MindCare Team",
+                IsBodyHtml = false
+            };
+
+            mailMessage.To.Add(user.Email);
+            await smtpClient.SendMailAsync(mailMessage);
+        }
 
 
-        [HttpGet]
+        /* [HttpGet]
+         [Authorize(Roles = "Psychiatrist")]
+         public async Task<IActionResult> CancelAppointment(int id)
+         {
+             try
+             {
+                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                 var appointment = await _context.Appointments
+                     .Include(a => a.Student)
+                     .FirstOrDefaultAsync(a => a.AppointmentId == id && a.PsychiatristId == userId);
+
+                 if (appointment == null)
+                 {
+                     TempData["Error"] = "Appointment not found or unauthorized access.";
+                     return RedirectToAction("ManageSessions");
+                 }
+
+                 var viewModel = new AppointmentCancelViewModel
+                 {
+                     AppointmentId = appointment.AppointmentId,
+                     StudentName = $"{appointment.Student.FirstName} {appointment.Student.LastName}",
+                     StartTime = appointment.StartTime,
+                     EndTime = appointment.EndTime,
+                     CancellationReason = ""
+                 };
+
+                 return View(viewModel);
+             }
+             catch (Exception ex)
+             {
+                 TempData["Error"] = "An error occurred while processing the request.";
+                 return RedirectToAction("ManageSessions");
+             }
+         }*/
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles = "Psychiatrist")]
         public async Task<IActionResult> CancelAppointment(int id)
         {
             try
             {
+                // Get the current user's ID
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                // Find the appointment
                 var appointment = await _context.Appointments
-                    .Include(a => a.Student)
                     .FirstOrDefaultAsync(a => a.AppointmentId == id && a.PsychiatristId == userId);
 
                 if (appointment == null)
                 {
-                    TempData["Error"] = "Appointment not found or unauthorized access.";
-                    return RedirectToAction("ManageSessions");
+                    return Json(new { success = false, message = "Appointment not found or unauthorized access." });
                 }
 
-                var viewModel = new AppointmentCancelViewModel
-                {
-                    AppointmentId = appointment.AppointmentId,
-                    StudentName = $"{appointment.Student.FirstName} {appointment.Student.LastName}",
-                    StartTime = appointment.StartTime,
-                    EndTime = appointment.EndTime,
-                    CancellationReason = ""
-                };
+                // Update appointment status
+                appointment.Status = "Cancelled";
+                appointment.LastModified = DateTime.UtcNow;
+                appointment.UpdatedBy = userId;
+                appointment.CancellationTime = DateTime.UtcNow;
 
-                return View(viewModel);
+                // Save changes
+                await _context.SaveChangesAsync();
+
+                // Notify the student about cancellation
+                try
+                {
+                    // Create notification for student
+                    var notification = new Notification
+                    {
+                        UserId = appointment.StudentId,
+                        Message = $"Your appointment scheduled for {appointment.StartTime:g} has been cancelled by the pyschiatrist.",
+                        CreatedAt = DateTime.UtcNow,
+                        IsRead = false
+                    };
+
+                    _context.Notifications.Add(notification);
+                    await _context.SaveChangesAsync();
+
+                    await _notificationService.SendAppointmentNotification(
+                        appointment.StudentId,
+                        appointment.StartTime,
+                        "CANCELLED"
+                    );
+                }
+                catch (Exception ex)
+                {
+                    // Log notification error but don't fail the whole operation
+                    Console.WriteLine($"Error sending notification: {ex.Message}");
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    message = "Appointment cancelled successfully.",
+                    meetingLink = "https://meet.google.com/kew-aktu-udt" // Return meeting link for UI to disable it
+                });
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "An error occurred while processing the request.";
-                return RedirectToAction("ManageSessions");
+                // Log the exception details
+                Console.WriteLine($"Error in CancelAppointment: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+
+                return Json(new { success = false, message = $"An error occurred: {ex.Message}" });
             }
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles = "Psychiatrist")]
-        public async Task<IActionResult> CancelAppointment(AppointmentCancelViewModel model)
+        public async Task<IActionResult> DeleteAppointment(int id)
         {
             try
             {
-                if (!ModelState.IsValid)
+                // Get the current user's ID
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                // Verify the user exists
+                var currentUser = await _userManager.FindByIdAsync(userId);
+                if (currentUser == null)
                 {
-                    return View(model);
+                    return Json(new
+                    {
+                        success = false,
+                        message = "User authentication failed."
+                    });
                 }
 
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                // Find the appointment with detailed logging
                 var appointment = await _context.Appointments
-                    .FirstOrDefaultAsync(a => a.AppointmentId == model.AppointmentId && a.PsychiatristId == userId);
+                    .FirstOrDefaultAsync(a => a.AppointmentId == id);
 
+                // Log detailed information for debugging
                 if (appointment == null)
                 {
-                    TempData["Error"] = "Appointment not found or unauthorized access.";
-                    return RedirectToAction("ManageSessions");
+                    Console.WriteLine($"Appointment not found. ID: {id}");
+                    return Json(new
+                    {
+                        success = false,
+                        message = $"Appointment with ID {id} not found."
+                    });
                 }
 
-                appointment.Status = "Cancelled";
-                appointment.LastModified = DateTime.Now;
-                appointment.UpdatedBy = userId;
+                // Additional authorization check
+                if (appointment.PsychiatristId != userId)
+                {
+                    Console.WriteLine($"Unauthorized deletion attempt. " +
+                        $"Appointment PsychiatristId: {appointment.PsychiatristId}, " +
+                        $"Current User ID: {userId}");
+                    return Json(new
+                    {
+                        success = false,
+                        message = "You are not authorized to delete this appointment."
+                    });
+                }
 
-                await _context.SaveChangesAsync();
+                // Remove the appointment
+                _context.Appointments.Remove(appointment);
+                int result = await _context.SaveChangesAsync();
 
-                TempData["Success"] = "Appointment cancelled successfully.";
-                return RedirectToAction("ManageSessions");
+                // Log successful deletion
+                Console.WriteLine($"Appointment {id} deleted successfully. Rows affected: {result}");
+
+                return Json(new
+                {
+                    success = true,
+                    message = "Appointment deleted successfully.",
+                    appointmentId = id
+                });
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "An error occurred while cancelling the appointment.";
-                return View(model);
+                // Comprehensive error logging
+                Console.WriteLine($"Exception in DeleteAppointment: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+
+                // Return more detailed error information
+                return Json(new
+                {
+                    success = false,
+                    message = $"Deletion failed: {ex.Message}"
+                });
             }
         }
 

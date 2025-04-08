@@ -22,15 +22,19 @@ namespace MindCare.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IHubContext<MessageHub> _hubContext;
+        private readonly ILogger<PeerSupportController> _logger;
 
         public PeerSupportController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
-            IHubContext<MessageHub> hubContext)
+            IHubContext<MessageHub> hubContext,
+                ILogger<PeerSupportController> logger)
+
         {
             _context = context;
             _userManager = userManager;
             _hubContext = hubContext;
+            _logger = logger;
         }
 
         public IActionResult Index()
@@ -543,117 +547,223 @@ namespace MindCare.Controllers
         // Send a direct message
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SendMessage(MessagesViewModel model)
+        public async Task<IActionResult> SendMessage([FromForm] string Content, [FromForm] int? ConversationId, [FromForm] string RecipientId)
         {
-            // Extract the message details from the nested object
-            var newMessage = model.ActiveConversation?.NewMessage;
-
-            // Detailed logging to understand the incoming data
-            Console.WriteLine($"Conversation ID: {newMessage?.ConversationId}");
-            Console.WriteLine($"Recipient ID: {newMessage?.RecipientId}");
-            Console.WriteLine($"Message Content: {newMessage?.Content}");
-
-            // Explicit null and empty checks
-            if (newMessage == null)
-            {
-                return Json(new { success = false, error = "Message details are missing." });
-            }
-
-            if (string.IsNullOrWhiteSpace(newMessage.Content))
-            {
-                return Json(new { success = false, error = "Message cannot be empty." });
-            }
-
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var currentUser = await _userManager.FindByIdAsync(userId);
-            var recipient = await _userManager.FindByIdAsync(newMessage.RecipientId);
-
-            if (currentUser == null || recipient == null)
-            {
-                return Json(new { success = false, error = "Invalid user." });
-            }
-
-            // Find or create conversation
-            var conversation = await FindOrCreateConversation(userId, newMessage.RecipientId);
-
-            // Create and save the message
-            var message = new DirectMessage
-            {
-                ConversationId = newMessage.ConversationId,
-                SenderId = userId,
-                RecipientId = newMessage.RecipientId,
-                Content = newMessage.Content.Trim(),
-                CreatedAt = DateTime.UtcNow,
-                IsRead = false
-            };
-
             try
             {
-                _context.DirectMessages.Add(message);
-                await _context.SaveChangesAsync();
+                // Log the received parameters
+                Console.WriteLine($"DEBUG: Received - Content: {Content}, ConversationId: {ConversationId}, RecipientId: {RecipientId}");
 
-                // Create notification
-                var notification = new Notification
+                // Basic validation
+                if (string.IsNullOrWhiteSpace(Content))
                 {
-                    UserId = newMessage.RecipientId,
-                    Message = $"New message from {currentUser.FirstName} {currentUser.LastName}",
+                    return Json(new { success = false, error = "Message cannot be empty." });
+                }
+
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var currentUser = await _userManager.FindByIdAsync(userId);
+                if (currentUser == null)
+                {
+                    return Json(new { success = false, error = "Current user not found." });
+                }
+
+                var recipient = await _userManager.FindByIdAsync(RecipientId);
+                if (recipient == null)
+                {
+                    return Json(new { success = false, error = "Recipient not found." });
+                }
+
+                // Find or create conversation - make sure this method properly creates or finds a conversation
+                var conversation = await FindOrCreateConversation(userId, RecipientId);
+                if (conversation == null || conversation.ConversationId <= 0)
+                {
+                    return Json(new { success = false, error = "Could not create or find conversation." });
+                }
+
+                Console.WriteLine($"DEBUG: Using conversation ID: {conversation.ConversationId}");
+
+                // Create and save the message
+                var message = new DirectMessage
+                {
+                    ConversationId = conversation.ConversationId,
+                    SenderId = userId,
+                    RecipientId = RecipientId,
+                    Content = Content.Trim(),
                     CreatedAt = DateTime.UtcNow,
-                    IsRead = false,
-                    Type = "Message",
-                    Link = $"/PeerSupport/DirectMessages?peerId={userId}"
+                    IsRead = false
                 };
 
-                _context.Notifications.Add(notification);
-                await _context.SaveChangesAsync();
+                // Add and save immediately to check for specific errors
+                try
+                {
+                    _context.DirectMessages.Add(message);
+                    await _context.SaveChangesAsync();
+                    Console.WriteLine($"DEBUG: Message saved with ID: {message.MessageId}");
+                }
+                catch (Exception dbEx)
+                {
+                    Console.WriteLine($"DEBUG: Database error saving message - {dbEx.Message}");
+                    Console.WriteLine($"DEBUG: Inner exception - {dbEx.InnerException?.Message}");
+                    return Json(new { success = false, error = $"Database error: {dbEx.InnerException?.Message ?? dbEx.Message}" });
+                }
+
+                // Create notification
+                try
+                {
+                    var notification = new Notification
+                    {
+                        UserId = RecipientId,
+                        Message = $"New message from {currentUser.FirstName} {currentUser.LastName}",
+                        CreatedAt = DateTime.UtcNow,
+                        IsRead = false,
+                        Type = "Message",
+                        Link = $"/PeerSupport/DirectMessages?peerId={userId}"
+                    };
+
+                    _context.Notifications.Add(notification);
+                    await _context.SaveChangesAsync();
+                    Console.WriteLine("DEBUG: Notification created successfully");
+                }
+                catch (Exception notifEx)
+                {
+                    Console.WriteLine($"DEBUG: Error creating notification - {notifEx.Message}");
+                    // Continue even if notification fails - the message was already saved
+                }
 
                 // Send real-time notification via SignalR
-                await _hubContext.Clients.Group(conversation.ConversationId.ToString())
-                    .SendAsync("ReceiveMessage",
-                        message.MessageId.ToString(),
-                        userId,
-                        $"{currentUser.FirstName} {currentUser.LastName}",
-                        currentUser.CurrentMoodIcon ?? "😊",
-                        message.Content,
-                        message.CreatedAt);
+                try
+                {
+                    await _hubContext.Clients.Group(conversation.ConversationId.ToString())
+                        .SendAsync("ReceiveMessage",
+                            message.MessageId.ToString(),
+                            userId,
+                            $"{currentUser.FirstName} {currentUser.LastName}",
+                            currentUser.CurrentMoodIcon ?? "😊",
+                            message.Content,
+                            message.CreatedAt);
+                    Console.WriteLine("DEBUG: SignalR message sent successfully");
+                }
+                catch (Exception signalREx)
+                {
+                    Console.WriteLine($"DEBUG: SignalR error - {signalREx.Message}");
+                    // Continue execution even if SignalR fails - we'll rely on page refresh as fallback
+                }
 
                 return Json(new
                 {
                     success = true,
                     messageId = message.MessageId,
                     content = message.Content,
-                    createdAt = message.CreatedAt
+                    createdAt = message.CreatedAt,
+                    senderName = $"{currentUser.FirstName} {currentUser.LastName}",
+                    senderMoodIcon = currentUser.CurrentMoodIcon ?? "😊"
                 });
             }
             catch (Exception ex)
             {
-                // Log the exception (use proper logging in production)
-                Console.WriteLine($"Message sending error: {ex.Message}");
-                return Json(new { success = false, error = "Failed to send message. Please try again." });
+                Console.WriteLine($"DEBUG: Exception in SendMessage - {ex.Message}");
+                Console.WriteLine($"DEBUG: Stack trace - {ex.StackTrace}");
+                return Json(new { success = false, error = $"Error sending message: {ex.Message}" });
             }
         }
-
         // Helper method to find or create a conversation
-        private async Task<Conversation> FindOrCreateConversation(string user1Id, string user2Id)
+        private async Task<Conversation> FindOrCreateConversation(string userId, string peerId)
         {
+            // Look for an existing conversation between these users
             var conversation = await _context.Conversations
                 .FirstOrDefaultAsync(c =>
-                    (c.User1Id == user1Id && c.User2Id == user2Id) ||
-                    (c.User2Id == user1Id && c.User1Id == user2Id));
+                    (c.User1Id == userId && c.User2Id == peerId) ||
+                    (c.User1Id == peerId && c.User2Id == userId));
 
+            // If no conversation exists, create a new one
             if (conversation == null)
             {
                 conversation = new Conversation
                 {
-                    User1Id = user1Id,
-                    User2Id = user2Id,
-                    CreatedAt = DateTime.UtcNow
+                    User1Id = userId,
+                    User2Id = peerId,
+                    CreatedAt = DateTime.UtcNow,
+                    LastActivityAt = DateTime.UtcNow
                 };
 
                 _context.Conversations.Add(conversation);
                 await _context.SaveChangesAsync();
+                Console.WriteLine($"DEBUG: Created new conversation with ID: {conversation.ConversationId}");
+            }
+            else
+            {
+                // Update the LastActivityAt timestamp
+                conversation.LastActivityAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+                Console.WriteLine($"DEBUG: Using existing conversation with ID: {conversation.ConversationId}");
             }
 
             return conversation;
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteMessage(string messageId)
+        {
+            try
+            {
+                // Log the incoming messageId for debugging
+                _logger.LogInformation($"Attempting to delete message with ID: {messageId}");
+
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(currentUserId))
+                {
+                    _logger.LogWarning("Delete message failed: User not authenticated");
+                    return Json(new { success = false, error = "User not authenticated" });
+                }
+
+                if (string.IsNullOrEmpty(messageId))
+                {
+                    _logger.LogWarning("Delete message failed: Empty messageId");
+                    return Json(new { success = false, error = "Message ID is required" });
+                }
+
+                // Try parsing the messageId to an int
+                if (!int.TryParse(messageId, out int id))
+                {
+                    _logger.LogWarning($"Delete message failed: Invalid messageId format: {messageId}");
+                    return Json(new { success = false, error = "Invalid Message ID format" });
+                }
+
+                // Now query using the parsed int
+                var message = await _context.Messages
+                    .FirstOrDefaultAsync(m => m.Id == id);
+
+                if (message == null)
+                {
+                    _logger.LogWarning($"Delete message failed: Message not found with ID: {id}");
+                    return Json(new { success = false, error = "Message not found" });
+                }
+
+                // Verify the current user is the sender of the message
+                if (message.SenderId != currentUserId)
+                {
+                    _logger.LogWarning($"Delete message failed: User {currentUserId} attempted to delete message {id} owned by {message.SenderId}");
+                    return Json(new { success = false, error = "You can only delete your own messages" });
+                }
+
+                // Get conversation ID before deleting for SignalR notification
+                var conversationId = message.ConversationId;
+
+                // Delete the message
+                _context.Messages.Remove(message);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation($"Message {id} successfully deleted");
+
+                // Notify other users in the conversation through SignalR
+                await _hubContext.Clients.Group(conversationId).SendAsync("MessageDeleted", messageId);
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error deleting message: {ex.Message}");
+                return Json(new { success = false, error = ex.Message });
+            }
         }
     }
  }

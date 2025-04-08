@@ -5,83 +5,128 @@
     var currentStatus = ViewBag.CurrentStatus ?? "All";
 }
 <div class="container my-5">
-    <h1 class="text-center" style="color: #004085;">Your Psychiatry Sessions</h1>
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div class="btn-group" role="group" aria-label="Session status filter">
-            <a href="@Url.Action("PsychiatrySessions", "Psychiatry", new { status = "All" })"
-               class="btn" style="background-color: @(currentStatus == "All" ? "#004085" : "#004085"); color: #fff; border-color: #004085;">
-                All Sessions
-            </a>
-            <a href="@Url.Action("PsychiatrySessions", "Psychiatry", new { status = "Pending" })"
-               class="btn" style="background-color: @(currentStatus == "Pending" ? "#004085" : "#004085");color: #fff; border-color: #004085;">
-                Pending Sessions
-            </a>
-            <a href="@Url.Action("PsychiatrySessions", "Psychiatry", new { status = "Approved" })"
-               class="btn" style="background-color: @(currentStatus == "Approved" ? "#004085" : "#004085");color: #fff; border-color: #004085;">
-                Confirmed Sessions
+    <h1 class="text-center mb-4" style="color: #004085;">Your Psychiatry Sessions</h1>
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="btn-group shadow-sm w-100" role="group" aria-label="Session status filter">
+                <a href="@Url.Action("PsychiatrySessions", "Psychiatry", new { status = "All" })"
+                   class="btn @(currentStatus == "All" ? "active" : "")"
+                   style="background-color: @(currentStatus == "All" ? "#004085" : "#ffffff");
+                          color: @(currentStatus == "All" ? "#ffffff" : "#004085");
+                          border-color: #004085;
+                          flex: 1;
+                          transition: all 0.3s ease;">
+                    <i class="fas fa-list-ul me-2"></i> All Sessions
+                </a>
+                <a href="@Url.Action("PsychiatrySessions", "Psychiatry", new { status = "Pending" })"
+                   class="btn @(currentStatus == "Pending" ? "active" : "")"
+                   style="background-color: @(currentStatus == "Pending" ? "#004085" : "#ffffff");
+                          color: @(currentStatus == "Pending" ? "#ffffff" : "#004085");
+                          border-color: #004085;
+                          flex: 1;
+                          transition: all 0.3s ease;">
+                    <i class="fas fa-clock me-2"></i> Pending
+                </a>
+                <a href="@Url.Action("PsychiatrySessions", "Psychiatry", new { status = "Approved" })"
+                   class="btn @(currentStatus == "Approved" ? "active" : "")"
+                   style="background-color: @(currentStatus == "Approved" ? "#004085" : "#ffffff");
+                          color: @(currentStatus == "Approved" ? "#ffffff" : "#004085");
+                          border-color: #004085;
+                          flex: 1;
+                          transition: all 0.3s ease;">
+                    <i class="fas fa-check-circle me-2"></i> Confirmed
+                </a>
+            </div>
+        </div>
+        <div class="col-md-4 d-flex justify-content-md-end mt-3 mt-md-0">
+            <a href="@Url.Action("BookSession", "Psychiatry")"
+               class="btn shadow-sm w-100 w-md-auto"
+               style="background-color: #004085; color: #fff; transition: all 0.3s ease;">
+                <i class="fas fa-calendar-plus me-2"></i> Book Appointment
             </a>
         </div>
-        <a href="@Url.Action("BookSession", "Psychiatry")" class="btn" style="background-color: #004085; color: #fff;">
-            Book Session
-        </a>
     </div>
-    <div class="list-group">
-        @if (!Model.Any())
-        {
-            <div class="alert alert-info">
-                @if (currentStatus == "All")
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="list-group list-group-flush">
+                @if (!Model.Any())
                 {
-                    <span>You don't have any scheduled Psychiatry sessions yet.</span>
+                    <div class="alert alert-info m-3 mb-0">
+                        @if (currentStatus == "All")
+                        {
+                            <span><i class="fas fa-info-circle me-2"></i> You don't have any scheduled Psychiatry sessions yet.</span>
+                        }
+                        else
+                        {
+                            <span><i class="fas fa-info-circle me-2"></i> You don't have any @currentStatus.ToLower() Psychiatry sessions.</span>
+                        }
+                    </div>
                 }
                 else
                 {
-                    <span>You don't have any @currentStatus.ToLower() Psychiatry sessions.</span>
+                    @foreach (var session in Model)
+                    {
+                        <div class="list-group-item hover-effect" style="transition: all 0.2s ease;">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <a href="@Url.Action("SessionDetails", "Psychiatry", new { id = session.AppointmentId })"
+                                   class="flex-grow-1 text-decoration-none text-dark p-2">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h5 class="mb-1">
+                                            <i class="fas fa-calendar-day me-2" style="color: #004085;"></i>
+                                            @session.GetLocalStartTime().ToShortDateString() @session.GetLocalStartTime().ToString("HH:mm")
+                                        </h5>
+                                        <span class="badge rounded-pill px-3 py-2 @(session.Status == "Pending" ? "bg-warning text-dark" :
+                                                       session.Status == "Approved" ? "bg-success" :
+                                                       session.Status == "Cancelled" ? "bg-danger" : "bg-secondary")">
+                                            @session.Status
+                                        </span>
+                                    </div>
+                                    <p class="mb-1">
+                                        <i class="fas fa-user-md me-2" style="color: #004085;"></i>
+                                        Psychiatrist: @(session.Psychiatrist?.FirstName ?? "") @(session.Psychiatrist?.LastName ?? "Not Assigned")
+                                    </p>
+                                    <small class="text-muted"><i class="fas fa-info-circle me-1"></i> Click for details</small>
+                                </a>
+                                <div class="ms-3 d-flex">
+                                    @if (session.Status != "Cancelled")
+                                    {
+                                        <a href="@Url.Action("Edit", "Psychiatry", new { id = session.AppointmentId })"
+                                           class="btn btn-sm btn-outline-primary me-2" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    }
+                                    <form asp-action="Delete" asp-controller="Psychiatry" method="post"
+                                          onsubmit="return confirm('Are you sure you want to delete this appointment? This action cannot be undone.');">
+                                        <input type="hidden" name="id" value="@session.AppointmentId" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
                 }
             </div>
-        }
-        else
-        {
-            @foreach (var session in Model)
-            {
-                <div class="list-group-item">
-                    <div class="d-flex w-100 justify-content-between align-items-center">
-                        <a href="@Url.Action("SessionDetails", "Psychiatry", new { id = session.AppointmentId })"
-                           class="flex-grow-1 text-decoration-none text-dark">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h5 class="mb-1">@session.GetLocalStartTime().ToShortDateString() @session.GetLocalStartTime().ToString("HH:mm")</h5>
-                                <span class="badge @(session.Status == "Pending" ? "badge-warning" :
-                                               session.Status == "Approved" ? "badge-success" :
-                                               session.Status == "Cancelled" ? "badge-danger" : "badge-secondary")">
-                                    @session.Status
-                                </span>
-                            </div>
-                            <p class="mb-1">Psychiatrist: @(session.Psychiatrist?.FirstName ?? "") @(session.Psychiatrist?.LastName ?? "Not Assigned")</p>
-                            <small class="text-muted">Click for details</small>
-                        </a>
-                        <div class="ml-3 d-flex">
-                            @if (session.Status != "Cancelled")
-                            {
-                                <a href="@Url.Action("Edit", "Psychiatry", new { id = session.AppointmentId })" 
-                                   class="btn btn-sm btn-outline-primary mr-2" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                            }
-                            <form asp-action="Delete" asp-controller="Psychiatry" method="post" 
-                                  onsubmit="return confirm('Are you sure you want to delete this appointment? This action cannot be undone.');">
-                                <input type="hidden" name="id" value="@session.AppointmentId" />
-                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            }
-        }
+        </div>
     </div>
 </div>
 
-<!-- Optional: Add this to your _Layout.cshtml if you haven't already included Font Awesome -->
-@section Styles {
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
-}
+<style>
+    .hover-effect:hover {
+        background-color: rgba(0, 64, 133, 0.05);
+    }
+
+    .btn:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+
+    @@media (min-width: 768px) {
+        .w-md-auto {
+            width: auto !important;
+        }
+    }
+</style>

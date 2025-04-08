@@ -8,6 +8,7 @@
         public string? ReceiverId { get; set; }
         public DateTime Timestamp { get; set; }
         public bool IsFromBot { get; set; }
+        public string ConversationId { get; set; }
         public MessageType Type { get; set; }
     }
 

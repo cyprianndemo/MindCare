@@ -120,6 +120,7 @@ namespace MindCare.ViewModel
         public string OtherUserId { get; set; }
         public string OtherUserName { get; set; }
         public string MoodIcon { get; set; }
+        public bool IsOnline { get; set; }
         public List<MessageViewModel> Messages { get; set; }
         public CreateMessageViewModel NewMessage { get; set; }
     }

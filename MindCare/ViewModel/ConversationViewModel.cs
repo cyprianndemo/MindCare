@@ -15,6 +15,9 @@ namespace MindCare.ViewModel
             public string LastMessagePreview { get; set; }
             public DateTime? LastMessageTime { get; set; }
             public int UnreadCount { get; set; }
+            public bool IsOnline { get; set; }
+            public string IsOffline { get; set; }
         
     }
+    
 }
